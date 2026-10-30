@@ -1,0 +1,6 @@
+{
+  "name": "Metabolix",
+  "description": "Metabolismo humano, en vivo: mapa celular dinámico, flujos en tiempo real, regulación enzimática, balances de ATP y ciclos metabólicos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
