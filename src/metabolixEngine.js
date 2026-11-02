@@ -1,5 +1,6 @@
-// @ts-nocheck
 import { D } from "./metabolixData.js";
+import { isGalactoseEntity, renderGalactoseClinicalSuite, setupGalactoseClinicalSuite } from "./metabolixGalactose.js";
+import { isLipidEntity, renderLipidClinicalSuite, setupLipidClinicalSuite } from "./metabolixLipids.js";
 
 export function initMetabolix() {
 
@@ -44,7 +45,7 @@ const L = {
   dhap:[420,612,"l"], gap:[560,640,"r"], bpg13:[560,742,"l"], pg3:[560,832,"l"], pg2:[560,912,"l"], pep:[560,992,"l"],
   pyruvate_cyt:[560,1092,"b"], lactate_cyt:[395,1092,"b"],
   glucose_free:[400,180,"l"],
-  galactose:[140,238,"b"], gal1p:[292,238,"b"], mannose:[140,360,"b"], man6p:[300,388,"b"],
+  galactose:[140,238,"b"], gal1p:[292,238,"b"], galactitol:[60,160,"l"], mannose:[140,360,"b"], man6p:[300,388,"b"],
   fructose_diet:[140,505,"b"], f1p:[292,545,"b"], glyceraldehyde:[420,728,"b"],
   glycerol_3p:[262,705,"l"], triacylglycerol:[198,858,"b"],
   lactone_6p:[705,196,"t"], gluconate_6p:[845,196,"t"], ru5p:[985,196,"t"], r5p:[1125,196,"t"],
@@ -74,7 +75,8 @@ const ROUTE = {
   rx_g6pase:{bend:0},
   rx_oaa_export:{bend:-22},
   rx_beta_oxidation:{bend:-26},
-  rx_etc_c5:{bend:30}
+  rx_etc_c5:{bend:30},
+  rx_aldose_reductase_gal:{bend:-18}
 };
 const PROTEIN = new Set(["complex_1","complex_2","coenzyme_q","complex_3","complex_4","atp_synthase"]);
 const nodeR = id => PROTEIN.has(id)?26 : id==="proton_gradient"?20 : id==="cytochrome_c"?13 : id==="malate_shuttle_hub"||id==="acyl_carnitine"?12 : (MET[id]&&MET[id].isBranchPoint)?19:15;
@@ -86,7 +88,7 @@ const STATES = [
  {id:"fed",name:"Postprandial",tissue:"Hepatocito",c:"var(--pw-glycolysis)",
   sig:{Insulina:.95,"Glucagón":.1,Adrenalina:.1,"AMP/ATP":.15,"Demanda NADPH":.55},
   pw:{glycolysis:.9,gluconeogenesis:0,pentose_phosphate:.6,glycogen_metabolism:.9,monosaccharide_entry:.45,mitochondrial_fate:.8,krebs_cycle:.7,electron_transport:.7,lipid_metabolism:.85},
-  rx:{rx_gp:.04,rx_cpt1:.04,rx_cact_cpt2:.04,rx_beta_oxidation:.04,rx_ketogenesis:0,rx_glut_out:0,rx_ldh:.1,rx_pyruvate_carboxylase:.1,rx_oaa_export:0,rx_pepck:0,rx_g6pase:0,rx_fbpase1:0,rx_galk:.4,rx_galt:.4},
+  rx:{rx_gp:.04,rx_cpt1:.04,rx_cact_cpt2:.04,rx_beta_oxidation:.04,rx_ketogenesis:0,rx_glut_out:0,rx_ldh:.1,rx_pyruvate_carboxylase:.1,rx_oaa_export:0,rx_pepck:0,rx_g6pase:0,rx_fbpase1:0,rx_galk:.4,rx_galt:.4,rx_aldose_reductase_gal:.02},
   notes:["La insulina activa la proteína fosfatasa 1: la glucógeno sintasa queda desfosforilada (activa) y la fosforilasa inactiva.","La PFK-2 desfosforilada fabrica fructosa-2,6-bisfosfato y la PFK-1 trabaja a pleno rendimiento.","La ACC produce malonil-CoA, que bloquea la CPT-1: los ácidos grasos recién sintetizados no entran en la mitocondria a quemarse."]},
  {id:"fast",name:"Ayuno nocturno",tissue:"Hepatocito · 12–24 h",c:"var(--pw-gluconeogenesis)",
   sig:{Insulina:.12,"Glucagón":.85,Adrenalina:.3,"AMP/ATP":.35,"Demanda NADPH":.2},
@@ -270,7 +272,7 @@ D.METABOLITES.forEach(m=>{
 /* ======================= Etiquetas de enzimas ======================= */
 const KEY_MAP = new Set(["rx_hk","rx_pfk1","rx_pk","rx_pdh","rx_g6pdh","rx_gs","rx_gp","rx_cs","rx_idh","rx_akgdh","rx_fbpase1","rx_pyruvate_carboxylase","rx_pepck","rx_g6pase","rx_acc","rx_cpt1","rx_ketogenesis"]);
 const isKey = r => r && (r.module ? !!(r.regulation&&r.regulation.isKeyRegulator) : KEY_MAP.has(r.id));
-const SHORT = {rx_ketogenesis:"HMGCS2",rx_malate_aspartate_shuttle:"Mal-Asp",rx_citrate_export:"CIC",rx_etc_c5:"ATP sintasa",rx_beta_oxidation:"β-oxidación",rx_tag_synth:"GPAT / DGAT"};
+const SHORT = {rx_ketogenesis:"HMGCS2",rx_malate_aspartate_shuttle:"Mal-Asp",rx_citrate_export:"CIC",rx_etc_c5:"ATP sintasa",rx_beta_oxidation:"β-oxidación",rx_tag_synth:"GPAT / DGAT",rx_aldose_reductase_gal:"Aldosa Reductasa"};
 const PILL_T = {rx_g6pase:.68,rx_g6pdh:.62,rx_pyruvate_carboxylase:.33,rx_ketogenesis:.6};
 const shortAbbr = a => String(a||"").replace(/\s*\([^)]*\)/g,"").trim();
 function enzPill(parent,x,y,r,fs){
@@ -455,6 +457,8 @@ function openRx(id, fromDisease){
       ${cl.treatmentKeys?.length?`<span class="lab">Tratamiento</span><ul>${cl.treatmentKeys.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>`:""}
       <div>${(r.module?modBlock:block)===r.id?`<button class="btn" id="unblock">Quitar el déficit del mapa</button>`:`<button class="btn red" id="doblock">Simular el déficit en el mapa</button>`}</div></div>`;
   }
+  if(isGalactoseEntity(id)) h += renderGalactoseClinicalSuite(id);
+  if(isLipidEntity(id)) h += renderLipidClinicalSuite(id);
   pbody.innerHTML=h; pbody.scrollTop=0; panel.classList.add("open"); $(".body").classList.add("po");
   pbody.querySelectorAll("[data-node]").forEach(b=>b.onclick=()=>openNode(b.dataset.node));
   const db=$("#doblock"); if(db) db.onclick=()=>{ if(r.module){ if(MOD.id!==r.module) selectModule(r.module); setModBlock(r.id);} else setBlock(r.id); openRx(r.id); toast("Déficit simulado: mira dónde se acumulan los metabolitos"); };
@@ -462,6 +466,20 @@ function openRx(id, fromDisease){
   const ub=$("#unblock"); if(ub) ub.onclick=()=>{ if(r.module) setModBlock(null); else setBlock(null); openRx(r.id); };
   if(reg&&reg.kinetics) kinetics(reg.kinetics, c);
   if(!fromDisease && currentView!=="reto"){ const E=EDGES.find(e=>e.r.id===id); if(E && innerWidth>860){ /* sin zoom forzado al explorar */ } }
+  if(isGalactoseEntity(id)) {
+    setupGalactoseClinicalSuite(pbody, id, {
+      setBlock: bid => { setBlock(bid); apply(); },
+      focusGalactoseArea: () => focusXY(140, 238, 750),
+      toast
+    });
+  }
+  if(isLipidEntity(id)) {
+    setupLipidClinicalSuite(pbody, id, {
+      setBlock: bid => { setBlock(bid); apply(); },
+      focusLipidArea: () => focusXY(1470, 680, 750),
+      toast
+    });
+  }
 }
 
 function openNode(id){
@@ -469,7 +487,7 @@ function openNode(id){
   $("#panel-kind").textContent="Metabolito";
   const ins=ALLRX.filter(r=>r.toNodeId===id), outs=ALLRX.filter(r=>r.fromNodeId===id);
   const li=(r,dir)=>`<button data-rx="${r.id}"><span class="dot" style="color:${PW[r.pathway].c}"></span><span>${dir} <b>${esc(r.enzymeAbbreviation)}</b> · ${esc(MET[dir==="←"?r.fromNodeId:r.toNodeId]?.abbreviation||"")}</span><small>${esc(PW[r.pathway].name)}</small></button>`;
-  pbody.innerHTML = `<div><div class="tags"><span class="tag">${esc(COMP[m.compartment]||m.compartment)}</span>${m.isBranchPoint?'<span class="tag k">Encrucijada metabólica</span>':""}</div>
+  let nh = `<div><div class="tags"><span class="tag">${esc(COMP[m.compartment]||m.compartment)}</span>${m.isBranchPoint?'<span class="tag k">Encrucijada metabólica</span>':""}</div>
    <h2 class="p-title" style="color:${c}">${esc(m.name)}</h2><div class="p-sub mono">${esc(m.abbreviation)}${m.formula?` · ${esc(m.formula)}`:""}</div></div>
    ${m.carbons>0?`<div class="blk"><h4>Esqueleto carbonado</h4><div class="carb">${Array.from({length:m.carbons},()=>`<i style="border-color:${c}"></i>`).join("")}<span class="mono" style="margin-left:8px;color:var(--fg-dim)">${m.carbons} C</span></div></div>`:""}
    <div class="blk"><p style="color:var(--fg);font-size:14px">${esc(m.description)}</p></div>
@@ -477,9 +495,26 @@ function openNode(id){
    ${PORTAL[id]?`<button class="btn" data-portal="${PORTAL[id]}">Ver en detalle: ${esc(MODM[PORTAL[id]].title)} →</button>`:""}
    ${ins.length?`<div class="blk"><h4>Se forma por</h4><div class="rxlist">${ins.map(r=>li(r,"←")).join("")}</div></div>`:""}
    ${outs.length?`<div class="blk"><h4>Se transforma en</h4><div class="rxlist">${outs.map(r=>li(r,"→")).join("")}</div></div>`:""}`;
+  if(isGalactoseEntity(id)) nh += renderGalactoseClinicalSuite(id);
+  if(isLipidEntity(id)) nh += renderLipidClinicalSuite(id);
+  pbody.innerHTML = nh;
   pbody.scrollTop=0; panel.classList.add("open"); $(".body").classList.add("po");
   pbody.querySelectorAll("[data-rx]").forEach(b=>b.onclick=()=>openRx(b.dataset.rx));
   pbody.querySelectorAll("[data-portal]").forEach(b=>b.onclick=()=>openModule(b.dataset.portal));
+  if(isGalactoseEntity(id)) {
+    setupGalactoseClinicalSuite(pbody, id, {
+      setBlock: bid => { setBlock(bid); apply(); },
+      focusGalactoseArea: () => focusXY(140, 238, 750),
+      toast
+    });
+  }
+  if(isLipidEntity(id)) {
+    setupLipidClinicalSuite(pbody, id, {
+      setBlock: bid => { setBlock(bid); apply(); },
+      focusLipidArea: () => focusXY(1470, 680, 750),
+      toast
+    });
+  }
 }
 
 /* gráfica cinética */
@@ -579,7 +614,7 @@ function answer(kind,id){
 }
 
 /* ======================= Balances ======================= */
-const BAL=D.SUBSTRATE_ENERGY_BALANCES; let balSel="glucose_aerobic", shuttle="mas";
+const BAL=D.SUBSTRATE_ENERGY_BALANCES; let balSel="glucose_aerobic", shuttle="mas", shuttleTab="glucose";
 /* corrección de datos: fructosa y galactosa con la fase mitocondrial y la cadena respiratoria explícitas */
 (function(){
   const ETC=(n)=>({step:"Cadena respiratoria y ATP sintasa",enzyme:"Complejos I–IV y ATP sintasa",compartment:"mitochondria_membrane",atpDelta:28,nadhDelta:-10,nadphDelta:0,fadh2Delta:-2,co2Delta:0,note:n});
@@ -596,14 +631,364 @@ const BAL=D.SUBSTRATE_ENERGY_BALANCES; let balSel="glucose_aerobic", shuttle="ma
 const SHUTTLE_WHY = {gluconeogenesis_lactate:"No interviene: el NADH que genera la LDH lo consume la GAPDH en el propio citosol.",palmitate_beta_oxidation:"No interviene: todo el NADH de la β-oxidación y del ciclo de Krebs se forma ya en la matriz.",krebs_per_acetyl_coa:"No interviene: todo el NADH se forma en la matriz.",glucose_anaerobic:"No interviene: sin oxígeno, la LDH reoxida el NADH en el citosol.",pentose_shunt:"No interviene: la ruta produce NADPH, no NADH.",glycogen_storage:"No interviene: no se produce NADH."};
 const cytNADH = b => Math.max(0, b.steps.filter(s=>s.compartment==="cytosol").reduce((t,s)=>t+s.nadhDelta,0));
 function balAdj(b){
-  const n=cytNADH(b); if(!n || shuttle==="mas") return b;
-  const c=JSON.parse(JSON.stringify(b)); const loss=n*1; c.aerobicAtpNet=b.aerobicAtpNet-loss;
+  const n=cytNADH(b); if(!n) return b;
+  const c=JSON.parse(JSON.stringify(b));
+  if(shuttle==="mas"){
+    if(c.id==="glucose_aerobic") c.tissue="Hígado / Corazón / Riñón (Lanzadera Malato-Aspartato)";
+    return c;
+  }
+  const loss=n*1; c.aerobicAtpNet=b.aerobicAtpNet-loss;
   const etc=[...c.steps].reverse().find(s=>s.compartment==="mitochondria_membrane"&&s.atpDelta>0);
-  c.tissue=c.tissue.replace(/\s*\(Lanzadera[^)]*\)/i,"");
+  if(c.id==="glucose_aerobic") c.tissue="Músculo Esquelético Rápido / Encéfalo (Lanzadera Glicerol-3-P)";
+  else c.tissue=c.tissue.replace(/\s*\(Lanzadera[^)]*\)/i," (Lanzadera Glicerol-3-P)");
   c.steps.forEach(st=>{ st.note=st.note.replace("valen ~5 ATP vía lanzadera malato-aspartato y Complejo I","valen ~3 ATP vía lanzadera del glicerol-3-P y CoQ"); });
-  if(etc){ etc.atpDelta-=loss; etc.note+=` Con la lanzadera del glicerol-3-P los ${n} NADH citosólicos rinden 1,5 ATP en vez de 2,5: −${loss} ATP.`; }
+  if(etc){ etc.atpDelta-=loss; etc.note=etc.note.replace("Total neto = 32 ATP",`Total neto = ${c.aerobicAtpNet} ATP`)+` Con la lanzadera del glicerol-3-P los ${n} NADH citosólicos rinden 1,5 ATP en vez de 2,5: −${loss} ATP.`; }
   return c;
 }
+
+function renderShuttleComparisonSuite(currentShuttle, selectedSubstrateId){
+  const isMas = currentShuttle === "mas";
+  const isGlc = selectedSubstrateId === "glucose_aerobic";
+  
+  const tabs = [
+    { id: "glucose", label: "⚡ Rendimiento en Glucosa (32 vs 30 ATP)" },
+    { id: "matrix", label: "🔬 Matriz Comparativa Frente a Frente" },
+    { id: "clinical", label: "🏥 Bioquímica Tisular y Clínica" }
+  ];
+  
+  const navHtml = `<div class="clinical-nav-tabs" role="tablist">
+    ${tabs.map(t => `<button class="clinical-nav-tab" role="tab" data-sh-tab="${t.id}" aria-selected="${shuttleTab === t.id}">${esc(t.label)}</button>`).join("")}
+  </div>`;
+  
+  let bodyHtml = "";
+  if (shuttleTab === "glucose") {
+    bodyHtml = `
+      <div class="clinical-delta-ribbon">
+        <div style="display:flex;align-items:center;gap:10px;flex:1 1 300px">
+          <span class="clinical-tag-emerald">${isMas ? "Máxima Eficiencia (32 ATP)" : "Cinética Rápida (30 ATP · Δ = −2)"}</span>
+          <div style="font-size:13px;color:var(--fg);font-weight:600">
+            ${isMas 
+              ? "Lanzadera Malato-Aspartato activa: 2 NADH citosólicos entran al Complejo I (10 H⁺ bombeados) rindiendo 5,0 ATP."
+              : "Lanzadera Glicerol-3-P activa: 2 NADH citosólicos entran a CoQ (6 H⁺ bombeados, salta Complejo I) rindiendo 3,0 ATP."}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          ${!isGlc ? `<button class="clinical-btn-ghost" data-select-glucose="true">⚡ Aplicar en D-Glucosa Aeróbica</button>` : `<span class="clinical-badge-active">D-Glucosa seleccionada</span>`}
+        </div>
+      </div>
+
+      <div class="clinical-cards-split">
+        <div class="clinical-card-box ${isMas ? 'active-shuttle' : ''}" data-card-sh="mas" title="Pulsa para activar la lanzadera malato-aspartato">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+            <div>
+              <span class="clinical-eyebrow">COMPLEJO I · MATRIZ</span>
+              <h4 style="margin:2px 0 0;font-size:17px;font-weight:700">Lanzadera Malato-Aspartato (MAS)</h4>
+              <p style="margin:2px 0 0;font-size:12px;color:var(--fg-dim)">Hígado, Miocardio (corazón) y Corteza Renal</p>
+            </div>
+            <div style="text-align:right">
+              <span style="font-family:var(--f-mono);font-size:28px;font-weight:800;color:${isMas ? '#059669' : 'var(--fg)'}">32</span>
+              <span style="display:block;font-size:10px;color:var(--fg-faint);text-transform:uppercase">ATP / Glucosa</span>
+            </div>
+          </div>
+
+          <div class="clinical-stat-grid">
+            <div class="clinical-stat-item">
+              <span>Por NADH citosólico</span>
+              <b>2,5 ATP</b>
+            </div>
+            <div class="clinical-stat-item">
+              <span>2 NADH de GAPDH</span>
+              <b>+5,0 ATP</b>
+            </div>
+            <div class="clinical-stat-item">
+              <span>Translocación H⁺</span>
+              <b>10 H⁺ / par e⁻</b>
+            </div>
+            <div class="clinical-stat-item">
+              <span>Punto de entrada</span>
+              <b>Complejo I</b>
+            </div>
+          </div>
+
+          <p style="margin:0;font-size:12.5px;color:var(--fg-dim);line-height:1.45">
+            Conserva el 100% de la energía redox del NADH citosólico. Requiere el transportador OGC (malato/α-KG) y citrina/Aralar1 (AGC, aspartato/glutamato + H⁺).
+          </p>
+
+          <div style="display:flex;gap:8px;align-items:center;margin-top:auto;flex-wrap:wrap">
+            <button class="clinical-btn-action ${isMas ? 'active' : ''}" data-sh="mas">
+              ${isMas ? "✓ Activa en balance (32 ATP)" : "Activar en balance (32 ATP)"}
+            </button>
+            <button class="clinical-btn-outline" data-open-sh="mas">
+              Ver circuito animado →
+            </button>
+          </div>
+        </div>
+
+        <div class="clinical-card-box ${!isMas ? 'active-shuttle' : ''}" data-card-sh="g3p" title="Pulsa para activar la lanzadera glicerol-3-fosfato">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+            <div>
+              <span class="clinical-eyebrow" style="color:${!isMas ? '#059669' : '#d97706'}">COENZIMA Q · CARA EXTERNA MMI</span>
+              <h4 style="margin:2px 0 0;font-size:17px;font-weight:700">Lanzadera Glicerol-3-Fosfato (G3P)</h4>
+              <p style="margin:2px 0 0;font-size:12px;color:var(--fg-dim)">Músculo esquelético rápido (IIb), Encéfalo y Grasa parda</p>
+            </div>
+            <div style="text-align:right">
+              <span style="font-family:var(--f-mono);font-size:28px;font-weight:800;color:${!isMas ? '#059669' : '#d97706'}">30</span>
+              <span style="display:block;font-size:10px;color:var(--fg-faint);text-transform:uppercase">ATP / Glucosa (Δ = −2)</span>
+            </div>
+          </div>
+
+          <div class="clinical-stat-grid">
+            <div class="clinical-stat-item">
+              <span>Por NADH citosólico</span>
+              <b>1,5 ATP</b>
+            </div>
+            <div class="clinical-stat-item">
+              <span>2 NADH de GAPDH</span>
+              <b>+3,0 ATP</b>
+            </div>
+            <div class="clinical-stat-item">
+              <span>Translocación H⁺</span>
+              <b>6 H⁺ / par e⁻</b>
+            </div>
+            <div class="clinical-stat-item">
+              <span>Punto de entrada</span>
+              <b>CoQ (salta CI)</b>
+            </div>
+          </div>
+
+          <p style="margin:0;font-size:12.5px;color:var(--fg-dim);line-height:1.45">
+            Prioriza la velocidad sobre la eficiencia: la GPD2 mitocondrial usa FAD y dona electrones al CoQ. Esencialmente irreversible y activada alostéricamente por Ca²⁺.
+          </p>
+
+          <div style="display:flex;gap:8px;align-items:center;margin-top:auto;flex-wrap:wrap">
+            <button class="clinical-btn-action ${!isMas ? 'active' : ''}" data-sh="g3p">
+              ${!isMas ? "✓ Activa en balance (30 ATP)" : "Activar en balance (30 ATP)"}
+            </button>
+            <button class="clinical-btn-outline" data-open-sh="g3p">
+              Ver circuito animado →
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="clinical-breakdown-box">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <div>
+            <h5 style="margin:0;font-size:14px;font-weight:700">Desglose Estequiométrico Completo (1 mol D-Glucosa)</h5>
+            <p style="margin:2px 0 0;font-size:12px;color:var(--fg-dim)">
+              Comparativa reacción a reacción: la lanzadera determina exactamente el rendimiento del paso de la GAPDH:
+            </p>
+          </div>
+          <span style="font-family:var(--f-mono);font-size:12px;padding:4px 10px;border-radius:6px;background:var(--ink-3);color:var(--fg);font-weight:700">
+            Diferencial neto = −2 ATP por glucosa
+          </span>
+        </div>
+
+        <div class="clinical-breakdown-table">
+          <div class="clinical-bt-head">
+            <span>Fase / Reacción</span>
+            <span>Rendimiento Base</span>
+            <span>Vía Malato-Aspartato</span>
+            <span>Vía Glicerol-3-P</span>
+          </div>
+          <div class="clinical-bt-row">
+            <span>Glucólisis citosólica (a nivel de sustrato)</span>
+            <span>+2 ATP netos (4 formados − 2 gastados)</span>
+            <b class="pos">+2 ATP</b>
+            <b class="pos">+2 ATP</b>
+          </div>
+          <div class="clinical-bt-row highlight-row">
+            <span><b>2 NADH citosólicos (GAPDH)</b></span>
+            <span>2 mol NADH en citosol</span>
+            <b style="color:#059669">+5,0 ATP (vía Complejo I)</b>
+            <b style="color:#d97706">+3,0 ATP (vía CoQ, −2 ATP)</b>
+          </div>
+          <div class="clinical-bt-row">
+            <span>Complejo PDH (2 piruvatos en matriz)</span>
+            <span>2 NADH mitocondriales</span>
+            <b class="pos">+5,0 ATP</b>
+            <b class="pos">+5,0 ATP</b>
+          </div>
+          <div class="clinical-bt-row">
+            <span>Ciclo de Krebs (SCS x2)</span>
+            <span>2 GTP / ATP directos</span>
+            <b class="pos">+2,0 ATP</b>
+            <b class="pos">+2,0 ATP</b>
+          </div>
+          <div class="clinical-bt-row">
+            <span>Ciclo de Krebs (SDH x2)</span>
+            <span>2 FADH₂ mitocondriales</span>
+            <b class="pos">+3,0 ATP</b>
+            <b class="pos">+3,0 ATP</b>
+          </div>
+          <div class="clinical-bt-row">
+            <span>Ciclo de Krebs (IDH + α-KGDH + MDH)</span>
+            <span>6 NADH mitocondriales</span>
+            <b class="pos">+15,0 ATP</b>
+            <b class="pos">+15,0 ATP</b>
+          </div>
+          <div class="clinical-bt-total">
+            <span><b>TOTAL NETO AERÓBICO</b></span>
+            <span>Estequiometría P/O moderna</span>
+            <b style="font-size:15px;color:#059669">32 ATP (100%)</b>
+            <b style="font-size:15px;color:#d97706">30 ATP (93,8%)</b>
+          </div>
+        </div>
+      </div>
+    `;
+  } else if (shuttleTab === "matrix") {
+    bodyHtml = `
+      <div class="clinical-matrix-wrap">
+        <div class="clinical-matrix-header">
+          <span>Parámetro Fisiológico y Bioquímico</span>
+          <span style="color:#059669">Lanzadera Malato-Aspartato (MAS)</span>
+          <span style="color:#d97706">Lanzadera Glicerol-3-Fosfato (G3P)</span>
+        </div>
+
+        <div class="clinical-matrix-row">
+          <div><b>Rendimiento Neto de ATP (Glucosa)</b><small style="color:var(--fg-dim)">Balance aeróbico total por hexosa</small></div>
+          <div><b style="color:#059669">32 ATP</b> <span style="font-size:11px;color:var(--fg-dim)">(rendimiento máximo del 100%)</span></div>
+          <div><b style="color:#d97706">30 ATP</b> <span style="font-size:11px;color:var(--fg-dim)">(pérdida neta de 2 ATP por glucosa)</span></div>
+        </div>
+
+        <div class="clinical-matrix-row">
+          <div><b>Rendimiento por NADH Citosólico</b><small style="color:var(--fg-dim)">Equivalente en fosforilación oxidativa</small></div>
+          <div><b>2,5 ATP / NADH</b> <span style="font-size:11px;color:var(--fg-dim)">(5,0 ATP por 2 NADH de GAPDH)</span></div>
+          <div><b>1,5 ATP / NADH</b> <span style="font-size:11px;color:var(--fg-dim)">(3,0 ATP por 2 NADH de GAPDH)</span></div>
+        </div>
+
+        <div class="clinical-matrix-row">
+          <div><b>Punto de Entrada en Cadena de e⁻</b><small style="color:var(--fg-dim)">Aceptor inicial del par de electrones</small></div>
+          <div><b>Complejo I (NADH Deshidrogenasa)</b><br><small style="color:var(--fg-dim)">El NADH se regenera intacto en la matriz</small></div>
+          <div><b>Coenzima Q / Pool Q (Ubiquinona)</b><br><small style="color:var(--fg-dim)">Vía FAD unido a la enzima GPD2 (salta Complejo I)</small></div>
+        </div>
+
+        <div class="clinical-matrix-row">
+          <div><b>Protones Bombeados (H⁺)</b><small style="color:var(--fg-dim)">Fuerza protón-motriz por par de electrones</small></div>
+          <div><b>10 H⁺ bombeados</b><br><small style="color:var(--fg-dim)">4 H⁺ (CI) + 4 H⁺ (CIII) + 2 H⁺ (CIV)</small></div>
+          <div><b>6 H⁺ bombeados</b><br><small style="color:var(--fg-dim)">0 H⁺ (salta CI) + 4 H⁺ (CIII) + 2 H⁺ (CIV)</small></div>
+        </div>
+
+        <div class="clinical-matrix-row">
+          <div><b>Enzimas Citosólica y Mitocondrial</b><small style="color:var(--fg-dim)">Isoenzimas que acoplan el flujo redox</small></div>
+          <div><b>MDH1 / MDH2 y AST1 / AST2</b><br><small style="color:var(--fg-dim)">Malato deshidrogenasas + Aspartato aminotransferasas</small></div>
+          <div><b>GPD1 y GPD2</b><br><small style="color:var(--fg-dim)">Glicerol-3-P deshidrogenasas citosólica (NAD⁺) y mitocondrial (FAD)</small></div>
+        </div>
+
+        <div class="clinical-matrix-row">
+          <div><b>Transportadores de Membrana Interna</b><small style="color:var(--fg-dim)">Sistemas de translocación en MMI</small></div>
+          <div><b>Doble Antiporte: OGC + AGC1/Citrina</b><br><small style="color:var(--fg-dim)">OGC (SLC25A11, malato/α-KG) y AGC (SLC25A12/13, asp/glu+H⁺)</small></div>
+          <div><b>Ninguno requerido</b><br><small style="color:var(--fg-dim)">GPD2 expuesta a cara externa de MMI; metabolitos cruzan porinas de MME</small></div>
+        </div>
+
+        <div class="clinical-matrix-row">
+          <div><b>Distribución Tisular Clave</b><small style="color:var(--fg-dim)">Órganos donde predomina la lanzadera</small></div>
+          <div><b>Hígado, Miocardio (corazón) y Riñón</b><br><small style="color:var(--fg-dim)">Tejidos estrictamente aeróbicos con máxima exigencia energética</small></div>
+          <div><b>Músculo esquelético rápido (IIb), Cerebro y Grasa parda</b><br><small style="color:var(--fg-dim)">Tejidos de respuesta veloz, explosiva o termogénica</small></div>
+        </div>
+
+        <div class="clinical-matrix-row">
+          <div><b>Cinética y Control Fisiológico</b><small style="color:var(--fg-dim)">Reversibilidad y efectores alostéricos</small></div>
+          <div><b>Reversible in vitro; impulsada por ΔΨm</b><br><small style="color:var(--fg-dim)">El gradiente electroquímico impulsa el simporte electrogénico aspartato/H⁺</small></div>
+          <div><b>Irreversible (ΔG°′ ≈ −43 kJ/mol); estimulada por Ca²⁺</b><br><small style="color:var(--fg-dim)">Dominios EF-hand de GPD2 captan Ca²⁺ citosólico durante la contracción</small></div>
+        </div>
+      </div>
+    `;
+  } else if (shuttleTab === "clinical") {
+    bodyHtml = `
+      <div class="clinical-dis-grid">
+        <div class="clinical-dis-card">
+          <div class="clinical-dis-head">
+            <span class="clinical-tag-danger">Gen SLC25A13 · Autosómica Recesiva</span>
+            <h4>Citrulinemia Tipo II (CTLN2) & Déficit de Citrina</h4>
+          </div>
+          <p>
+            La citrina es la isoforma hepática del transportador aspartato-glutamato (AGC2). Su mutación colapsa la lanzadera malato-aspartato en el hepatocito, impidiendo la exportación de aspartato mitocondrial al citosol.
+          </p>
+          <div class="clinical-bullet-list">
+            <div><b>Mecanismo Patogénico:</b> Acúmulo masivo de NADH citosólico (relación NADH/NAD⁺ desproporcionada) que inhibe la GAPDH y bloquea el ciclo de la urea en el paso de la ASS1.</div>
+            <div><b>Clínica Clásica:</b> Crisis recurrentes de hiperamonemia con encefalopatía en adultos jóvenes, delirio, conductas maníacas, hepatomegalia y esteatosis hepática.</div>
+            <div><b>Signo Cardinal:</b> Aversión innata y peculiar a alimentos ricos en hidratos de carbono (dulces, arroz) y preferencia compulsiva por alimentos ricos en grasas y proteínas.</div>
+          </div>
+        </div>
+
+        <div class="clinical-dis-card">
+          <div class="clinical-dis-head">
+            <span class="clinical-tag-danger">Gen SLC25A12 · Autosómica Recesiva</span>
+            <h4>Encefalopatía Hipomielinizante por Déficit de Aralar1 (AGC1)</h4>
+          </div>
+          <p>
+            Aralar1 (AGC1) es la isoforma predominante en neuronas y oligodendrocitos cerebrales. Se encarga de translocar el aspartato necesario para sintetizar N-acetilaspartato (NAA).
+          </p>
+          <div class="clinical-bullet-list">
+            <div><b>Fisiopatología Cerebral:</b> Sin Aralar1, el cerebro carece de aspartato citosólico para fabricar NAA, el precursor obligado de los lípidos que estructuran la vaina de mielina.</div>
+            <div><b>Manifestaciones:</b> Microcefalia progresiva en los primeros meses de vida, epilepsia precoz refractaria a fármacos y ausencia de adquisición de hitos motores.</div>
+            <div><b>Neuroimagen:</b> Hipomielinización cerebral global severa y colapso del pico de NAA en la espectroscopia por resonancia magnética (¹H-MRS).</div>
+          </div>
+        </div>
+
+        <div class="clinical-dis-card">
+          <div class="clinical-dis-head">
+            <span class="clinical-tag-warn">Oncología Molecular · Efecto Warburg</span>
+            <h4>Reprogramación Tumoral: Sobreexpresión de GPD2 en Glioblastoma</h4>
+          </div>
+          <p>
+            Las células cancerosas de alta malignidad enfrentan una enorme producción de NADH por la glucólisis aeróbica desbocada. Para evitar el bloqueo de la GAPDH, muchas líneas tumorales sobreexpresan GPD2.
+          </p>
+          <div class="clinical-bullet-list">
+            <div><b>Ventaja de Selección:</b> Al estar anclada a la cara externa de la membrana mitocondrial interna, la GPD2 reoxida el NADH citosólico a velocidad instantánea sin la limitación de transportadores de metabolitos.</div>
+            <div><b>Diana Terapéutica:</b> Moléculas inhibidoras selectivas de GPD2 (iGPD2) están en investigación preclínica para forzar el agotamiento de NAD⁺ en tumores sólidos y revertir la ventaja proliferativa.</div>
+          </div>
+        </div>
+
+        <div class="clinical-dis-card">
+          <div class="clinical-dis-head">
+            <span class="clinical-tag-warn">Acoplamiento Electromecánico</span>
+            <h4>Sensibilidad al Calcio (Ca²⁺) de la GPD2 & Hipertermia Maligna</h4>
+          </div>
+          <p>
+            A diferencia de la lanzadera de malato-aspartato, la GPD2 mitocondrial posee dominios reguladores EF-hand orientados al espacio intermembrana que reconocen directamente iones de calcio libre.
+          </p>
+          <div class="clinical-bullet-list">
+            <div><b>Sincronización Funcional:</b> Durante el ejercicio intenso, el Ca²⁺ liberado por el retículo sarcoplásmico se une a la GPD2 y la hiperactiva inmediatamente, coordinando la glucólisis rápida con la respiración celular.</div>
+            <div><b>Relevancia en Hipertermia Maligna:</b> Mutaciones en el canal RYR1 provocan liberación incontrolada de Ca²⁺, que hiperestimula a la GPD2 y a la glucogenólisis, produciendo un hipermetabolismo fulminante con acidosis y fiebre extrema.</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="clinical-shuttle-suite">
+      <div class="clinical-head">
+        <div>
+          <span class="clinical-eyebrow">DASHBOARD CLÍNICO DE LANZADERAS · REGULACIÓN BIOENERGÉTICA</span>
+          <h3>Comparativa de Lanzaderas: Malato-Aspartato (MAS) vs. Glicerol-3-Fosfato (G3P)</h3>
+          <p>
+            La membrana mitocondrial interna es impermeable al NADH citosólico producido por la GAPDH. El organismo dispone de dos circuitos de transporte con rendimientos energéticos diferentes: <b>32 ATP</b> (máxima economía) frente a <b>30 ATP</b> (máxima velocidad).
+          </p>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <button class="clinical-btn-pill ${isMas ? 'active' : ''}" data-sh="mas" title="Seleccionar lanzadera malato-aspartato">
+            <span class="clinical-dot ${isMas ? 'emerald' : ''}"></span>
+            <b>Malato-Aspartato</b> · 32 ATP
+          </button>
+          <button class="clinical-btn-pill ${!isMas ? 'active' : ''}" data-sh="g3p" title="Seleccionar lanzadera glicerol-3-fosfato">
+            <span class="clinical-dot ${!isMas ? 'amber' : ''}"></span>
+            <b>Glicerol-3-P</b> · 30 ATP
+          </button>
+        </div>
+      </div>
+
+      ${navHtml}
+
+      <div class="clinical-tab-content">
+        ${bodyHtml}
+      </div>
+    </div>
+  `;
+}
+
 function renderBalances(){
   const BALV=BAL.map(balAdj); const b=BALV.find(x=>x.id===balSel)||BALV[0]; const nC=cytNADH(b);
   const sorted=[...BALV].sort((a,c)=>c.aerobicAtpNet-a.aerobicAtpNet);
@@ -632,7 +1017,9 @@ function renderBalances(){
 
   $("#view-balances").innerHTML=`<div class="bal-wrap">
     <div class="bal-head"><div class="eyebrow">Estequiometría energética</div><h2>¿Cuánto ATP da cada combustible?</h2><p>Elige un sustrato para ver, paso a paso, dónde se gasta y dónde se gana ATP. Se usan los valores P/O actuales: 2,5 ATP por NADH y 1,5 por FADH₂.</p></div>
-    <div class="shuttle-sel"><span class="eyebrow">Lanzadera del NADH citosólico · ATP por NADH</span><div class="seg" role="group" aria-label="Lanzadera"><button data-sh="mas" aria-pressed="${shuttle==="mas"}">Malato-aspartato · 2,5</button><button data-sh="g3p" aria-pressed="${shuttle==="g3p"}">Glicerol-3-P · 1,5</button></div></div>
+    
+    ${renderShuttleComparisonSuite(shuttle, b.id)}
+
     <div class="bal-grid">
       <div class="sub-list">${BALV.map(s=>`<button class="sub" data-id="${s.id}" aria-pressed="${s.id===b.id}"><b>${esc(s.name)}</b><small>${esc(s.tissue)}</small><span class="n" style="color:${s.aerobicAtpNet<0?"var(--neg-txt)":"var(--warn)"}">${s.aerobicAtpNet>0?"+":""}${s.aerobicAtpNet}</span></button>`).join("")}</div>
       <div class="bal-card">
@@ -647,9 +1034,42 @@ function renderBalances(){
     <div class="bal-card cmp"><h4>Comparativa · ATP neto por mol de sustrato</h4><div class="chart-box">${cmp}</div></div>
   </div>`;
   cssify($("#view-balances"));
-  document.querySelectorAll("[data-sh]").forEach(x=>x.onclick=()=>{ shuttle=x.dataset.sh; const sc=$("#view-balances").scrollTop; renderBalances(); $("#view-balances").scrollTop=sc; });
-  document.querySelectorAll("[data-open-sh]").forEach(x=>x.onclick=()=>openModule(x.dataset.openSh));
-  document.querySelectorAll(".sub,.cmp-row").forEach(x=>x.addEventListener("click",()=>{ balSel=x.dataset.id; const sc=$("#view-balances").scrollTop; renderBalances(); $("#view-balances").scrollTop=sc; }));
+  document.querySelectorAll("[data-sh]").forEach(x=>x.onclick=(e)=>{
+    e.stopPropagation();
+    shuttle=x.dataset.sh;
+    const sc=$("#view-balances").scrollTop;
+    renderBalances();
+    $("#view-balances").scrollTop=sc;
+  });
+  document.querySelectorAll("[data-card-sh]").forEach(x=>x.onclick=(e)=>{
+    if(e.target.closest("button")) return;
+    shuttle=x.dataset.cardSh;
+    const sc=$("#view-balances").scrollTop;
+    renderBalances();
+    $("#view-balances").scrollTop=sc;
+  });
+  document.querySelectorAll("[data-sh-tab]").forEach(x=>x.onclick=()=>{
+    shuttleTab=x.dataset.shTab;
+    const sc=$("#view-balances").scrollTop;
+    renderBalances();
+    $("#view-balances").scrollTop=sc;
+  });
+  document.querySelectorAll("[data-select-glucose]").forEach(x=>x.onclick=()=>{
+    balSel="glucose_aerobic";
+    const sc=$("#view-balances").scrollTop;
+    renderBalances();
+    $("#view-balances").scrollTop=sc;
+  });
+  document.querySelectorAll("[data-open-sh]").forEach(x=>x.onclick=(e)=>{
+    e.stopPropagation();
+    openModule(x.dataset.openSh);
+  });
+  document.querySelectorAll(".sub,.cmp-row").forEach(x=>x.addEventListener("click",()=>{
+    balSel=x.dataset.id;
+    const sc=$("#view-balances").scrollTop;
+    renderBalances();
+    $("#view-balances").scrollTop=sc;
+  }));
   const target=b.aerobicAtpNet, n=$("#atp-n"); if(RM){ n.textContent=target; return; }
   const t0=performance.now(); (function a(t){ const k=Math.min(1,(t-t0)/900), e=1-Math.pow(1-k,3); n.textContent=Math.round(target*e); if(k<1) requestAnimationFrame(a); })(t0);
 }
@@ -729,7 +1149,23 @@ const MNODES = {
  g_coq:{name:"Coenzima Q (ubiquinona)",abbreviation:"CoQ",carbons:0,compartment:"mitochondria_membrane",pw:"electron_transport",description:"Transportador liposoluble de electrones; recoge los de los complejos I y II, la GPD2 y la ETF de la β-oxidación."},
  g_c3:{name:"Complejo III",abbreviation:"Complejo III",carbons:0,compartment:"mitochondria_membrane",pw:"electron_transport",description:"Citocromo bc1: ciclo Q, bombea 4 H⁺ por cada par de electrones."},
  g_cytc:{name:"Citocromo c",abbreviation:"Cit c",carbons:0,compartment:"mitochondria_intermembrane",pw:"electron_transport",description:"Proteína hidrosoluble del espacio intermembrana que lleva un electrón del complejo III al IV."},
- g_c4:{name:"Complejo IV",abbreviation:"Complejo IV",carbons:0,compartment:"mitochondria_membrane",pw:"electron_transport",description:"Citocromo c oxidasa: reduce el O₂ a H₂O y bombea 2 H⁺ por par de electrones."}
+ g_c4:{name:"Complejo IV",abbreviation:"Complejo IV",carbons:0,compartment:"mitochondria_membrane",pw:"electron_transport",description:"Citocromo c oxidasa: reduce el O₂ a H₂O y bombea 2 H⁺ por par de electrones."},
+
+ /* --- β-Oxidación y Síntesis de Palmitato --- */
+ lp_cit:{name:"Citrato citosólico",abbreviation:"Citrato",carbons:6,compartment:"cytosol",pw:"lipid_metabolism",description:"Citrato exportado desde la mitocondria; sustrato de ACLY para generar acetil-CoA citosólica."},
+ lp_acoa_c:{name:"Acetil-CoA citosólica",abbreviation:"Acetil-CoA",carbons:2,compartment:"cytosol",pw:"lipid_metabolism",description:"Bloque de 2 carbonos inicial para la lipogénesis de novo."},
+ lp_mal:{name:"Malonil-CoA",abbreviation:"Malonil-CoA",carbons:3,compartment:"cytosol",pw:"lipid_metabolism",description:"Donante de unidades de elongación para FASN y freno alostérico potente sobre CPT-1."},
+ lp_palm:{name:"Palmitato (16:0)",abbreviation:"Palmitato",carbons:16,compartment:"cytosol",pw:"lipid_metabolism",description:"Ácido graso saturado de 16 carbonos producto final de la FASN."},
+ lp_ac_c:{name:"Palmitoil-CoA citosólico",abbreviation:"Acil-CoA (cit)",carbons:16,compartment:"cytosol",pw:"lipid_metabolism",description:"Forma activada por la ACSL en la membrana mitocondrial externa."},
+ lp_cpt1:{name:"Palmitoil-carnitina (OMM)",abbreviation:"Acil-Carnitina",carbons:16,compartment:"mitochondria_membrane",pw:"lipid_metabolism",description:"Éster de carnitina formado por CPT-1 capaz de atravesar la membrana mitocondrial."},
+ lp_cact:{name:"Antiporte CACT",abbreviation:"CACT (IMM)",carbons:16,compartment:"mitochondria_membrane",pw:"lipid_metabolism",description:"Translocador antiporte que introduce la acilcarnitina a la matriz a cambio de carnitina libre."},
+ lp_cpt2:{name:"Palmitoil-CoA regenerado (matriz)",abbreviation:"CPT-2 (mat)",carbons:16,compartment:"mitochondria_matrix",pw:"lipid_metabolism",description:"La CPT-2 transfiere el grupo acilo de la carnitina a la CoA intramitocondrial."},
+ lp_ac_m:{name:"Palmitoil-CoA mitocondrial",abbreviation:"Acil-CoA (mat)",carbons:16,compartment:"mitochondria_matrix",pw:"lipid_metabolism",description:"Sustrato listo para entrar en la espiral de los 4 pasos de la β-oxidación."},
+ lp_mcad:{name:"trans-Δ²-Enoil-CoA",abbreviation:"Enoil-CoA",carbons:16,compartment:"mitochondria_matrix",pw:"lipid_metabolism",description:"Intermediario deshidrogenado por MCAD/VLCAD con reducción de FAD a FADH₂ (a CoQ)."},
+ lp_enoyl:{name:"L-3-Hidroxiacil-CoA",abbreviation:"3-HO-Acil-CoA",carbons:16,compartment:"mitochondria_matrix",pw:"lipid_metabolism",description:"Intermediario hidratado; sufre la 2ª deshidrogenación rindiendo NADH."},
+ lp_thiol:{name:"β-Cetoacil-CoA",abbreviation:"Cetoacil-CoA",carbons:16,compartment:"mitochondria_matrix",pw:"lipid_metabolism",description:"Sustrato de la tiolasa para escisión tiolítica dependiente de CoA-SH."},
+ lp_acoa_m:{name:"Acetil-CoA mitocondrial liberada",abbreviation:"Acetil-CoA",carbons:2,compartment:"mitochondria_matrix",pw:"krebs_cycle",description:"8 moléculas de acetil-CoA generadas por cada palmitato (16C) para el Ciclo de Krebs o Cetogénesis."},
+ lp_krebs:{name:"Ciclo de Krebs & Cuerpos Cetónicos",abbreviation:"Krebs / Cetonas",carbons:0,compartment:"mitochondria_matrix",pw:"krebs_cycle",description:"Destinos finales para la producción de ATP o exportación de cetonas al encéfalo."}
 };
 
 const MRX_LIST = [
@@ -884,7 +1320,44 @@ const MRX_LIST = [
   pathWayNotes:"Actúa desde la cara externa de la membrana interna, así que el glicerol-3-P no necesita entrar en la matriz. La DHAP vuelve al citosol lista para aceptar otro NADH. Se ha propuesto que la metformina inhibe esta enzima, aunque es un mecanismo discutido.",
   regulation:regOf([eff("Ca²⁺ citosólico","activator","Su dominio EF-hand mira al espacio intermembrana: el Ca²⁺ de la contracción muscular acelera la lanzadera.")],null,true)},
  {id:"g_e1",module:"g3p",name:"Paso de electrones de la GPD2 al CoQ",enzymeName:"GPD2 → ubiquinona",enzymeAbbreviation:"FADH₂ → CoQ",fromNodeId:"g_gpd2",toNodeId:"g_coq",reversible:false,pathway:"electron_transport",compartment:"mitochondria_membrane",
-  pathWayNotes:"Igual que el complejo II, la GPD2 no bombea protones. Por eso cada NADH citosólico rinde ≈1,5 ATP en lugar de ≈2,5."}
+  pathWayNotes:"Igual que el complejo II, la GPD2 no bombea protones. Por eso cada NADH citosólico rinde ≈1,5 ATP en lugar de ≈2,5."},
+
+ /* ---------- β-Oxidación y Síntesis de Palmitato ---------- */
+ {id:"l_acly",module:"lipids",name:"Escisión de citrato a acetil-CoA citosólica",enzymeName:"ATP-citrato liasa (ACLY)",enzymeAbbreviation:"ACLY",ecNumber:"EC 2.3.3.8",fromNodeId:"lp_cit",toNodeId:"lp_acoa_c",reversible:false,pathway:"lipid_metabolism",compartment:"cytosol",
+  cofactorsConsumed:["ATP","CoA-SH"],cofactorsProduced:["ADP","Pi","Oxalacetato"],
+  pathWayNotes:"Paso clave para abastecer de acetil-CoA al citosol para la lipogénesis de novo a partir del citrato exportado desde la mitocondria."},
+ {id:"l_acc",module:"lipids",name:"Carboxilación de acetil-CoA a malonil-CoA",enzymeName:"Acetil-CoA carboxilasa 1 (ACC1 / ACACA)",enzymeAbbreviation:"ACC1",ecNumber:"EC 6.4.1.2",fromNodeId:"lp_acoa_c",toNodeId:"lp_mal",reversible:false,pathway:"lipid_metabolism",compartment:"cytosol",
+  cofactorsConsumed:["ATP","HCO₃⁻","Biotina"],cofactorsProduced:["ADP","Pi"],
+  pathWayNotes:"Paso marcapasos de la síntesis de ácidos grasos. Desfosforilada y activada por insulina (PP2A); fosforilada e inactivada por AMPK y PKA en ayuno o ejercicio."},
+ {id:"l_fas",module:"lipids",name:"Síntesis de palmitato por FASN",enzymeName:"Ácido graso sintasa (FASN)",enzymeAbbreviation:"FASN",ecNumber:"EC 2.3.1.85",fromNodeId:"lp_mal",toNodeId:"lp_palm",reversible:false,pathway:"lipid_metabolism",compartment:"cytosol",
+  cofactorsConsumed:["14 NADPH","14 H⁺"],cofactorsProduced:["14 NADP⁺","7 CO₂","8 CoA"],
+  pathWayNotes:"Complejo homodimérico de 7 dominios catalíticos. Ensambla el palmitato (16:0) mediante 7 ciclos consecutivos de condensación, reducción, deshidratación y reducción."},
+ {id:"l_ascl",module:"lipids",name:"Activación del palmitato a palmitoil-CoA",enzymeName:"Acil-CoA sintetasa de cadena larga (ACSL1)",enzymeAbbreviation:"ACSL",ecNumber:"EC 6.2.1.3",fromNodeId:"lp_palm",toNodeId:"lp_ac_c",reversible:false,pathway:"lipid_metabolism",compartment:"cytosol",
+  cofactorsConsumed:["ATP","CoA-SH"],cofactorsProduced:["AMP","PPi"],
+  pathWayNotes:"Gasta 2 enlaces de alta energía (ATP → AMP + PPi) para activar el ácido graso libre en la membrana mitocondrial externa."},
+ {id:"l_cpt1",module:"lipids",name:"Transesterificación a palmitoil-carnitina",enzymeName:"Carnitina palmitoiltransferasa 1 (CPT-1A)",enzymeAbbreviation:"CPT-1",ecNumber:"EC 2.3.1.21",fromNodeId:"lp_ac_c",toNodeId:"lp_cpt1",reversible:false,pathway:"lipid_metabolism",compartment:"mitochondria_membrane",
+  cofactorsConsumed:["Carnitina"],cofactorsProduced:["CoA-SH citosólico"],
+  pathWayNotes:"Paso limitante de la entrada a la mitocondria. Inhibida alostéricamente de forma recíproca por la Malonil-CoA citosólica para evitar ciclos fútiles."},
+ {id:"l_cact",module:"lipids",name:"Translocación por CACT",enzymeName:"Carnitina-acilcarnitina translocasa (CACT, SLC25A20)",enzymeAbbreviation:"CACT",fromNodeId:"lp_cpt1",toNodeId:"lp_cact",reversible:true,pathway:"transport",compartment:"mitochondria_membrane",
+  pathWayNotes:"Antiporte que introduce la acilcarnitina a la matriz a cambio de carnitina libre hacia el espacio intermembrana."},
+ {id:"l_cpt2",module:"lipids",name:"Regeneración de acil-CoA en matriz",enzymeName:"Carnitina palmitoiltransferasa 2 (CPT-2)",enzymeAbbreviation:"CPT-2",ecNumber:"EC 2.3.1.21",fromNodeId:"lp_cact",toNodeId:"lp_cpt2",reversible:false,pathway:"lipid_metabolism",compartment:"mitochondria_matrix",
+  cofactorsConsumed:["CoA-SH de matriz"],cofactorsProduced:["Carnitina libre"],
+  pathWayNotes:"Regenera el palmitoil-CoA mitocondrial en la cara interna de la membrana mitocondrial interna y recicla la carnitina libre."},
+ {id:"l_mito",module:"lipids",name:"Entrega de acil-CoA a la β-oxidación",enzymeName:"Difusión a la espiral oxidativa",enzymeAbbreviation:"Sustrato",fromNodeId:"lp_cpt2",toNodeId:"lp_ac_m",reversible:true,pathway:"lipid_metabolism",compartment:"mitochondria_matrix",
+  pathWayNotes:"El acil-CoA mitocondrial ingresa a la espiral de β-oxidación."},
+ {id:"l_mcad",module:"lipids",name:"1. Deshidrogenación (Acil-CoA DH)",enzymeName:"Acil-CoA deshidrogenasa (VLCAD / MCAD)",enzymeAbbreviation:"MCAD",ecNumber:"EC 1.3.8.7",fromNodeId:"lp_ac_m",toNodeId:"lp_mcad",reversible:false,pathway:"lipid_metabolism",compartment:"mitochondria_matrix",
+  cofactorsConsumed:["FAD"],cofactorsProduced:["FADH₂ (a CoQ)"],
+  pathWayNotes:"Crea el doble enlace trans-Δ². Sus electrones se transfieren a la flavoproteína ETF y rinden ≈1,5 ATP en la cadena respiratoria."},
+ {id:"l_hyd",module:"lipids",name:"2. Hidratación estereoespecífica",enzymeName:"Enoil-CoA hidratasa (crotonasa)",enzymeAbbreviation:"Enoil-DH",ecNumber:"EC 4.2.1.17",fromNodeId:"lp_mcad",toNodeId:"lp_enoyl",reversible:true,pathway:"lipid_metabolism",compartment:"mitochondria_matrix",
+  cofactorsConsumed:["H₂O"],
+  pathWayNotes:"Añade agua al doble enlace formando L-3-hidroxiacil-CoA."},
+ {id:"l_thiol",module:"lipids",name:"3. Deshidrogenación y 4. Tiólisis",enzymeName:"3-HO-acil-CoA DH & β-cetotiolasa",enzymeAbbreviation:"Tiolasa",ecNumber:"EC 1.1.1.35 / 2.3.1.16",fromNodeId:"lp_enoyl",toNodeId:"lp_thiol",reversible:false,pathway:"lipid_metabolism",compartment:"mitochondria_matrix",
+  cofactorsConsumed:["NAD⁺","CoA-SH"],cofactorsProduced:["NADH","Acetil-CoA"],
+  pathWayNotes:"Genera 1 NADH (≈2,5 ATP) y escinde un Acetil-CoA acortando la cadena en 2 carbonos."},
+ {id:"l_out",module:"lipids",name:"Rendimiento final de Acetil-CoA",enzymeName:"Liberación de 8 Acetil-CoA",enzymeAbbreviation:"8 Acetil-CoA",fromNodeId:"lp_thiol",toNodeId:"lp_acoa_m",reversible:false,pathway:"lipid_metabolism",compartment:"mitochondria_matrix",
+  pathWayNotes:"Tras 7 ciclos completos de la espiral, 1 palmitato (16C) rinde 8 Acetil-CoA, 7 FADH₂ y 7 NADH (106 ATP netos)."},
+ {id:"l_tca",module:"lipids",name:"Destino en Krebs y Cetogénesis",enzymeName:"Citrato sintasa / HMGCS2",enzymeAbbreviation:"Krebs / Cetonas",fromNodeId:"lp_acoa_m",toNodeId:"lp_krebs",reversible:false,pathway:"krebs_cycle",compartment:"mitochondria_matrix",
+  pathWayNotes:"En ayuno o ejercicio, el acetil-CoA mitocondrial alimenta el Ciclo de Krebs (músculo/corazón) o la Cetogénesis (hígado)."}
 ];
 const MRXM = Object.fromEntries(MRX_LIST.map(r=>[r.id,r]));
 
@@ -1071,11 +1544,51 @@ const MODULES = [
    {e:["g_e1"],t:"El FADH₂ de la GPD2 entrega los electrones directamente al CoQ, sin pasar por el complejo I."},
    {e:["g_e2","g_e3","g_e4"],t:"Desde el CoQ siguen por el complejo III, el citocromo c y el complejo IV. Se bombean 6 H⁺ en lugar de 10."},
    {e:[],t:"Es más rápida pero menos rentable que la de malato-aspartato: con ella la glucosa rinde unos 30 ATP en vez de 32."}],
-  facts:["Predomina en el músculo esquelético rápido, el cerebro y la grasa parda.","El Ca²⁺ de la contracción activa la GPD2.","La DHAP regenerada vuelve a la glucólisis o a la síntesis de lípidos."]}
+  facts:["Predomina en el músculo esquelético rápido, el cerebro y la grasa parda.","El Ca²⁺ de la contracción activa la GPD2.","La DHAP regenerada vuelve a la glucólisis o a la síntesis de lípidos."]},
+
+ {id:"lipids",title:"β-Oxidación y Síntesis de Palmitato",kicker:"Lanzadera de carnitina (CPT-1/CACT/CPT-2) · 4 pasos de la espiral · FASN",c:"var(--pw-lipid)",vb:[1160,720],
+  intro:"La biosíntesis de palmitato fabrica cadenas de 16 carbonos en el citosol consumiendo 14 NADPH. Durante el ayuno, la lanzadera de carnitina transloca los acil-CoA a la matriz mitocondrial, donde la espiral de 4 pasos de la β-oxidación genera 106 ATP netos y alimenta la cetogénesis.",
+  nodes:{
+    lp_cit:[160,110,"t"], lp_acoa_c:[330,110,"t"], lp_mal:[500,110,"t"], lp_palm:[720,110,"t"],
+    lp_ac_c:[920,110,"r"], lp_cpt1:[920,270,"r"], lp_cact:[920,380,"r"], lp_cpt2:[920,490,"r"],
+    lp_ac_m:[920,620,"b"], lp_mcad:[700,620,"b"], lp_enoyl:[500,620,"b"], lp_thiol:[310,620,"b"],
+    lp_acoa_m:[140,620,"b"], lp_krebs:[140,430,"l"]
+  },
+  prot:{lp_cpt1:"CPT-1",lp_cact:"CACT",lp_cpt2:"CPT-2",lp_mcad:"MCAD",lp_thiol:"Tiolasa"},
+  edges:[
+    {id:"l_acly",from:"lp_cit",to:"lp_acoa_c",tag:"ACLY (ATP)"},
+    {id:"l_acc",rx:"rx_acc",from:"lp_acoa_c",to:"lp_mal",tag:"ACC1 (+CO₂)"},
+    {id:"l_fas",rx:"rx_fas",from:"lp_mal",to:"lp_palm",tag:"FASN (14 NADPH)"},
+    {id:"l_ascl",rx:"rx_acyl_coa_synth",from:"lp_palm",to:"lp_ac_c",tag:"ACSL (ATP→AMP)"},
+    {id:"l_cpt1",rx:"rx_cpt1",from:"lp_ac_c",to:"lp_cpt1",tag:"+ Carnitina"},
+    {id:"l_cact",from:"lp_cpt1",to:"lp_cact",tag:"IMS → IMM"},
+    {id:"l_cpt2",rx:"rx_cact_cpt2",from:"lp_cact",to:"lp_cpt2",tag:"Regenera CoA"},
+    {id:"l_mito",from:"lp_cpt2",to:"lp_ac_m"},
+    {id:"l_mcad",rx:"rx_beta_oxidation",from:"lp_ac_m",to:"lp_mcad",tag:"FAD → FADH₂"},
+    {id:"l_hyd",from:"lp_mcad",to:"lp_enoyl",tag:"+ H₂O"},
+    {id:"l_thiol",from:"lp_enoyl",to:"lp_thiol",tag:"NAD⁺ → NADH"},
+    {id:"l_out",from:"lp_thiol",to:"lp_acoa_m",tag:"+ CoA → 8 Acetil-CoA"},
+    {id:"l_tca",from:"lp_acoa_m",to:"lp_krebs",tag:"Krebs / Cetonas"}
+  ],
+  bg:`<rect x="20" y="20" width="1120" height="200" rx="24" class="mx-box"/><text class="comp-lbl" x="44" y="200">CITOSOL · SÍNTESIS DE NOVO (ACC1 & FASN)<\/text>
+   <rect x="20" y="240" width="1120" height="150" rx="14" class="mx-membrane"/><text class="comp-lbl" x="44" y="320" text-anchor="start">MEMBRANA MITOCONDRIAL · LANZADERA DE CARNITINA (OMM / IMS / IMM)<\/text>
+   <rect x="20" y="410" width="1120" height="290" rx="24" class="mx-mito"/><text class="comp-lbl" x="44" y="440" style="fill:var(--mito-lbl)">MATRIZ · ESPIRAL DE β-OXIDACIÓN (4 PASOS CÍCLICOS)<\/text>
+   <text class="lbl-c" x="650" y="195" text-anchor="middle" style="fill:var(--danger);font-size:11.5px">Inhibición alostérica cruzada: Malonil-CoA ⊣ CPT-1 (evita ciclos fútiles)<\/text>`,
+  ledger:[["Por molécula de palmitato (C16)","106 ATP netos","pos"],["Gasto de síntesis de novo","14 NADPH + 7 ATP","neg"],["Control alostérico recíproco","Malonil-CoA ⊣ CPT-1",""]],
+  steps:[
+   {e:["l_acly","l_acc","l_fas"],t:"La lipogénesis de novo parte del citrato citosólico. La ACLY libera Acetil-CoA, la ACC1 genera Malonil-CoA con gasto de ATP, y la FASN sintetiza palmitato consumiendo 14 NADPH."},
+   {e:["l_ascl","l_cpt1"],t:"La ACSL activa el palmitato con CoA. La CPT-1 lo conjuga con carnitina para permitir su entrada a través de la membrana mitocondrial externa."},
+   {e:["l_cact","l_cpt2","l_mito"],t:"El translocador CACT introduce la acilcarnitina en la matriz a cambio de carnitina libre. En la cara interna, la CPT-2 regenera el Palmitoil-CoA mitocondrial."},
+   {e:["l_mcad","l_hyd","l_thiol","l_out","l_tca"],t:"En la matriz, 7 ciclos de los 4 pasos (deshidrogenación por MCAD, hidratación, segunda deshidrogenación y tiólisis) rinden 8 Acetil-CoA, 7 FADH₂ y 7 NADH = 106 ATP netos."}],
+  facts:["El déficit de MCAD es el trastorno hereditario de la β-oxidación más prevalente: causa hipoglucemia hipocetósica severa en lactantes tras ayuno prolongado.","El déficit de CPT-2 miopático causa rabdomiólisis paroxística con mioglobinuria y elevación masiva de CPK tras ejercicio intenso.","La Malonil-CoA es el sensor recíproco: si hay síntesis activa, la oxidación queda bloqueada al 100%."]
+ }
 ];
 const MODM = Object.fromEntries(MODULES.map(m=>[m.id,m]));
 /* portales desde el mapa celular */
-const PORTAL = {ketone_bodies:"keto",rx_ketogenesis:"keto",rx_malate_aspartate_shuttle:"mas",malate_shuttle_hub:"mas",lactate_cyt:"cori",rx_ldh:"cori",rx_gpd1:"g3p",glycerol_3p:"g3p",fumarate:"urea",rx_pyruvate_carboxylase:"cori"};
+const PORTAL = {
+  ketone_bodies:"keto",rx_ketogenesis:"keto",rx_malate_aspartate_shuttle:"mas",malate_shuttle_hub:"mas",lactate_cyt:"cori",rx_ldh:"cori",rx_gpd1:"g3p",glycerol_3p:"g3p",fumarate:"urea",rx_pyruvate_carboxylase:"cori",
+  palmitate:"lipids",malonyl_coa:"lipids",acyl_coa_cyt:"lipids",acyl_carnitine:"lipids",acyl_coa_mito:"lipids",rx_acc:"lipids",rx_fas:"lipids",rx_cpt1:"lipids",rx_cact_cpt2:"lipids",rx_beta_oxidation:"lipids"
+};
 
 /* ======================= Ciclos y lanzaderas: motor ======================= */
 Object.entries(MNODES).forEach(([id,n])=>{ MET[id]={id,name:n.name,abbreviation:n.abbreviation,carbons:n.carbons,compartment:n.compartment,pathways:[n.pw],description:n.description,module:true}; });
@@ -1215,7 +1728,7 @@ function openModule(id){ go("ciclos"); selectModule(id); }
 /* portales en el mapa celular */
 (function(){
   const gP=el("g",{},svg);
-  [["cori","Ciclo de Cori",300,1160],["urea","Ciclo de la urea",1430,1128],["keto","Cuerpos cetónicos",935,790],["mas","Lanzadera malato-aspartato",653,878],["g3p","Lanzadera del glicerol-3-P",880,700]].forEach(([id,label,x,y])=>{
+  [["cori","Ciclo de Cori",300,1160],["urea","Ciclo de la urea",1430,1128],["keto","Cuerpos cetónicos",935,790],["mas","Lanzadera malato-aspartato",653,878],["g3p","Lanzadera del glicerol-3-P",880,700],["lipids","β-Oxidación & Palmitato",1410,500]].forEach(([id,label,x,y])=>{
     const w=label.length*7.7+34; const g=el("g",{class:"portal",transform:`translate(${x} ${y})`,tabindex:"0",role:"button","aria-label":"Abrir "+label},gP);
     const r=el("rect",{x:0,y:-15,width:w,height:30,rx:15},g); r.style.stroke=MODM[id].c;
     const t=el("text",{x:16,y:5,class:"portal-t"},g); t.textContent="↗ "+label;
