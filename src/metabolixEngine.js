@@ -1,6 +1,7 @@
 import { D } from "./metabolixData.js";
 import { isGalactoseEntity, renderGalactoseClinicalSuite, setupGalactoseClinicalSuite } from "./metabolixGalactose.js";
 import { isLipidEntity, renderLipidClinicalSuite, setupLipidClinicalSuite } from "./metabolixLipids.js";
+import { renderTissueSuite, setupTissueSuite, TISSUES_DATA, UNIVERSAL_PATHWAYS } from "./metabolixTissues.js";
 
 export function initMetabolix() {
 
@@ -88,22 +89,22 @@ const STATES = [
  {id:"fed",name:"Postprandial",tissue:"Hepatocito",c:"var(--pw-glycolysis)",
   sig:{Insulina:.95,"Glucagón":.1,Adrenalina:.1,"AMP/ATP":.15,"Demanda NADPH":.55},
   pw:{glycolysis:.9,gluconeogenesis:0,pentose_phosphate:.6,glycogen_metabolism:.9,monosaccharide_entry:.45,mitochondrial_fate:.8,krebs_cycle:.7,electron_transport:.7,lipid_metabolism:.85},
-  rx:{rx_gp:.04,rx_cpt1:.04,rx_cact_cpt2:.04,rx_beta_oxidation:.04,rx_ketogenesis:0,rx_glut_out:0,rx_ldh:.1,rx_pyruvate_carboxylase:.1,rx_oaa_export:0,rx_pepck:0,rx_g6pase:0,rx_fbpase1:0,rx_galk:.4,rx_galt:.4,rx_aldose_reductase_gal:.02},
-  notes:["La insulina activa la proteína fosfatasa 1: la glucógeno sintasa queda desfosforilada (activa) y la fosforilasa inactiva.","La PFK-2 desfosforilada fabrica fructosa-2,6-bisfosfato y la PFK-1 trabaja a pleno rendimiento.","La ACC produce malonil-CoA, que bloquea la CPT-1: los ácidos grasos recién sintetizados no entran en la mitocondria a quemarse."]},
+  rx:{rx_gp:.04,rx_acc:.9,rx_fas:.9,rx_tag_synth:.75,rx_acyl_coa_synth:0,rx_cpt1:0,rx_cact_cpt2:0,rx_beta_oxidation:0,rx_ketogenesis:0,rx_glut_out:0,rx_ldh:.1,rx_pyruvate_carboxylase:.1,rx_oaa_export:0,rx_pepck:0,rx_g6pase:0,rx_fbpase1:0,rx_galk:.4,rx_galt:.4,rx_aldose_reductase_gal:.02},
+  notes:["La insulina activa la proteína fosfatasa 1: la glucógeno sintasa queda desfosforilada (activa) y la fosforilasa inactiva.","La PFK-2 desfosforilada fabrica fructosa-2,6-bisfosfato y la PFK-1 trabaja a pleno rendimiento.","CONTROL RECÍPROCO: La ACC1 fabrica Malonil-CoA que BLOQUEA AL 100% a la CPT-1 (Ki ≈ 2,7 µM). La síntesis de palmitato está activa y la β-oxidación apagada (evita ciclo fútil)."]},
  {id:"fast",name:"Ayuno nocturno",tissue:"Hepatocito · 12–24 h",c:"var(--pw-gluconeogenesis)",
   sig:{Insulina:.12,"Glucagón":.85,Adrenalina:.3,"AMP/ATP":.35,"Demanda NADPH":.2},
   pw:{glycolysis:.08,gluconeogenesis:1,pentose_phosphate:.15,glycogen_metabolism:.05,monosaccharide_entry:.05,mitochondrial_fate:.4,krebs_cycle:.5,electron_transport:.8,lipid_metabolism:.05},
-  rx:Object.assign(rev(-.8),{rx_ldh:-.8,rx_gp:1,rx_pgm_glycogen:-.9,rx_mpc:.8,rx_pdh:.12,rx_malate_aspartate_shuttle:.3,rx_gpd1:-.6,rx_acyl_coa_synth:.7,rx_cpt1:1,rx_cact_cpt2:1,rx_beta_oxidation:1,rx_ketogenesis:.45,rx_glut:0,rx_glut_out:1}),
-  notes:["El glucagón eleva el AMPc y la PKA fosforila la PFK-2 (domina la FBPasa-2), la piruvato quinasa L y la glucógeno sintasa: todas se apagan.","El glucógeno hepático se degrada y la G-6-Pasa libera glucosa a la sangre.","Lactato (ciclo de Cori), alanina y glicerol dan los esqueletos de carbono; la β-oxidación aporta el ATP y el NADH que la gluconeogénesis consume."]},
+  rx:Object.assign(rev(-.8),{rx_acc:0,rx_fas:0,rx_citrate_export:0,rx_acly:0,rx_tag_synth:0,rx_ldh:-.8,rx_gp:1,rx_pgm_glycogen:-.9,rx_mpc:.8,rx_pdh:.12,rx_malate_aspartate_shuttle:.3,rx_gpd1:-.6,rx_acyl_coa_synth:.85,rx_cpt1:1,rx_cact_cpt2:1,rx_beta_oxidation:1,rx_ketogenesis:.45,rx_glut:0,rx_glut_out:1}),
+  notes:["El glucagón eleva el AMPc y la PKA fosforila la PFK-2 (domina la FBPasa-2), la piruvato quinasa L y la glucógeno sintasa: todas se apagan.","La ACC1 se fosforila e inactiva (AMPK y PKA): la síntesis de palmitato se apaga al 0% y desaparece la Malonil-CoA.","Sin Malonil-CoA, la CPT-1 se desinhibe por completo: los ácidos grasos de la lipólisis adiposa entran a la mitocondria y la β-oxidación genera ATP y NADH para la gluconeogénesis."]},
  {id:"keto",name:"Ayuno prolongado",tissue:"Hepatocito · > 3 días",c:"var(--pw-lipid)",
   sig:{Insulina:.05,"Glucagón":1,Adrenalina:.35,"AMP/ATP":.4,"Demanda NADPH":.15},
   pw:{glycolysis:.05,gluconeogenesis:.8,pentose_phosphate:.1,glycogen_metabolism:.02,monosaccharide_entry:0,mitochondrial_fate:.3,krebs_cycle:.25,electron_transport:.75,lipid_metabolism:.03},
-  rx:Object.assign(rev(-.65),{rx_ldh:-.5,rx_gp:.05,rx_pgm_glycogen:-.05,rx_mpc:.6,rx_pdh:.05,rx_gpd1:-.8,rx_acyl_coa_synth:1,rx_cpt1:1,rx_cact_cpt2:1,rx_beta_oxidation:1,rx_ketogenesis:1,rx_glut:0,rx_glut_out:.7,rx_cs:.2}),
+  rx:Object.assign(rev(-.65),{rx_acc:0,rx_fas:0,rx_citrate_export:0,rx_acly:0,rx_tag_synth:0,rx_ldh:-.5,rx_gp:.05,rx_pgm_glycogen:-.05,rx_mpc:.6,rx_pdh:.05,rx_gpd1:-.8,rx_acyl_coa_synth:1,rx_cpt1:1,rx_cact_cpt2:1,rx_beta_oxidation:1,rx_ketogenesis:1,rx_glut:0,rx_glut_out:.7,rx_cs:.2}),
   notes:["El glucógeno hepático se agota en 24–36 h: la glucemia depende solo de la gluconeogénesis.","El oxalacetato se desvía a gluconeogénesis y el acetil-CoA de la β-oxidación no cabe en el ciclo de Krebs: se convierte en cuerpos cetónicos.","El cerebro llega a cubrir cerca de dos tercios de su energía con β-hidroxibutirato y acetoacetato, y así se ahorra proteína muscular."]},
  {id:"run",name:"Sprint",tissue:"Músculo esquelético",c:"var(--pw-krebs)",
   sig:{Insulina:.2,"Glucagón":.2,Adrenalina:1,"AMP/ATP":.95,"Demanda NADPH":.05},
   pw:{glycolysis:1,gluconeogenesis:0,pentose_phosphate:.04,glycogen_metabolism:0,monosaccharide_entry:0,mitochondrial_fate:.7,krebs_cycle:1,electron_transport:1,lipid_metabolism:0},
-  rx:{rx_ldh:1,rx_gp:1,rx_pgm_glycogen:-1,rx_glut:.7,rx_pdh:.8,rx_acyl_coa_synth:.35,rx_cpt1:.35,rx_cact_cpt2:.35,rx_beta_oxidation:.35,rx_malate_aspartate_shuttle:.3},
+  rx:{rx_ldh:1,rx_gp:1,rx_pgm_glycogen:-1,rx_glut:.7,rx_pdh:.8,rx_acc:0,rx_fas:0,rx_acyl_coa_synth:.35,rx_cpt1:.35,rx_cact_cpt2:.35,rx_beta_oxidation:.35,rx_malate_aspartate_shuttle:.3},
   notes:["La adrenalina (vía PKA) y el Ca²⁺ de la contracción activan la fosforilasa quinasa: el glucógeno muscular se moviliza en segundos.","El AMP activa por alosterismo la PFK-1 y la fosforilasa b; la AMPK detecta el déficit energético.","Cuando la demanda supera la capacidad oxidativa, la LDH reduce el piruvato a lactato para regenerar NAD⁺ y mantener viva la glucólisis."]},
  {id:"rbc",name:"Estrés oxidativo",tissue:"Eritrocito",c:"var(--pw-pentose)",
   sig:{Insulina:.3,"Glucagón":.3,Adrenalina:.1,"AMP/ATP":.4,"Demanda NADPH":1},
@@ -113,7 +114,7 @@ const STATES = [
  {id:"fru",name:"Sobrecarga de fructosa",tissue:"Hepatocito",c:"var(--pw-mono)",
   sig:{Insulina:.5,"Glucagón":.15,Adrenalina:.1,"AMP/ATP":.6,"Demanda NADPH":.7},
   pw:{glycolysis:.9,gluconeogenesis:.1,pentose_phosphate:.4,glycogen_metabolism:.3,monosaccharide_entry:0,mitochondrial_fate:.9,krebs_cycle:.6,electron_transport:.7,lipid_metabolism:1},
-  rx:{rx_khk:1,rx_aldolase_b:1,rx_triose_kinase:1,rx_hk:.25,rx_pgi:.25,rx_pfk1:.15,rx_aldo_a:.15,rx_gp:0,rx_cpt1:.03,rx_cact_cpt2:.03,rx_beta_oxidation:.03,rx_ketogenesis:0,rx_glut_out:.1,rx_ldh:.3,rx_g6pase:.1,rx_fbpase1:0,rx_pyruvate_carboxylase:.05,rx_oaa_export:0,rx_pepck:0},
+  rx:{rx_khk:1,rx_aldolase_b:1,rx_triose_kinase:1,rx_acc:.95,rx_fas:.95,rx_tag_synth:1,rx_acyl_coa_synth:0,rx_cpt1:0,rx_cact_cpt2:0,rx_beta_oxidation:0,rx_hk:.25,rx_pgi:.25,rx_pfk1:.15,rx_aldo_a:.15,rx_gp:0,rx_ketogenesis:0,rx_glut_out:.1,rx_ldh:.3,rx_g6pase:.1,rx_fbpase1:0,rx_pyruvate_carboxylase:.05,rx_oaa_export:0,rx_pepck:0},
   notes:["La fructoquinasa no está regulada y la aldolasa B rompe la fructosa-1-P en triosas que esquivan el control de la PFK-1.","El exceso de triosas alimenta la lipogénesis de novo y la síntesis de triacilgliceroles: es la base de la esteatosis hepática (MASLD).","La fosforilación masiva gasta ATP y fosfato; el AMP sobrante se degrada a ácido úrico (hiperuricemia)."]}
 ];
 let ST = STATES[0];
@@ -122,10 +123,55 @@ let block = null;        // reacción bloqueada (enfermedad)
 let blockAcc = new Set(), blockDef = new Set();
 let playing = !RM;
 
+let tissueTab = "matrix";
+let tissueSelectedId = "liver";
+let tissueFilter = null; // null | "universal" | "liver" | "muscle" | "brain" | "adipose" | "rbc" | "heart" | "kidney"
+
+const TISSUE_PW_MAP = {
+  universal: ["glycolysis", "krebs_cycle", "electron_transport", "pentose_phosphate"],
+  liver: ["glycolysis", "gluconeogenesis", "pentose_phosphate", "glycogen_metabolism", "monosaccharide_entry", "mitochondrial_fate", "krebs_cycle", "electron_transport", "lipid_metabolism"],
+  muscle: ["glycolysis", "glycogen_metabolism", "mitochondrial_fate", "krebs_cycle", "electron_transport", "lipid_metabolism"],
+  brain: ["glycolysis", "mitochondrial_fate", "krebs_cycle", "electron_transport", "pentose_phosphate"],
+  adipose: ["glycolysis", "pentose_phosphate", "lipid_metabolism", "krebs_cycle", "electron_transport"],
+  rbc: ["glycolysis", "pentose_phosphate"],
+  heart: ["glycolysis", "mitochondrial_fate", "krebs_cycle", "electron_transport", "lipid_metabolism"],
+  kidney: ["glycolysis", "gluconeogenesis", "mitochondrial_fate", "krebs_cycle", "electron_transport", "pentose_phosphate"]
+};
+
+function isRxAbsentInTissue(r, tId) {
+  if (!tId) return false;
+  if (tId === "universal") {
+    if (["gluconeogenesis", "lipid_metabolism", "glycogen_metabolism", "monosaccharide_entry"].includes(r.pathway)) return true;
+    if (["rx_g6pase", "rx_fbpase1", "rx_pyruvate_carboxylase", "rx_pepck", "rx_ketogenesis"].includes(r.id)) return true;
+    return false;
+  }
+  if (tId === "muscle") {
+    if (["rx_g6pase", "rx_fbpase1", "rx_pepck", "rx_pyruvate_carboxylase", "rx_ketogenesis", "rx_glut_out"].includes(r.id)) return true;
+  }
+  if (tId === "brain") {
+    if (r.pathway === "lipid_metabolism" && r.id !== "rx_ketogenesis") return true;
+    if (["rx_g6pase", "rx_fbpase1", "rx_pepck", "rx_pyruvate_carboxylase", "rx_glut_out"].includes(r.id)) return true;
+  }
+  if (tId === "rbc") {
+    if (r.compartment !== "cytosol") return true;
+    if (["rx_mpc", "rx_citrate_export", "rx_oaa_export", "rx_malate_aspartate_shuttle"].includes(r.id)) return true;
+    if (r.pathway === "lipid_metabolism" || r.pathway === "gluconeogenesis" || r.pathway === "glycogen_metabolism") return true;
+  }
+  if (tId === "adipose") {
+    if (["rx_g6pase", "rx_fbpase1", "rx_pepck", "rx_pyruvate_carboxylase", "rx_ketogenesis", "rx_glut_out"].includes(r.id)) return true;
+  }
+  if (tId === "heart") {
+    if (["rx_g6pase", "rx_fbpase1", "rx_pepck", "rx_pyruvate_carboxylase", "rx_ketogenesis", "rx_glut_out"].includes(r.id)) return true;
+  }
+  return false;
+}
+
 function flux(r){
   if(block===r.id) return 0;
+  if(tissueFilter && isRxAbsentInTissue(r, tissueFilter)) return 0;
   let f = (r.id in ST.rx) ? ST.rx[r.id] : (ST.pw[r.pathway] ?? 0);
-  if(ST.noMito && (r.compartment!=="cytosol" || ["rx_mpc","rx_citrate_export","rx_oaa_export","rx_malate_aspartate_shuttle"].includes(r.id))) f = 0;
+  const noMito = ST.noMito || tissueFilter === "rbc";
+  if(noMito && (r.compartment!=="cytosol" || ["rx_mpc","rx_citrate_export","rx_oaa_export","rx_malate_aspartate_shuttle"].includes(r.id))) f = 0;
   if(block && blockDef.has(r.fromNodeId) && r.fromNodeId!==RXM[block].fromNodeId) f *= .25;
   return f;
 }
@@ -209,6 +255,16 @@ gComp.innerHTML = `
   <text class="comp-lbl" x="1112" y="760" style="fill:var(--mito-lbl)">MATRIZ MITOCONDRIAL</text>
   <text class="comp-lbl" x="860" y="1325" style="fill:var(--mito-lbl)">ESPACIO INTERMEMBRANA</text>
   <text id="nomito" class="comp-lbl" x="1242" y="1030" text-anchor="middle" style="fill:var(--pw-pentose);font-size:22px;letter-spacing:.12em" opacity="0">SIN MITOCONDRIAS EN EL ERITROCITO</text>
+ </g>
+ <g id="lipid-zones">
+  <rect x="1145" y="525" width="530" height="74" rx="14" fill="var(--pw-lipid)" fill-opacity=".04" stroke="var(--pw-lipid)" stroke-opacity=".25" stroke-dasharray="4 4"/>
+  <text class="comp-lbl" x="1160" y="542" style="fill:var(--pw-lipid);font-size:10px">SÍNTESIS DE PALMITATO (CITOSOL · POSPRANDIAL)</text>
+  <g id="map-malonyl-inh" style="transition:opacity .3s">
+   <path d="M 1470 582 C 1470 670, 1530 670, 1595 670" fill="none" stroke="var(--danger)" stroke-width="2" stroke-dasharray="4 3"/>
+   <line x1="1595" y1="663" x2="1595" y2="677" stroke="var(--danger)" stroke-width="3" stroke-linecap="round"/>
+   <rect x="1460" y="658" width="126" height="18" rx="4" fill="var(--bg-card)" stroke="var(--danger)" stroke-width="1" opacity="0.95"/>
+   <text x="1523" y="671" text-anchor="middle" class="lbl-c" style="fill:var(--danger);font-size:9.5px;font-weight:700">Malonil-CoA ⊣ CPT-1</text>
+  </g>
  </g>`;
 cssify(gComp);
 /* membrana interna con crestas */
@@ -301,17 +357,19 @@ drawEnz();
 /* ======================= Aplicar estado ======================= */
 function apply(){
   const act={};
+  const isRbc = tissueFilter === "rbc" || ST.noMito;
   EDGES.forEach(E=>{
     const f=flux(E.r); E.f=f; const a=Math.abs(f);
-    const inFocus = !focusPw || E.r.pathway===focusPw;
-    const on = a>0.02;
+    const isTissueIn = !tissueFilter || (TISSUE_PW_MAP[tissueFilter] && TISSUE_PW_MAP[tissueFilter].includes(E.r.pathway) && !isRxAbsentInTissue(E.r, tissueFilter));
+    const inFocus = (!focusPw || E.r.pathway===focusPw) && isTissueIn;
+    const on = a>0.02 && isTissueIn;
     E.p.setAttribute("stroke-width", on ? (1.6+a*5.4).toFixed(2) : 1.3);
     E.p.style.opacity = (!inFocus? .05 : on ? (.28+.72*a) : .16);
     E.p.setAttribute("stroke-dasharray", E.r.id==="rx_malate_aspartate_shuttle" ? "2 9" : on? "" : "3 6");
     E.p.style.stroke = block===E.r.id ? "var(--danger)" : PW[E.r.pathway].c;
     const mk = `url(#m-${E.r.pathway})`;
     E.p.removeAttribute("marker-end"); E.p.removeAttribute("marker-start");
-    if(on || !E.r.reversible){ if(f<0) E.p.setAttribute("marker-start",mk); else E.p.setAttribute("marker-end",mk); }
+    if(on || (!E.r.reversible && isTissueIn)){ if(f<0) E.p.setAttribute("marker-start",mk); else E.p.setAttribute("marker-end",mk); }
     // partículas
     const want = (on && inFocus) ? Math.max(1,Math.round(a*Math.min(5,E.g.len/90))) : 0;
     while(E.parts.length<want){ const c=el("circle",{r:3.3,fill:PW[E.r.pathway].c},gPart); E.parts.push({c,s:Math.random()}); }
@@ -321,23 +379,23 @@ function apply(){
     if(E.pill) E.pill.style.opacity = inFocus? 1 : .12;
   });
   Object.values(NODES).forEach(N=>{
-    const a=act[N.m.id]||0; const inFocus=!focusPw || N.m.pathways.includes(focusPw);
+    const a=act[N.m.id]||0;
+    const isTissueNode = !tissueFilter || N.m.pathways.some(p => TISSUE_PW_MAP[tissueFilter]?.includes(p));
+    const inFocus = (!focusPw || N.m.pathways.includes(focusPw)) && isTissueNode;
     N.halo.style.opacity = (a*(document.documentElement.dataset.mode==="dark"?.55:.22)).toFixed(2);
     N.g.style.opacity = inFocus ? (a>0.02? 1 : .5) : .14;
   });
-  $("#nomito").setAttribute("opacity", ST.noMito? 1 : 0);
-  $("#mito").style.opacity = ST.noMito? .35 : 1;
+  $("#nomito").setAttribute("opacity", isRbc ? 1 : 0);
+  $("#mito").style.opacity = isRbc ? .25 : 1;
+  const mapInh = $("#map-malonyl-inh");
+  if(mapInh) mapInh.style.opacity = (ST.id==="fed" || ST.id==="fru") ? "1" : "0.2";
   drawFx(); drawHud(); placeParticles();
 }
 
-/* acumulación y déficit cuando hay un bloqueo */
+/* acumulación y déficit: restablecido a estado basal */
 function setBlock(id){
-  block=id||null; blockAcc=new Set(); blockDef=new Set();
-  if(block){ const r=RXM[block];
-    blockAcc.add(r.fromNodeId); RX.forEach(x=>{ if(x.toNodeId===r.fromNodeId && x.id!==block && x.fromNodeId!==r.toNodeId && x.pathway!=="gluconeogenesis") blockAcc.add(x.fromNodeId); });
-    blockDef.add(r.toNodeId);
-  }
-  $("#disease").value = block||"";
+  block=null; blockAcc=new Set(); blockDef=new Set();
+  const ds=$("#disease"); if(ds) ds.value = "";
   apply();
 }
 function drawFx(){
@@ -390,6 +448,17 @@ $("#z-play").onclick=()=>{ playing=!playing; $("#z-play").innerHTML = playing? '
 if(!playing) $("#z-play").click(), playing=false, $("#z-play").innerHTML='<svg width="14" height="14" viewBox="0 0 14 14"><path d="M3 2l9 5-9 5z" fill="currentColor"/></svg>';
 
 /* ======================= Raíl ======================= */
+const TISSUE_COLORS = {
+  universal: "var(--accent)",
+  liver: "#059669",
+  muscle: "#2563eb",
+  brain: "#9333ea",
+  adipose: "#d97706",
+  rbc: "#dc2626",
+  heart: "#e11d48",
+  kidney: "#0d9488"
+};
+
 function buildRail(){
   const sb=$("#states");
   STATES.forEach(s=>{ const b=document.createElement("button"); b.className="state"; b.style.setProperty("--sc",s.c); b.setAttribute("aria-pressed",s===ST);
@@ -397,12 +466,55 @@ function buildRail(){
   const pc=$("#pw-chips");
   Object.entries(PW).filter(([k])=>MAP_PW.includes(k)).forEach(([k,v])=>{ const b=document.createElement("button"); b.className="chip"; b.style.color=v.c; b.dataset.pw=k; b.setAttribute("aria-pressed","false");
     b.innerHTML=`<span class="dot"></span><span style="color:var(--fg)">${esc(v.name)}</span>`; b.onclick=()=>{ focusPw = focusPw===k? null : k; syncChips(); apply(); }; pc.appendChild(b); });
-  const ds=$("#disease"); ds.innerHTML=`<option value="">Ninguna · fisiología normal</option>`+
-    RX.filter(r=>r.regulation&&r.regulation.clinical).sort((a,b)=>a.regulation.clinical.diseaseName.localeCompare(b.regulation.clinical.diseaseName,"es"))
-      .map(r=>`<option value="${r.id}">${esc(r.regulation.clinical.diseaseName)} — ${esc(r.enzymeAbbreviation)}</option>`).join("");
-  ds.onchange=()=>{ setBlock(ds.value); if(ds.value){ openRx(ds.value,true); const E=EDGES.find(e=>e.r.id===ds.value); const [x,y]=pointAt(E.g,E.g.len/2); focusXY(x,y,900);} };
+
+  const tc = $("#tissue-chips");
+  if(tc){
+    tc.innerHTML = "";
+    const bAll = document.createElement("button");
+    bAll.className = "tissue-chip";
+    bAll.dataset.tissue = "all";
+    bAll.setAttribute("aria-pressed", String(!tissueFilter));
+    bAll.innerHTML = `<span class="tissue-chip-icon">🌐</span><span>Organismo completo</span>`;
+    bAll.onclick = () => { tissueFilter = null; syncTissueChips(); apply(); };
+    tc.appendChild(bAll);
+
+    const bUni = document.createElement("button");
+    bUni.className = "tissue-chip";
+    bUni.dataset.tissue = "universal";
+    bUni.style.setProperty("--tc", TISSUE_COLORS.universal);
+    bUni.setAttribute("aria-pressed", String(tissueFilter === "universal"));
+    bUni.innerHTML = `<span class="tissue-chip-icon">✨</span><span>Rutas Universales</span>`;
+    bUni.onclick = () => { tissueFilter = tissueFilter === "universal" ? null : "universal"; syncTissueChips(); apply(); };
+    tc.appendChild(bUni);
+
+    Object.values(TISSUES_DATA).forEach(t => {
+      const b = document.createElement("button");
+      b.className = "tissue-chip";
+      b.dataset.tissue = t.id;
+      const col = TISSUE_COLORS[t.id] || "var(--accent)";
+      b.style.setProperty("--tc", col);
+      b.setAttribute("aria-pressed", String(tissueFilter === t.id));
+      b.innerHTML = `<span class="tissue-chip-icon">${t.icon}</span><span>${esc(t.name.split(" ")[0])}</span>`;
+      b.onclick = () => {
+        tissueFilter = tissueFilter === t.id ? null : t.id;
+        syncTissueChips();
+        apply();
+      };
+      tc.appendChild(b);
+    });
+  }
 }
 function syncChips(){ document.querySelectorAll("#pw-chips .chip").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.pw===focusPw))); }
+function syncTissueChips(){
+  document.querySelectorAll("#tissue-chips .tissue-chip").forEach(b => {
+    const isAll = b.dataset.tissue === "all";
+    if (isAll) {
+      b.setAttribute("aria-pressed", String(!tissueFilter));
+    } else {
+      b.setAttribute("aria-pressed", String(tissueFilter === b.dataset.tissue));
+    }
+  });
+}
 function setState(id){ ST=STATES.find(s=>s.id===id); document.querySelectorAll(".state").forEach((b,i)=>b.setAttribute("aria-pressed",String(STATES[i]===ST))); renderStateInfo(); apply(); }
 function renderStateInfo(){
   $("#meters").innerHTML = Object.entries(ST.sig).map(([k,v])=>`<div class="meter" style="--mc:${k==="Insulina"?"var(--pw-glycolysis)":k==="Glucagón"?"var(--pw-gluconeogenesis)":k==="Adrenalina"?"var(--pw-glycogen)":k==="AMP/ATP"?"var(--pw-krebs)":"var(--pw-pentose)"}"><span>${k}</span><i><u style="width:${Math.round(v*100)}%"></u></i><em>${Math.round(v*100)}</em></div>`).join("");
@@ -411,13 +523,17 @@ function renderStateInfo(){
 }
 function drawHud(){
   $("#hud").hidden = currentView==="reto"; gEnz.style.display = currentView==="reto" ? "none" : "";
+  const tName = tissueFilter === "universal" ? "Rutas Universales" : (TISSUES_DATA[tissueFilter]?.name || tissueFilter);
+  const tColor = TISSUE_COLORS[tissueFilter] || "var(--accent)";
+  const tBadge = tissueFilter ? `<button class="pill" id="hud-tf" style="border-color:${tColor};background:color-mix(in srgb,${tColor} 12%,var(--ink-1))"><span class="dot" style="color:${tColor}"></span><b>Filtro:</b> ${esc(tName)} <span style="color:var(--fg-faint);margin-left:4px">✕</span></button>` : "";
+
   $("#hud").innerHTML = `<span class="pill"><span class="dot" style="color:${ST.c}"></span><b>${esc(ST.name)}</b><span style="color:var(--fg-dim)">${esc(ST.tissue)}</span></span>` +
-   (focusPw? `<button class="pill" id="hud-pw"><span class="dot" style="color:${PW[focusPw].c}"></span>${esc(PW[focusPw].name)} <span style="color:var(--fg-faint)">✕</span></button>`:"") +
-   (block? `<button class="pill" id="hud-bl" style="border-color:color-mix(in srgb,var(--danger) 45%,transparent)"><span class="dot" style="color:var(--danger)"></span>${esc(RXM[block].regulation.clinical.diseaseName)} <span style="color:var(--fg-faint)">✕</span></button>`:"");
+   tBadge +
+   (focusPw? `<button class="pill" id="hud-pw"><span class="dot" style="color:${PW[focusPw].c}"></span>${esc(PW[focusPw].name)} <span style="color:var(--fg-faint)">✕</span></button>`:"");
   $("#hud").insertAdjacentHTML("beforeend",`<span class="pill seg-mini" role="group" aria-label="Etiquetas de enzimas"><button data-enz="key" aria-pressed="${enzMode==="key"}"><span class="star">★</span> Reguladoras</button><button data-enz="all" aria-pressed="${enzMode==="all"}">Todas las enzimas</button></span>`);
   document.querySelectorAll("[data-enz]").forEach(b=>b.onclick=()=>{ enzMode=b.dataset.enz; drawEnz(); apply(); });
   const a=$("#hud-pw"); if(a) a.onclick=()=>{focusPw=null;syncChips();apply();};
-  const b=$("#hud-bl"); if(b) b.onclick=()=>setBlock(null);
+  const htf=$("#hud-tf"); if(htf) htf.onclick=()=>{tissueFilter=null;syncTissueChips();apply();};
 }
 
 /* ======================= Panel de detalle ======================= */
@@ -454,16 +570,13 @@ function openRx(id, fromDisease){
     const cl=reg.clinical; if(cl) h+=`<div class="clin"><span class="lab">Correlación clínica${cl.inheritance?` · ${esc(cl.inheritance)}`:""}</span><h5>${esc(cl.diseaseName)}</h5><p style="margin:0;color:var(--fg-dim);font-size:12.5px">${esc(cl.mechanism)}</p>
       ${cl.symptoms?.length?`<span class="lab">Clínica</span><ul>${cl.symptoms.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>`:""}
       ${cl.diagnosticBiomarkers?.length?`<span class="lab">Diagnóstico</span><ul>${cl.diagnosticBiomarkers.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>`:""}
-      ${cl.treatmentKeys?.length?`<span class="lab">Tratamiento</span><ul>${cl.treatmentKeys.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>`:""}
-      <div>${(r.module?modBlock:block)===r.id?`<button class="btn" id="unblock">Quitar el déficit del mapa</button>`:`<button class="btn red" id="doblock">Simular el déficit en el mapa</button>`}</div></div>`;
+      ${cl.treatmentKeys?.length?`<span class="lab">Tratamiento</span><ul>${cl.treatmentKeys.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>`:""}</div>`;
   }
   if(isGalactoseEntity(id)) h += renderGalactoseClinicalSuite(id);
   if(isLipidEntity(id)) h += renderLipidClinicalSuite(id);
   pbody.innerHTML=h; pbody.scrollTop=0; panel.classList.add("open"); $(".body").classList.add("po");
   pbody.querySelectorAll("[data-node]").forEach(b=>b.onclick=()=>openNode(b.dataset.node));
-  const db=$("#doblock"); if(db) db.onclick=()=>{ if(r.module){ if(MOD.id!==r.module) selectModule(r.module); setModBlock(r.id);} else setBlock(r.id); openRx(r.id); toast("Déficit simulado: mira dónde se acumulan los metabolitos"); };
   pbody.querySelectorAll("[data-portal]").forEach(b=>b.onclick=()=>openModule(b.dataset.portal));
-  const ub=$("#unblock"); if(ub) ub.onclick=()=>{ if(r.module) setModBlock(null); else setBlock(null); openRx(r.id); };
   if(reg&&reg.kinetics) kinetics(reg.kinetics, c);
   if(!fromDisease && currentView!=="reto"){ const E=EDGES.find(e=>e.r.id===id); if(E && innerWidth>860){ /* sin zoom forzado al explorar */ } }
   if(isGalactoseEntity(id)) {
@@ -558,58 +671,285 @@ const norm=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"");
 let hl=0, curRes=[];
 $("#q").addEventListener("input",()=>{ const q=norm($("#q").value.trim().toLowerCase()); const box=$("#results");
   if(!q){ box.hidden=true; return; } curRes=IDX.filter(i=>norm(i.txt).includes(q)).slice(0,12); hl=0;
-  box.innerHTML = curRes.length? curRes.map((r,i)=>`<button data-i="${i}" class="${i===0?"hl":""}"><span class="dot" style="color:${r.c}"></span><span>${esc(r.label)}</span><small>${({node:"metabolito",rx:"enzima",dis:"enfermedad",mnode:"metabolito · esquema",mrx:"enzima · esquema",mdis:"enfermedad · esquema",mod:"esquema"})[r.kind]}</small></button>`).join("") : `<div style="padding:10px;color:var(--fg-faint);font-size:12px">Sin resultados para «${esc($("#q").value)}»</div>`;
+  box.innerHTML = curRes.length? curRes.map((r,i)=>`<button data-i="${i}" class="${i===0?"hl":""}"><span class="dot" style="color:${r.c}"></span><span>${esc(r.label)}</span><small>${({node:"metabolito",rx:"enzima",dis:"enfermedad",mnode:"metabolito · esquema",mrx:"enzima · esquema",mdis:"enfermedad · esquema",mod:"esquema",tissue:"especialización tisular"})[r.kind]||""}</small></button>`).join("") : `<div style="padding:10px;color:var(--fg-faint);font-size:12px">Sin resultados para «${esc($("#q").value)}»</div>`;
   box.hidden=false; box.querySelectorAll("button").forEach(b=>b.onclick=()=>goRes(curRes[+b.dataset.i])); });
 $("#q").addEventListener("keydown",e=>{ const box=$("#results"); if(box.hidden||!curRes.length) return;
   if(e.key==="ArrowDown"||e.key==="ArrowUp"){ e.preventDefault(); hl=(hl+(e.key==="ArrowDown"?1:-1)+curRes.length)%curRes.length; box.querySelectorAll("button").forEach((b,i)=>b.classList.toggle("hl",i===hl)); }
   if(e.key==="Enter"){ e.preventDefault(); goRes(curRes[hl]); } });
 document.addEventListener("click",e=>{ if(!e.target.closest(".search")) $("#results").hidden=true; });
 function goRes(r){ $("#results").hidden=true; $("#q").value=""; $("#q").blur();
+  if(r.kind==="tissue"){ tissueSelectedId=r.id; tissueTab="explorer"; go("tejidos"); return; }
   if(r.kind==="mod"){ openModule(r.id); return; }
   if(r.kind==="mnode"){ openModule(modOfNode(r.id).id); openNode(r.id); return; }
-  if(r.kind==="mrx"||r.kind==="mdis"){ const rr=RXM[r.id]; openModule(rr.module); if(r.kind==="mdis") setModBlock(r.id); openRx(r.id); return; }
+  if(r.kind==="mrx"||r.kind==="mdis"){ const rr=RXM[r.id]; openModule(rr.module); openRx(r.id); return; }
   if(currentView!=="mapa") go("mapa");
   if(r.kind==="node"){ openNode(r.id); const [x,y]=L[r.id]; focusXY(x,y,700); }
-  else { if(r.kind==="dis") setBlock(r.id); openRx(r.id); const E=EDGES.find(e=>e.r.id===r.id); const [x,y]=pointAt(E.g,E.g.len/2); focusXY(x,y,760); } }
+  else { openRx(r.id); const E=EDGES.find(e=>e.r.id===r.id); const [x,y]=pointAt(E.g,E.g.len/2); focusXY(x,y,760); } }
 
 /* ======================= Reto ======================= */
 let quiz=null;
-function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function shuffle(a){ const cp=[...a]; for(let i=cp.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[cp[i],cp[j]]=[cp[j],cp[i]];} return cp; }
+
+const BIOCHEM_QUESTIONS = [
+  // --- ACUMULACIÓN DE METABOLITOS (Identificar qué metabolito se acumula) ---
+  {
+    kind: "node", id: "f6p",
+    concept: "Acumulación de metabolito",
+    prompt: "Si la fosfofructoquinasa-1 (PFK-1) se frena por exceso de ATP o citrato, ¿qué intermediario de 6 carbonos se acumula inmediatamente antes en el citosol?",
+    hint: "Toca el metabolito fosforilado en C-6 previo a la PFK-1 en el citosol.",
+    explanation: "Al inhibirse la PFK-1, la fructosa-6-P se acumula y se equilibra con la glucosa-6-P, desviando glucosa hacia glucógeno o pentosas fosfato."
+  },
+  {
+    kind: "node", id: "pep",
+    concept: "Acumulación de metabolito",
+    prompt: "Si la piruvato quinasa está inhibida por fosforilación mediada por glucagón, ¿qué intermediario enólico de altísima energía de hidrólisis se acumula al final de la glucólisis?",
+    hint: "Toca el metabolito de 3 carbonos previo a la piruvato quinasa en el citosol.",
+    explanation: "El PEP acumulado no se convierte en piruvato, permitiendo que el flujo gluconeogénico lo convierta en 2-PG y ascienda hacia glucosa."
+  },
+  {
+    kind: "node", id: "pyruvate_cyt",
+    concept: "Acumulación de metabolito",
+    prompt: "Si el complejo piruvato deshidrogenasa (PDH) mitocondrial está bloqueado, ¿qué metabolito de 3 carbonos se acumula en el citosol y se desvía masivamente a lactato?",
+    hint: "Toca el metabolito final de la glucólisis citosólica.",
+    explanation: "Al no poder descarboxilarse a acetil-CoA, el piruvato citosólico se acumula y la LDH lo reduce a lactato para regenerar NAD⁺."
+  },
+  {
+    kind: "node", id: "g6p",
+    concept: "Acumulación de metabolito",
+    prompt: "Si la glucosa-6-fosfatasa hepática no funciona durante el ayuno, ¿qué metabolito central de encrucijada queda atrapado y acumulado sin poder liberar glucosa a sangre?",
+    hint: "Toca el nodo central de bifurcación de 6 carbonos en el citosol.",
+    explanation: "La carga negativa del fosfato impide que la G-6-P cruce la membrana plasmática, acumulándose en el hepatocito e induciendo sobrecarga de glucógeno y acidosis láctica."
+  },
+  {
+    kind: "node", id: "f1p",
+    concept: "Acumulación de metabolito",
+    prompt: "Si la aldolasa B hepática está inactiva, ¿qué éster fosfórico de 6 carbonos se acumula masivamente en el hepatocito secuestrando fosfato inorgánico libre?",
+    hint: "Toca el intermediario fosforilado en C-1 en la entrada de la fructosa.",
+    explanation: "La acumulación masiva de fructosa-1-fosfato atrapa el fosfato intracelular, deprimiendo la síntesis de ATP e inhibiendo a la glucógeno fosforilasa."
+  },
+  {
+    kind: "node", id: "gal1p",
+    concept: "Acumulación de metabolito",
+    prompt: "Si la galactosa-1-fosfato uridiltransferasa (GALT) está bloqueada en la vía de Leloir, ¿qué metabolito fosforilado se acumula ejerciendo toxicidad celular?",
+    hint: "Toca el intermediario fosforilado en la entrada de la galactosa.",
+    explanation: "La galactosa-1-fosfato acumulada secuestra fosfato inorgánico e inhibe a la fosfoglucomutasa y a la glucosa-6-fosfatasa."
+  },
+  {
+    kind: "node", id: "galactitol",
+    concept: "Acumulación de metabolito",
+    prompt: "Cuando la vía de Leloir se satura o bloquea, la aldosa reductasa reduce la galactosa acumulando este poliol osmóticamente activo en el cristalino:",
+    hint: "Toca el poliol que carece de carbonilo en la vía de la galactosa.",
+    explanation: "El galactitol carece de transportador y no es sustrato de la sorbitol deshidrogenasa humana, quedando atrapado en el cristalino y atrayendo agua por ósmosis."
+  },
+  {
+    kind: "node", id: "acyl_coa_cyt",
+    concept: "Acumulación de metabolito",
+    prompt: "Si la carnitina palmitoiltransferasa 1 (CPT-1) está inhibida alostéricamente por malonil-CoA, ¿qué ácido graso activado queda retenido y acumulado en el citosol?",
+    hint: "Toca el acil-CoA graso activado en el citosol.",
+    explanation: "El malonil-CoA frena el intercambio por carnitina, asegurando que los ácidos grasos activados no ingresen a la matriz mientras la célula sintetiza lípidos."
+  },
+  {
+    kind: "node", id: "citrate",
+    concept: "Acumulación de metabolito",
+    prompt: "Si la aconitasa del ciclo de Krebs se inhibe, ¿qué tricarboxilato se acumula en la matriz mitocondrial y sale al citosol para inhibir a la PFK-1?",
+    hint: "Toca el primer tricarboxilato formado por condensación en el ciclo de Krebs.",
+    explanation: "El citrato acumulado en la matriz se exporta al citosol vía transportador de tricarboxilatos, donde actúa como señal de abundancia energética que inhibe a la PFK-1."
+  },
+  {
+    kind: "node", id: "coenzyme_q",
+    concept: "Acumulación de metabolito",
+    prompt: "Si se bloquea el complejo III de la cadena respiratoria con antimicina A, ¿qué transportador móvil liposoluble queda saturado y acumulado en su forma reducida (QH₂)?",
+    hint: "Toca el pool lipídico móvil entre los complejos I, II y III.",
+    explanation: "Al impedirse la transferencia de electrones hacia el citocromo c, todos los electrones procedentes de los complejos I, II y GPD2 quedan atascados en la ubiquinona (QH₂)."
+  },
+  {
+    kind: "node", id: "udpg",
+    concept: "Acumulación de metabolito",
+    prompt: "Si la glucógeno sintasa está inactiva en el miocito, ¿qué nucleótido azúcar de alta energía se acumula como donante directo de monómeros de glucosa?",
+    hint: "Toca la forma activada de glucosa previa al gránulo de glucógeno.",
+    explanation: "La UDP-glucosa es la forma metabólicamente activada imprescindible para transferir unidades glucosilo al extremo no reductor del glucógeno."
+  },
+  {
+    kind: "node", id: "acetyl_coa",
+    concept: "Acumulación de metabolito",
+    prompt: "Si el ciclo de Krebs se frena por falta de oxalacetato (desviado a gluconeogénesis), ¿qué intermediario de 2 carbonos de la PDH y β-oxidación se acumula y se desvía a cetogénesis?",
+    hint: "Toca el metabolito condensante de 2 carbonos en la matriz mitocondrial.",
+    explanation: "Sin oxalacetato suficiente para la citrato sintasa, el exceso de acetil-CoA en el hepatocito se condensa en acetoacetil-CoA para formar cuerpos cetónicos."
+  },
+  {
+    kind: "node", id: "lactate_cyt",
+    concept: "Acumulación de metabolito",
+    prompt: "Durante una contracción muscular anaeróbica máxima, ¿qué producto final glucolítico se acumula para que la LDH pueda regenerar el NAD⁺?",
+    hint: "Toca el metabolito reducido de 3 carbonos derivado del piruvato.",
+    explanation: "El lactato se acumula y sale al torrente sanguíneo hacia el hígado (ciclo de Cori), permitiendo que la GAPDH continúe operando a gran velocidad."
+  },
+
+  // --- DÉFICIT DE PRODUCTO Y CONSECUENCIAS FUNCIONALES ---
+  {
+    kind: "node", id: "r5p",
+    concept: "Consecuencia metabólica",
+    prompt: "Si la glucosa-6-fosfato deshidrogenasa (G6PDH) está bloqueada, ¿qué pentosa indispensable para sintetizar nucleótidos (ARN/ADN) y coenzimas deja de formarse por la fase oxidativa?",
+    hint: "Toca la aldopentosa producto de la fase oxidativa de pentosas fosfato.",
+    explanation: "La rama oxidativa produce ribosa-5-fosfato y 2 NADPH; sin ella, la célula depende exclusivamente de la fase no oxidativa reversible para formar pentosas."
+  },
+  {
+    kind: "node", id: "glucose_free",
+    concept: "Consecuencia metabólica",
+    prompt: "Durante el ayuno, el hígado debe mantener la glucemia. Si la glucosa-6-fosfatasa no actúa, ¿qué molécula no fosforilada deja de ser liberada al torrente sanguíneo?",
+    hint: "Toca la glucosa libre no cargada generada en la gluconeogénesis hepática.",
+    explanation: "La glucosa libre desfosforilada es la única forma que puede atravesar el transportador GLUT2 hacia la sangre para evitar la hipoglucemia."
+  },
+  {
+    kind: "node", id: "oxaloacetate",
+    concept: "Consecuencia metabólica",
+    prompt: "Si la piruvato carboxilasa mitocondrial está inactiva, ¿qué dicarboxilato de 4 carbonos disminuye críticamente en la matriz, frenando la anaplerosis de Krebs?",
+    hint: "Toca el aceptor de 4 carbonos que se condensa con acetil-CoA.",
+    explanation: "El oxalacetato es el aceptor catalítico del ciclo de Krebs; su reposición anaplerótica por carboxilación del piruvato es indispensable para sostener el ciclo."
+  },
+  {
+    kind: "node", id: "f16bp",
+    concept: "Consecuencia metabólica",
+    prompt: "Durante la gluconeogénesis hepática, si la fructosa-1,6-bisfosfatasa-1 (FBPasa-1) falla, ¿qué intermediario bisfosforilado no puede desfosforilarse hacia F-6-P?",
+    hint: "Toca el metabolito con fosfatos en C-1 y C-6 de la glucólisis/gluconeogénesis.",
+    explanation: "La FBPasa-1 hidroliza el fosfato en C-1; su inhibición por fructosa-2,6-bisfosfato frena la síntesis neta de glucosa en el estado alimentado."
+  },
+
+  // --- REGULACIÓN ENZIMÁTICA Y MARCAPASOS ---
+  {
+    kind: "rx", id: "rx_pfk1",
+    concept: "Regulación enzimática",
+    prompt: "La célula registra abundancia de energía (ATP y citrato elevados). ¿Qué enzima marcapasos irreversible se inhibe alostéricamente para frenar la glucólisis?",
+    hint: "Toca la flecha de la fosfofructoquinasa-1 en el citosol.",
+    explanation: "La PFK-1 es el principal marcapasos glucolítico; el ATP se une a su sitio alostérico inhibidor estabilizando la conformación tensa (T)."
+  },
+  {
+    kind: "rx", id: "rx_ldh",
+    concept: "Respuesta celular",
+    prompt: "En ausencia de oxígeno, la glucólisis se detendría por agotamiento de NAD⁺ citosólico. ¿Qué reacción se encarga de regenerar el NAD⁺ reduciendo piruvato?",
+    hint: "Toca la flecha que convierte piruvato en lactato.",
+    explanation: "La lactato deshidrogenasa (LDH) utiliza NADH para reducir piruvato a lactato, suministrando el NAD⁺ continuo que requiere la GAPDH."
+  },
+  {
+    kind: "rx", id: "rx_g6pdh",
+    concept: "Respuesta celular",
+    prompt: "Frente a un aumento de especies reactivas de oxígeno (estrés oxidativo), ¿qué enzima irreversible cataliza el paso marcapasos generador de NADPH?",
+    hint: "Toca la primera reacción de la vía de las pentosas fosfato.",
+    explanation: "La G6PDH oxida G-6-P a 6-fosfogluconolactona y produce el primer NADPH, indispensable para mantener el glutatión en estado reducido (GSH)."
+  },
+  {
+    kind: "rx", id: "rx_pyruvate_carboxylase",
+    concept: "Regulación enzimática",
+    prompt: "En el ayuno, el hígado inicia la gluconeogénesis desde piruvato. ¿Qué enzima mitocondrial dependiente de biotina y activada por acetil-CoA cataliza la primera reacción?",
+    hint: "Toca la flecha en la matriz mitocondrial que convierte piruvato en oxalacetato.",
+    explanation: "La piruvato carboxilasa consume 1 ATP y HCO₃⁻ con su grupo prostético biotina, generando oxalacetato para la gluconeogénesis y anaplerosis."
+  },
+  {
+    kind: "rx", id: "rx_cpt1",
+    concept: "Regulación enzimática",
+    prompt: "Para evitar un ciclo fútil de síntesis y degradación simultánea de lípidos, el malonil-CoA inhibe la entrada de ácidos grasos a la mitocondria. ¿Qué enzima es la diana?",
+    hint: "Toca la reacción en la membrana mitocondrial externa que forma acilcarnitina.",
+    explanation: "La CPT-1 sustituye la CoA por carnitina; el malonil-CoA la inhibe alostéricamente asegurando que la β-oxidación permanezca apagada durante la lipogénesis."
+  },
+  {
+    kind: "rx", id: "rx_scs",
+    concept: "Mecanismo bioenergético",
+    prompt: "En el ciclo de Krebs, ¿qué enzima cataliza la única fosforilación a nivel de sustrato escindiendo un tioéster de alta energía para formar GTP o ATP?",
+    hint: "Toca la flecha entre succinil-CoA y succinato en el ciclo de Krebs.",
+    explanation: "La succinil-CoA sintetasa acopla la ruptura del enlace tioéster de alta energía libre a la fosforilación directa de GDP a GTP (o ADP a ATP)."
+  },
+  {
+    kind: "rx", id: "rx_gs",
+    concept: "Regulación hormonal",
+    prompt: "Tras una comida rica en carbohidratos, la insulina estimula el almacenamiento de glucosa en hígado y músculo. ¿Qué enzima se activa para sintetizar glucógeno?",
+    hint: "Toca la flecha que incorpora UDP-glucosa a la macromolécula de glucógeno.",
+    explanation: "La insulina promueve la desfosforilación de la glucógeno sintasa a través de la proteína fosfatasa 1 (PP1), activándola para elongar las cadenas."
+  },
+  {
+    kind: "rx", id: "rx_gp",
+    concept: "Regulación hormonal",
+    prompt: "Durante el ayuno o el ejercicio, el glucagón y la adrenalina estimulan la liberación de glucosa desde reservas. ¿Qué enzima cataliza la fosforólisis del glucógeno?",
+    hint: "Toca la flecha que degrada el glucógeno liberando G-1-P.",
+    explanation: "La glucógeno fosforilasa cataliza la ruptura fosforolítica con Pi libre, liberando G-1-P sin consumo directo de ATP celular."
+  },
+  {
+    kind: "rx", id: "rx_acc",
+    concept: "Regulación enzimática",
+    prompt: "En abundancia de citrato e insulina, ¿qué enzima citosólica dependiente de biotina cataliza el paso limitante de la síntesis de ácidos grasos produciendo malonil-CoA?",
+    hint: "Toca la reacción citosólica que carboxila acetil-CoA a malonil-CoA.",
+    explanation: "La acetil-CoA carboxilasa (ACC1) es el marcapasos de la lipogénesis; se activa por citrato y es reprimida por fosforilación por AMPK."
+  },
+  {
+    kind: "rx", id: "rx_etc_c1",
+    concept: "Mecanismo bioenergético",
+    prompt: "Para iniciar la cadena respiratoria y bombear los primeros 4 H⁺ al espacio intermembrana, ¿qué complejo macromolecular mitocondrial oxida al NADH?",
+    hint: "Toca el Complejo I (NADH deshidrogenasa) en la membrana interna.",
+    explanation: "El Complejo I oxida NADH transfiriendo 2 electrones a la ubiquinona mediante centros Fe-S y translocando 4 protones a través de la membrana interna."
+  },
+  {
+    kind: "rx", id: "rx_gapdh",
+    concept: "Mecanismo bioenergético",
+    prompt: "¿Qué enzima glucolítica realiza la primera reacción de óxido-reducción generando NADH citosólico y acoplando un fosfato inorgánico libre a un enlace acil-fosfato de alta energía?",
+    hint: "Toca la flecha que oxida gliceraldehído-3-fosfato a 1,3-bisfosfoglicerato.",
+    explanation: "La GAPDH utiliza NAD⁺ y Pi libre para oxidar el aldehído a un anhídrido mixto de alta energía (1,3-BPG), paso indispensable para generar ATP aguas abajo."
+  },
+  {
+    kind: "rx", id: "rx_acly",
+    concept: "Regulación enzimática",
+    prompt: "El citrato mitocondrial se exporta al citosol tras una comida. ¿Qué enzima lo escinde con gasto de 1 ATP para generar el acetil-CoA citosólico que abastecerá la lipogénesis?",
+    hint: "Toca la reacción citosólica que rompe el citrato en acetil-CoA y oxalacetato.",
+    explanation: "La ATP-citrato liasa (ACLY) proporciona el sustrato inicial de dos carbonos en el citosol para la síntesis de ácidos grasos y colesterol."
+  },
+  {
+    kind: "rx", id: "rx_aldose_reductase_gal",
+    concept: "Respuesta celular",
+    prompt: "Si la vía principal de Leloir no da abasto para procesar la galactosa libre, ¿qué enzima citosólica la reduce a galactitol a expensas de NADPH?",
+    hint: "Toca la flecha lateral que desvía la galactosa hacia galactitol.",
+    explanation: "La aldosa reductasa reduce el grupo aldehído de la galactosa a alcohol a expensas de NADPH, generando galactitol."
+  }
+];
+
 function newQuiz(){
-  const dis=shuffle(RX.filter(r=>r.regulation&&r.regulation.clinical)).slice(0,6).map(r=>({kind:"rx",id:r.id,prompt:`¿Qué enzima falla en «${r.regulation.clinical.diseaseName}»?`,hint:"Toca la flecha de la reacción en el mapa."}));
-  const keyQ=[
-    {kind:"rx",id:"rx_pfk1",prompt:"Señala el paso limitante y principal punto de control de la glucólisis.",hint:"Lo activa la fructosa-2,6-bisfosfato."},
-    {kind:"rx",id:"rx_g6pdh",prompt:"¿Qué reacción genera el primer NADPH de la ruta de las pentosas fosfato?",hint:"Está en la rama que sale de G-6-P hacia arriba."},
-    {kind:"rx",id:"rx_cpt1",prompt:"¿Qué enzima inhibe el malonil-CoA para que no se oxiden los ácidos grasos recién sintetizados?",hint:"Está en la membrana mitocondrial externa."},
-    {kind:"rx",id:"rx_pyruvate_carboxylase",prompt:"¿Qué enzima mitocondrial, activada por acetil-CoA, inicia la gluconeogénesis desde piruvato?",hint:"Necesita biotina."},
-    {kind:"node",id:"g6p",prompt:"Encuentra el metabolito que reparte la glucosa entre glucólisis, pentosas y glucógeno.",hint:"Es una encrucijada de 6 carbonos."},
-    {kind:"node",id:"acetyl_coa",prompt:"Encuentra el metabolito donde convergen glucosa, ácidos grasos y cuerpos cetónicos.",hint:"Tiene 2 carbonos y está en la matriz."},
-    {kind:"node",id:"oxaloacetate",prompt:"Encuentra el metabolito que se condensa con el acetil-CoA para formar citrato.",hint:"4 carbonos, en el ciclo."},
-    {kind:"node",id:"udpg",prompt:"Encuentra la forma activada de glucosa que usa la glucógeno sintasa.",hint:"Lleva un nucleótido de uridina."},
-    {kind:"rx",id:"rx_ldh",prompt:"¿Qué enzima regenera el NAD⁺ citosólico cuando falta oxígeno?",hint:"Produce lactato."}
-  ];
-  const qs=shuffle(dis.concat(shuffle(keyQ).slice(0,4)));
-  quiz={qs,i:0,score:0,res:[],reveal:false,done:false,streak:0};
+  const nodeQs = shuffle(BIOCHEM_QUESTIONS.filter(q => q.kind === "node"));
+  const rxQs = shuffle(BIOCHEM_QUESTIONS.filter(q => q.kind === "rx"));
+  const selected = shuffle(nodeQs.slice(0, 4).concat(rxQs.slice(0, 4)));
+  quiz={qs:selected,i:0,score:0,res:[],reveal:false,done:false,streak:0};
   focusPw=null; syncChips(); setBlock(null); closePanel(); animVB(fitBox()); renderQuiz();
 }
 function renderQuiz(){
   const Q=$("#quiz"); if(!quiz){ Q.hidden=true; return; } Q.hidden=false;
   if(quiz.done){ const pct=Math.round(quiz.score/quiz.qs.length*100);
-    Q.innerHTML=`<div class="quiz-top"><span class="eyebrow">Reto terminado</span></div><div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap"><span class="big-score">${quiz.score}<span style="font-size:24px;color:var(--fg-faint)">/${quiz.qs.length}</span></span><p style="margin:0;color:var(--fg-dim);max-width:40ch">${pct>=80?"Dominas el mapa: ya puedes cambiar de estado fisiológico y repetir.":pct>=50?"Buen nivel. Repasa las enzimas que fallaste abriendo su ficha.":"Explora el mapa un rato y vuelve a intentarlo."}</p></div><div class="row"><button class="btn pri" id="qz-again">Otro reto</button><button class="btn" id="qz-exit">Volver al mapa</button></div>`;
+    Q.innerHTML=`<div class="quiz-top"><span class="eyebrow">Reto de Bioquímica General</span></div>
+    <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap">
+      <span class="big-score">${quiz.score}<span style="font-size:24px;color:var(--fg-faint)">/${quiz.qs.length}</span></span>
+      <p style="margin:0;color:var(--fg-dim);max-width:44ch">
+        ${pct>=80 ? "¡Excelente razonamiento metabólico! Dominas las consecuencias de bloqueos, acumulaciones y marcapasos." : pct>=50 ? "Buen nivel. Repasa en el mapa las encrucijadas y enzimas donde dudaste." : "Explora el mapa celular y las fichas de regulación antes de volver a intentarlo."}
+      </p>
+    </div>
+    <div class="row" style="margin-top:12px"><button class="btn pri" id="qz-again">Nuevo reto</button><button class="btn" id="qz-exit">Volver al mapa</button></div>`;
     $("#qz-again").onclick=newQuiz; $("#qz-exit").onclick=()=>go("mapa"); return; }
   const q=quiz.qs[quiz.i];
   const prog=quiz.qs.map((_,i)=>`<i class="${i<quiz.res.length?(quiz.res[i]?"ok":"ko"):i===quiz.i?"cur":""}"></i>`).join("");
-  let fb=`<div class="fb">${esc(q.hint)}</div>`;
-  if(quiz.reveal){ const name = q.kind==="rx"? RXM[q.id].enzymeName : MET[q.id].name;
-    fb=`<div class="fb">${quiz.lastOk?`<b class="ok">Correcto.</b> `:`<b class="ko">No era esa.</b> La respuesta es `}<b>${esc(name)}</b>. Su ficha está abierta en el panel.</div><div class="row"><button class="btn pri" id="qz-next">${quiz.i+1<quiz.qs.length?"Siguiente":"Ver resultado"}</button></div>`; }
-  Q.innerHTML=`<div class="quiz-top"><span class="eyebrow">Pregunta ${quiz.i+1} de ${quiz.qs.length}</span><span class="prog">${prog}</span><span class="score">${quiz.score} aciertos${quiz.streak>1?` · racha ${quiz.streak}`:""}</span></div><q>${esc(q.prompt)}</q>${fb}`;
+  let fb=`<div class="fb" style="color:var(--fg-dim);font-size:12.5px">${esc(q.hint)}</div>`;
+  if(quiz.reveal){
+    const name = q.kind==="rx"? RXM[q.id].enzymeName : MET[q.id].name;
+    const expl = q.explanation ? `<div style="margin-top:5px;font-size:12.5px;color:var(--fg-dim);line-height:1.45">${esc(q.explanation)}</div>` : "";
+    fb=`<div class="fb">${quiz.lastOk?`<b class="ok">¡Correcto!</b> `:`<b class="ko">Respuesta correcta:</b> `}<b>${esc(name)}</b>.${expl}</div>
+    <div class="row" style="margin-top:8px"><button class="btn pri" id="qz-next">${quiz.i+1<quiz.qs.length?"Siguiente pregunta →":"Ver resultado final"}</button></div>`;
+  }
+  Q.innerHTML=`<div class="quiz-top">
+    <span class="eyebrow">${esc(q.concept || "Bioquímica General")} · Pregunta ${quiz.i+1} de ${quiz.qs.length}</span>
+    <span class="prog">${prog}</span>
+    <span class="score">${quiz.score} aciertos${quiz.streak>1?` · racha ${quiz.streak}`:""}</span>
+  </div>
+  <q style="display:block;margin:6px 0 8px;font-size:16.5px;line-height:1.35;font-weight:700">${esc(q.prompt)}</q>
+  ${fb}`;
   const n=$("#qz-next"); if(n) n.onclick=()=>{ quiz.reveal=false; quiz.i++; if(quiz.i>=quiz.qs.length) quiz.done=true; closePanel(); animVB(fitBox()); drawFx(); renderQuiz(); };
 }
 function answer(kind,id){
   const q=quiz.qs[quiz.i]; const ok = kind===q.kind && id===q.id;
   quiz.lastOk=ok; quiz.res.push(ok); if(ok){quiz.score++;quiz.streak++;} else quiz.streak=0; quiz.reveal=true;
-  if(q.kind==="rx"){ openRx(q.id); const E=EDGES.find(e=>e.r.id===q.id); const [x,y]=pointAt(E.g,E.g.len/2); focusXY(x,y,900); }
-  else { openNode(q.id); const [x,y]=L[q.id]; focusXY(x,y,900); }
+  if(q.kind==="rx"){ openRx(q.id); const E=EDGES.find(e=>e.r.id===q.id); if(E){ const pt=pointAt(E.g,E.g.len/2); focusXY(pt[0],pt[1],900); } }
+  else { openNode(q.id); if(L[q.id]){ const [x,y]=L[q.id]; focusXY(x,y,900); } }
   drawFx(); renderQuiz(); toast(ok?"¡Acierto!":"Fallo: mira dónde estaba");
 }
 
@@ -1156,6 +1496,8 @@ const MNODES = {
  lp_acoa_c:{name:"Acetil-CoA citosólica",abbreviation:"Acetil-CoA",carbons:2,compartment:"cytosol",pw:"lipid_metabolism",description:"Bloque de 2 carbonos inicial para la lipogénesis de novo."},
  lp_mal:{name:"Malonil-CoA",abbreviation:"Malonil-CoA",carbons:3,compartment:"cytosol",pw:"lipid_metabolism",description:"Donante de unidades de elongación para FASN y freno alostérico potente sobre CPT-1."},
  lp_palm:{name:"Palmitato (16:0)",abbreviation:"Palmitato",carbons:16,compartment:"cytosol",pw:"lipid_metabolism",description:"Ácido graso saturado de 16 carbonos producto final de la FASN."},
+ lp_tag:{name:"Triacilgliceroles (depósito / VLDL)",abbreviation:"TAG / Depósito",carbons:16,compartment:"cytosol",pw:"lipid_metabolism",description:"Destino fisiológico del palmitato sintetizado en estado posprandial: esterificación en triacilgliceroles para almacenamiento en gotas lipídicas (adipocito) o secreción hepática en VLDL. No entra a la mitocondria en ese momento."},
+ lp_adipose_fa:{name:"Ácidos grasos libres (lipólisis adiposa)",abbreviation:"Ácidos Grasos (lipólisis)",carbons:16,compartment:"blood",pw:"lipid_metabolism",description:"En ayuno o ejercicio, el glucagón y la adrenalina activan la lipólisis en el tejido adiposo (ATGL / HSL). Los ácidos grasos libres viajan unidos a albúmina hacia el hepatocito y miocito para β-oxidación mitocondrial."},
  lp_ac_c:{name:"Palmitoil-CoA citosólico",abbreviation:"Acil-CoA (cit)",carbons:16,compartment:"cytosol",pw:"lipid_metabolism",description:"Forma activada por la ACSL en la membrana mitocondrial externa."},
  lp_cpt1:{name:"Palmitoil-carnitina (OMM)",abbreviation:"Acil-Carnitina",carbons:16,compartment:"mitochondria_membrane",pw:"lipid_metabolism",description:"Éster de carnitina formado por CPT-1 capaz de atravesar la membrana mitocondrial."},
  lp_cact:{name:"Antiporte CACT",abbreviation:"CACT (IMM)",carbons:16,compartment:"mitochondria_membrane",pw:"lipid_metabolism",description:"Translocador antiporte que introduce la acilcarnitina a la matriz a cambio de carnitina libre."},
@@ -1332,9 +1674,12 @@ const MRX_LIST = [
  {id:"l_fas",module:"lipids",name:"Síntesis de palmitato por FASN",enzymeName:"Ácido graso sintasa (FASN)",enzymeAbbreviation:"FASN",ecNumber:"EC 2.3.1.85",fromNodeId:"lp_mal",toNodeId:"lp_palm",reversible:false,pathway:"lipid_metabolism",compartment:"cytosol",
   cofactorsConsumed:["14 NADPH","14 H⁺"],cofactorsProduced:["14 NADP⁺","7 CO₂","8 CoA"],
   pathWayNotes:"Complejo homodimérico de 7 dominios catalíticos. Ensambla el palmitato (16:0) mediante 7 ciclos consecutivos de condensación, reducción, deshidratación y reducción."},
- {id:"l_ascl",module:"lipids",name:"Activación del palmitato a palmitoil-CoA",enzymeName:"Acil-CoA sintetasa de cadena larga (ACSL1)",enzymeAbbreviation:"ACSL",ecNumber:"EC 6.2.1.3",fromNodeId:"lp_palm",toNodeId:"lp_ac_c",reversible:false,pathway:"lipid_metabolism",compartment:"cytosol",
+ {id:"l_tag",module:"lipids",name:"Esterificación a Triacilgliceroles (TAG)",enzymeName:"Glicerol-3-P aciltransferasas (GPAT / DGAT)",enzymeAbbreviation:"Esterificación TAG",fromNodeId:"lp_palm",toNodeId:"lp_tag",reversible:false,pathway:"lipid_metabolism",compartment:"cytosol",
+  cofactorsConsumed:["Glicerol-3-P"],cofactorsProduced:["Triacilgliceroles (TAG)"],
+  pathWayNotes:"En abundancia energética el palmitato se esterifica a triglicéridos para almacenamiento o secreción en VLDL. No entra a la mitocondria porque la Malonil-CoA bloquea a la CPT-1."},
+ {id:"l_fa_in",module:"lipids",name:"Captación y activación de ácidos grasos del ayuno",enzymeName:"Acil-CoA sintetasa de cadena larga (ACSL1)",enzymeAbbreviation:"ACSL (Lipólisis)",ecNumber:"EC 6.2.1.3",fromNodeId:"lp_adipose_fa",toNodeId:"lp_ac_c",reversible:false,pathway:"lipid_metabolism",compartment:"cytosol",
   cofactorsConsumed:["ATP","CoA-SH"],cofactorsProduced:["AMP","PPi"],
-  pathWayNotes:"Gasta 2 enlaces de alta energía (ATP → AMP + PPi) para activar el ácido graso libre en la membrana mitocondrial externa."},
+  pathWayNotes:"Los ácidos grasos oxidados en ayunas provienen de la lipólisis en tejido adiposo (estimulada por glucagón/adrenalina), no de la síntesis de novo. Se activan a acil-CoA gastando 2 enlaces ~P."},
  {id:"l_cpt1",module:"lipids",name:"Transesterificación a palmitoil-carnitina",enzymeName:"Carnitina palmitoiltransferasa 1 (CPT-1A)",enzymeAbbreviation:"CPT-1",ecNumber:"EC 2.3.1.21",fromNodeId:"lp_ac_c",toNodeId:"lp_cpt1",reversible:false,pathway:"lipid_metabolism",compartment:"mitochondria_membrane",
   cofactorsConsumed:["Carnitina"],cofactorsProduced:["CoA-SH citosólico"],
   pathWayNotes:"Paso limitante de la entrada a la mitocondria. Inhibida alostéricamente de forma recíproca por la Malonil-CoA citosólica para evitar ciclos fútiles."},
@@ -1546,41 +1891,95 @@ const MODULES = [
    {e:[],t:"Es más rápida pero menos rentable que la de malato-aspartato: con ella la glucosa rinde unos 30 ATP en vez de 32."}],
   facts:["Predomina en el músculo esquelético rápido, el cerebro y la grasa parda.","El Ca²⁺ de la contracción activa la GPD2.","La DHAP regenerada vuelve a la glucólisis o a la síntesis de lípidos."]},
 
- {id:"lipids",title:"β-Oxidación y Síntesis de Palmitato",kicker:"Lanzadera de carnitina (CPT-1/CACT/CPT-2) · 4 pasos de la espiral · FASN",c:"var(--pw-lipid)",vb:[1160,720],
-  intro:"La biosíntesis de palmitato fabrica cadenas de 16 carbonos en el citosol consumiendo 14 NADPH. Durante el ayuno, la lanzadera de carnitina transloca los acil-CoA a la matriz mitocondrial, donde la espiral de 4 pasos de la β-oxidación genera 106 ATP netos y alimenta la cetogénesis.",
+ {id:"lipids",title:"β-Oxidación y Síntesis de Palmitato",kicker:"Procesos no simultáneos · Regulación recíproca · Malonil-CoA ⊣ CPT-1",c:"var(--pw-lipid)",vb:[1240,740],
+  intro:"La síntesis de palmitato y su β-oxidación son rutas metabólicas opuestas y mutuamente excluyentes en la célula. Ocurren en compartimentos separados (citosol vs. matriz) y están reguladas recíprocamente por el Malonil-CoA para impedir un ciclo fútil de despilfarro energético.",
+  variants:[
+    {id:"reciprocal",label:"Regulación recíproca (No simultáneas)"},
+    {id:"synth",label:"1. Síntesis de Palmitato (Posprandial)"},
+    {id:"betaox",label:"2. β-Oxidación Mitocondrial (Ayuno)"}
+  ],
   nodes:{
-    lp_cit:[160,110,"t"], lp_acoa_c:[330,110,"t"], lp_mal:[500,110,"t"], lp_palm:[720,110,"t"],
-    lp_ac_c:[920,110,"r"], lp_cpt1:[920,270,"r"], lp_cact:[920,380,"r"], lp_cpt2:[920,490,"r"],
-    lp_ac_m:[920,620,"b"], lp_mcad:[700,620,"b"], lp_enoyl:[500,620,"b"], lp_thiol:[310,620,"b"],
-    lp_acoa_m:[140,620,"b"], lp_krebs:[140,430,"l"]
+    lp_cit:[130,105,"t"], lp_acoa_c:[300,105,"t"], lp_mal:[480,105,"t"], lp_palm:[680,105,"t"], lp_tag:[880,105,"r"],
+    lp_adipose_fa:[1120,75,"r"],
+    lp_ac_c:[1120,185,"r"], lp_cpt1:[1120,295,"r"], lp_cact:[1120,400,"r"], lp_cpt2:[1120,505,"r"],
+    lp_ac_m:[980,630,"b"], lp_mcad:[780,630,"b"], lp_enoyl:[580,630,"b"], lp_thiol:[390,630,"b"],
+    lp_acoa_m:[190,630,"b"], lp_krebs:[85,465,"l"]
   },
   prot:{lp_cpt1:"CPT-1",lp_cact:"CACT",lp_cpt2:"CPT-2",lp_mcad:"MCAD",lp_thiol:"Tiolasa"},
   edges:[
-    {id:"l_acly",from:"lp_cit",to:"lp_acoa_c",tag:"ACLY (ATP)"},
-    {id:"l_acc",rx:"rx_acc",from:"lp_acoa_c",to:"lp_mal",tag:"ACC1 (+CO₂)"},
-    {id:"l_fas",rx:"rx_fas",from:"lp_mal",to:"lp_palm",tag:"FASN (14 NADPH)"},
-    {id:"l_ascl",rx:"rx_acyl_coa_synth",from:"lp_palm",to:"lp_ac_c",tag:"ACSL (ATP→AMP)"},
-    {id:"l_cpt1",rx:"rx_cpt1",from:"lp_ac_c",to:"lp_cpt1",tag:"+ Carnitina"},
-    {id:"l_cact",from:"lp_cpt1",to:"lp_cact",tag:"IMS → IMM"},
-    {id:"l_cpt2",rx:"rx_cact_cpt2",from:"lp_cact",to:"lp_cpt2",tag:"Regenera CoA"},
-    {id:"l_mito",from:"lp_cpt2",to:"lp_ac_m"},
-    {id:"l_mcad",rx:"rx_beta_oxidation",from:"lp_ac_m",to:"lp_mcad",tag:"FAD → FADH₂"},
-    {id:"l_hyd",from:"lp_mcad",to:"lp_enoyl",tag:"+ H₂O"},
-    {id:"l_thiol",from:"lp_enoyl",to:"lp_thiol",tag:"NAD⁺ → NADH"},
-    {id:"l_out",from:"lp_thiol",to:"lp_acoa_m",tag:"+ CoA → 8 Acetil-CoA"},
-    {id:"l_tca",from:"lp_acoa_m",to:"lp_krebs",tag:"Krebs / Cetonas"}
+    {id:"l_acly",from:"lp_cit",to:"lp_acoa_c",tag:"ACLY (ATP)",v:["synth","reciprocal"]},
+    {id:"l_acc",rx:"rx_acc",from:"lp_acoa_c",to:"lp_mal",tag:"ACC1 (+CO₂)",v:["synth","reciprocal"]},
+    {id:"l_fas",rx:"rx_fas",from:"lp_mal",to:"lp_palm",tag:"FASN (14 NADPH)",v:["synth","reciprocal"]},
+    {id:"l_tag",rx:"l_tag",from:"lp_palm",to:"lp_tag",tag:"Esterificación a TAG",v:["synth","reciprocal"]},
+    {id:"l_fa_in",rx:"l_fa_in",from:"lp_adipose_fa",to:"lp_ac_c",tag:"ACSL (ATP→AMP)",v:["betaox","reciprocal"]},
+    {id:"l_cpt1",rx:"rx_cpt1",from:"lp_ac_c",to:"lp_cpt1",tag:"+ Carnitina",v:["betaox","reciprocal"]},
+    {id:"l_cact",from:"lp_cpt1",to:"lp_cact",tag:"IMS → IMM",v:["betaox","reciprocal"]},
+    {id:"l_cpt2",rx:"rx_cact_cpt2",from:"lp_cact",to:"lp_cpt2",tag:"Regenera CoA",v:["betaox","reciprocal"]},
+    {id:"l_mito",from:"lp_cpt2",to:"lp_ac_m",v:["betaox","reciprocal"]},
+    {id:"l_mcad",rx:"rx_beta_oxidation",from:"lp_ac_m",to:"lp_mcad",tag:"FAD → FADH₂",v:["betaox","reciprocal"]},
+    {id:"l_hyd",from:"lp_mcad",to:"lp_enoyl",tag:"+ H₂O",v:["betaox","reciprocal"]},
+    {id:"l_thiol",from:"lp_enoyl",to:"lp_thiol",tag:"NAD⁺ → NADH",v:["betaox","reciprocal"]},
+    {id:"l_out",from:"lp_thiol",to:"lp_acoa_m",tag:"+ CoA → 8 Acetil-CoA",v:["betaox","reciprocal"]},
+    {id:"l_tca",from:"lp_acoa_m",to:"lp_krebs",tag:"Krebs / Cetonas",v:["betaox","reciprocal"]}
   ],
-  bg:`<rect x="20" y="20" width="1120" height="200" rx="24" class="mx-box"/><text class="comp-lbl" x="44" y="200">CITOSOL · SÍNTESIS DE NOVO (ACC1 & FASN)<\/text>
-   <rect x="20" y="240" width="1120" height="150" rx="14" class="mx-membrane"/><text class="comp-lbl" x="44" y="320" text-anchor="start">MEMBRANA MITOCONDRIAL · LANZADERA DE CARNITINA (OMM / IMS / IMM)<\/text>
-   <rect x="20" y="410" width="1120" height="290" rx="24" class="mx-mito"/><text class="comp-lbl" x="44" y="440" style="fill:var(--mito-lbl)">MATRIZ · ESPIRAL DE β-OXIDACIÓN (4 PASOS CÍCLICOS)<\/text>
-   <text class="lbl-c" x="650" y="195" text-anchor="middle" style="fill:var(--danger);font-size:11.5px">Inhibición alostérica cruzada: Malonil-CoA ⊣ CPT-1 (evita ciclos fútiles)<\/text>`,
-  ledger:[["Por molécula de palmitato (C16)","106 ATP netos","pos"],["Gasto de síntesis de novo","14 NADPH + 7 ATP","neg"],["Control alostérico recíproco","Malonil-CoA ⊣ CPT-1",""]],
-  steps:[
-   {e:["l_acly","l_acc","l_fas"],t:"La lipogénesis de novo parte del citrato citosólico. La ACLY libera Acetil-CoA, la ACC1 genera Malonil-CoA con gasto de ATP, y la FASN sintetiza palmitato consumiendo 14 NADPH."},
-   {e:["l_ascl","l_cpt1"],t:"La ACSL activa el palmitato con CoA. La CPT-1 lo conjuga con carnitina para permitir su entrada a través de la membrana mitocondrial externa."},
-   {e:["l_cact","l_cpt2","l_mito"],t:"El translocador CACT introduce la acilcarnitina en la matriz a cambio de carnitina libre. En la cara interna, la CPT-2 regenera el Palmitoil-CoA mitocondrial."},
-   {e:["l_mcad","l_hyd","l_thiol","l_out","l_tca"],t:"En la matriz, 7 ciclos de los 4 pasos (deshidrogenación por MCAD, hidratación, segunda deshidrogenación y tiólisis) rinden 8 Acetil-CoA, 7 FADH₂ y 7 NADH = 106 ATP netos."}],
-  facts:["El déficit de MCAD es el trastorno hereditario de la β-oxidación más prevalente: causa hipoglucemia hipocetósica severa en lactantes tras ayuno prolongado.","El déficit de CPT-2 miopático causa rabdomiólisis paroxística con mioglobinuria y elevación masiva de CPK tras ejercicio intenso.","La Malonil-CoA es el sensor recíproco: si hay síntesis activa, la oxidación queda bloqueada al 100%."]
+  bg:{
+    reciprocal:`<rect x="20" y="20" width="940" height="175" rx="22" class="mx-box"/><text class="comp-lbl" x="42" y="48">CITOSOL · SÍNTESIS DE PALMITATO (ESTADO POSPRANDIAL / INSULINA ↑)</text>
+     <text class="lbl-c" x="42" y="170" style="fill:var(--fg-dim);font-size:11px">Insulina activa ACC1 por desfosforilación · El palmitato se almacena en TAG (gota lipídica) o se secreta en VLDL</text>
+     <rect x="990" y="20" width="230" height="105" rx="16" class="mx-blood"/><text class="comp-lbl" x="1105" y="46" text-anchor="middle" style="fill:var(--danger)">SANGRE · LIPÓLISIS (AYUNO)</text>
+     <rect x="990" y="230" width="230" height="325" rx="16" class="mx-membrane"/><text class="comp-lbl" x="1105" y="254" text-anchor="middle" style="font-size:10px">MEMBRANA MITOCONDRIAL (OMM / IMS / IMM)</text>
+     <rect x="20" y="430" width="1200" height="290" rx="24" class="mx-mito"/><text class="comp-lbl" x="42" y="460" style="fill:var(--mito-lbl)">MATRIZ MITOCONDRIAL · ESPIRAL DE β-OXIDACIÓN (AYUNO / GLUCAGÓN ↑)</text>
+     <text class="lbl-c" x="42" y="700" style="fill:var(--fg-dim);font-size:11px">4 pasos cíclicos: Acil-CoA DH (FAD) ➔ Enoil hidratasa (+H₂O) ➔ Hidroxiacil DH (NAD⁺) ➔ Tiolasa (+CoA-SH)</text>`,
+    synth:`<rect x="20" y="20" width="1200" height="420" rx="24" class="mx-box"/><text class="comp-lbl" x="44" y="52">CITOSOL DEL HEPATOCITO / ADIPOCITO · LIPOGÉNESIS DE NOVO (POSPRANDIAL)</text>
+     <text class="lbl-c" x="44" y="230" style="fill:var(--fg-dim);font-size:12px">Activada por insulina mediante desfosforilación de la ACC1 por la proteína fosfatasa 2A (PP2A).</text>
+     <text class="lbl-c" x="44" y="255" style="fill:var(--fg-dim);font-size:12px">El producto Malonil-CoA bloquea alostéricamente a la CPT-1 mitocondrial: el palmitato sintetizado NO entra a oxidarse.</text>
+     <text class="lbl-c" x="44" y="280" style="fill:var(--fg-dim);font-size:12px">Destino posprandial exclusivo: esterificación a triacilgliceroles (TAG) para depósito tisular o secreción en VLDL.</text>`,
+    betaox:`<rect x="880" y="20" width="340" height="105" rx="18" class="mx-blood"/><text class="comp-lbl" x="1050" y="46" text-anchor="middle" style="fill:var(--danger)">SANGRE · ÁCIDOS GRASOS LIBRES (LIPÓLISIS)</text>
+     <rect x="880" y="140" width="340" height="420" rx="18" class="mx-membrane"/><text class="comp-lbl" x="1050" y="165" text-anchor="middle">LANZADERA DE CARNITINA (OMM / IMS / IMM)</text>
+     <rect x="20" y="430" width="1200" height="290" rx="24" class="mx-mito"/><text class="comp-lbl" x="42" y="460" style="fill:var(--mito-lbl)">MATRIZ MITOCONDRIAL · ESPIRAL DE β-OXIDACIÓN (AYUNO / EJERCICIO)</text>
+     <text class="lbl-c" x="42" y="700" style="fill:var(--fg-dim);font-size:11px">7 ciclos de degradación rinden 8 Acetil-CoA + 7 FADH₂ + 7 NADH = 106 ATP netos para contracción o cetogénesis.</text>`
+  },
+  fg:{
+    reciprocal:`<g class="lipid-reciprocal-fg">
+     <path d="M 480 135 C 480 295, 780 295, 1070 295" fill="none" stroke="var(--danger)" stroke-width="2.6" stroke-dasharray="6 4"/>
+     <line x1="1070" y1="281" x2="1070" y2="309" stroke="var(--danger)" stroke-width="4.5" stroke-linecap="round"/>
+     <rect x="530" y="268" width="450" height="52" rx="12" fill="var(--bg-card)" stroke="var(--danger)" stroke-width="1.8" opacity="0.95"/>
+     <text class="lbl-c" x="755" y="289" text-anchor="middle" style="fill:var(--danger);font-weight:700;font-size:12px">INHIBICIÓN RECÍPROCA: Malonil-CoA ⊣ CPT-1</text>
+     <text class="lbl-c" x="755" y="307" text-anchor="middle" style="fill:var(--fg-dim);font-size:10.5px">Evita el ciclo fútil: mientras hay síntesis activa, la entrada a β-oxidación está bloqueada al 100%</text>
+    </g>`,
+    synth:"",
+    betaox:""
+  },
+  ledger:{
+    reciprocal:[["Control metabólico","Rutas mutuamente excluyentes","neg"],["Sensor alostérico","Malonil-CoA citosólico ⊣ CPT-1","neg"],["Estado posprandial","Insulina activa ACC1 ➔ Síntesis","pos"],["Estado de ayuno","AMPK / PKA frenan ACC1 ➔ β-Oxidación","pos"]],
+    synth:[["Gasto de síntesis por palmitato (C16)","14 NADPH + 7 ATP + 8 Acetil-CoA","neg"],["Localización subcelular","Citosol (complejo dimérico FASN)",""],["Destino fisiológico","Esterificación a TAG / depósito","pos"],["Inhibición sobre CPT-1","Bloqueo alostérico total por Malonil-CoA","neg"]],
+    betaox:[["Origen de sustratos","Lipólisis en tejido adiposo (Glucagón/Adrenalina)",""],["Rendimiento por palmitato (C16)","106 ATP netos (7 FADH₂ + 7 NADH + 8 Ac-CoA)","pos"],["Localización subcelular","Matriz mitocondrial (lanzadera de carnitina)",""],["Desinhibición en ayuno","Sin Malonil-CoA ➔ CPT-1 libre al 100%","pos"]]
+  },
+  steps:{
+    reciprocal:[
+     {e:["l_acly","l_acc","l_fas","l_tag"],t:"1. Estado Posprandial (Insulina alta): La glucosa sobrante genera citrato. La ACC1 activada produce Malonil-CoA, y la FASN sintetiza palmitato que se almacena como TAG."},
+     {e:[],t:"2. Bloqueo alostérico recíproco: El Malonil-CoA citosólico inhibe potentemente a la CPT-1 en la membrana mitocondrial externa, impidiendo el transporte de acilos a la matriz."},
+     {e:["l_fa_in","l_cpt1","l_cact","l_cpt2"],t:"3. Estado de Ayuno (Glucagón / Adrenalina / AMPK altos): La ACC1 se fosforila y apaga. Cae el Malonil-CoA y la CPT-1 queda libre para introducir los ácidos grasos de la lipólisis."},
+     {e:["l_mcad","l_hyd","l_thiol","l_out","l_tca"],t:"4. Espiral de β-Oxidación: En la matriz mitocondrial, los 4 pasos liberan 8 Acetil-CoA rindiendo 106 ATP netos para energía celular o cetogénesis sin interferencia."}],
+    synth:[
+     {e:["l_acly"],t:"Paso 1: La ATP-citrato liasa (ACLY) escinde el citrato citosólico en Acetil-CoA y Oxalacetato con gasto de 1 ATP."},
+     {e:["l_acc"],t:"Paso 2: La Acetil-CoA carboxilasa 1 (ACC1, paso marcapasos) carboxila la acetil-CoA a Malonil-CoA con gasto de ATP y HCO₃⁻. Activada por insulina y citrato."},
+     {e:["l_fas"],t:"Paso 3: El complejo FASN condensa 1 acetil-CoA cebador con 7 malonil-CoA en 7 ciclos sucesivos, consumiendo 14 NADPH hasta liberar palmitato libre (16:0)."},
+     {e:["l_tag"],t:"Paso 4: El palmitato se esterifica con glicerol-3-P para formar triacilgliceroles (TAG) en gotas lipídicas o secreción en VLDL hepática."}],
+    betaox:[
+     {e:["l_fa_in"],t:"Paso 1: En ayuno, la lipólisis adiposa libera ácidos grasos. La ACSL hepática/muscular activa el palmitato a Palmitoil-CoA citosólico gastando 2 enlaces ~P (ATP→AMP)."},
+     {e:["l_cpt1"],t:"Paso 2: Con la ACC1 apagada no hay Malonil-CoA: la CPT-1 transesterifica el acil-CoA a palmitoil-carnitina en la membrana externa."},
+     {e:["l_cact","l_cpt2","l_mito"],t:"Paso 3: El translocador antiporte CACT introduce la palmitoil-carnitina a la matriz a cambio de carnitina libre. La CPT-2 regenera Palmitoil-CoA mitocondrial."},
+     {e:["l_mcad"],t:"Paso 4 (Espiral 1/4): La Acil-CoA deshidrogenasa (MCAD/VLCAD) genera trans-Δ²-enoil-CoA y reduce FAD a FADH₂ (que cede electrones a la CoQ vía ETF)."},
+     {e:["l_hyd"],t:"Paso 5 (Espiral 2/4): La enoil-CoA hidratasa añade una molécula de agua rindiendo L-3-hidroxiacil-CoA."},
+     {e:["l_thiol"],t:"Paso 6 (Espiral 3/4 y 4/4): La 3-hidroxiacil-CoA DH produce NADH, y la tiolasa escinde Acetil-CoA con CoA-SH libre, acortando la cadena en 2 carbonos."},
+     {e:["l_out","l_tca"],t:"Paso 7: Tras 7 vueltas completas de la espiral, 1 palmitato (16C) rinde 8 Acetil-CoA + 7 FADH₂ + 7 NADH = 106 ATP netos para el ciclo de Krebs o la síntesis de cuerpos cetónicos."}]
+  },
+  facts:[
+    "Incompatibilidad simultánea: La síntesis y la β-oxidación no pueden ocurrir al mismo tiempo en la misma célula; de lo contrario se disiparía la energía en un ciclo fútil sin generar trabajo.",
+    "El Malonil-CoA es el sensor alostérico maestro: inhibe a la CPT-1 en concentraciones micromolares. Con síntesis activa, la entrada a la mitocondria queda bloqueada al 100%.",
+    "Control hormonal recíproco: La insulina desfosforila y activa la ACC1 (favorece síntesis y frena oxidación); el glucagón, la adrenalina y la AMPK fosforilan e inactivan la ACC1 (desinhiben la CPT-1 y promueven la oxidación).",
+    "Relevancia clínica (MCAD / CPT-2): Las deficiencias enzimáticas de la β-oxidación debutan en ayuno prolongado con hipoglucemia hipocetósica severa, letargia y riesgo vital por falta de ATP hepático para la gluconeogénesis."
+  ]
  }
 ];
 const MODM = Object.fromEntries(MODULES.map(m=>[m.id,m]));
@@ -1616,8 +2015,10 @@ function renderModule(){
   if(!msvg) return;
   const m=MOD; if(m.variants && !modVar) modVar=m.variants[0].id;
   const [W,H]=m.vb; msvg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  const curBg = typeof m.bg==="function"?m.bg(modVar):(typeof m.bg==="object"&&m.bg&&m.bg[modVar])?m.bg[modVar]:(m.bg||"");
+  const curFg = typeof m.fg==="function"?m.fg(modVar):(typeof m.fg==="object"&&m.fg&&m.fg[modVar])?m.fg[modVar]:(m.fg||"");
   msvg.innerHTML = `<defs>${Object.entries(PW).map(([k,v])=>`<marker id="mm-${k}" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4.4" markerHeight="4.4" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${v.c}"/></marker>`).join("")}<marker id="mm-e" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--pw-etc)"/></marker><filter id="msoft" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="10"/></filter></defs>
-   <g>${m.bg}</g><g id="m-edges"></g><g id="m-hits"></g><g id="m-part"></g><g id="m-tags"></g><g id="m-nodes"></g><g>${m.fg||""}</g><g id="m-fx"></g>`;
+   <g>${curBg}</g><g id="m-edges"></g><g id="m-hits"></g><g id="m-part"></g><g id="m-tags"></g><g id="m-nodes"></g><g>${curFg}</g><g id="m-fx"></g>`;
   const gE=msvg.querySelector("#m-edges")||$("#m-edges"), gH=msvg.querySelector("#m-hits")||$("#m-hits"), gT=msvg.querySelector("#m-tags")||$("#m-tags"), gN=msvg.querySelector("#m-nodes")||$("#m-nodes");
   const edges=m.edges.filter(visEdge); const used=new Set(); edges.forEach(e=>{used.add(e.from);used.add(e.to);});
   MEDGES=[]; const seenRx=new Set();
@@ -1691,17 +2092,15 @@ function placeModParticles(dt){
 
 function renderModInfo(){
   const m=MOD, steps=modSteps(); const st=steps[modStep];
-  const dis=[...new Set(MEDGES.map(E=>E.rxid))].map(id=>RXM[id]).filter(r=>r&&r.module&&r.regulation&&r.regulation.clinical);
   $("#mod-info").innerHTML = `<div><div class="eyebrow">${esc(m.kicker)}<\/div><h2 class="mod-h">${esc(m.title)}<\/h2><p class="mod-p">${esc(m.intro)}<\/p><\/div>
-   <p class="enz-legend"><b>★<\/b> paso regulador · <span class="dz">●<\/span> enfermedad asociada · toca cualquier enzima para abrir su ficha<\/p>
+   <p class="enz-legend"><b>★<\/b> paso regulador · toca cualquier enzima para abrir su ficha<\/p>
    ${m.variants?`<div class="seg" role="group" aria-label="Variante">${m.variants.map(v=>`<button data-var="${v.id}" aria-pressed="${v.id===modVar}">${esc(v.label)}<\/button>`).join("")}<\/div>`:""}
    <div class="player"><div class="row"><button class="btn" id="mp-prev" aria-label="Paso anterior">‹<\/button><button class="btn pri" id="mp-play">${modTimer?"Pausar":"Reproducir paso a paso"}<\/button><button class="btn" id="mp-next" aria-label="Paso siguiente">›<\/button><span class="mono" style="margin-left:auto;font-size:11px;color:var(--fg-faint)">${modStep<0?`${steps.length} pasos`:`Paso ${modStep+1} de ${steps.length}`}<\/span><\/div>
     <div class="dots">${steps.map((_,i)=>`<button data-step="${i}" aria-label="Paso ${i+1}" class="${i===modStep?"on":i<modStep?"done":""}"><\/button>`).join("")}<\/div>
     <p>${st?esc(st.t):"Pulsa <b>Reproducir<\/b> para recorrer el proceso, o toca cualquier flecha para abrir la ficha de su enzima."}<\/p>
     ${modStep>=0?`<button class="lnk-btn" id="mp-all">Ver el esquema completo<\/button>`:""}<\/div>
    <div><div class="eyebrow" style="margin-bottom:8px">Balance<\/div><div class="ledger">${modLedger().map(([k,v,c])=>`<div><span>${esc(k)}<\/span><b class="${c}">${esc(v)}<\/b><\/div>`).join("")}<\/div><\/div>
-   <div><div class="eyebrow" style="margin-bottom:8px">Claves<\/div><ul class="notes" style="--sc:${m.c}">${m.facts.map(f=>`<li>${esc(f)}<\/li>`).join("")}<\/ul><\/div>
-   ${dis.length?`<div><div class="eyebrow" style="margin-bottom:8px">Simular un déficit<\/div><div class="rxlist">${dis.map(r=>`<button data-dis="${r.id}" ${modBlock===r.id?'style="border-color:var(--danger)"':""}><span class="dot" style="color:var(--danger)"><\/span><span>${esc(r.regulation.clinical.diseaseName)}<\/span><small>${esc(r.enzymeAbbreviation)}<\/small><\/button>`).join("")}${modBlock?`<button data-dis=""><span>Quitar el déficit<\/span><\/button>`:""}<\/div><\/div>`:""}`;
+   <div><div class="eyebrow" style="margin-bottom:8px">Claves<\/div><ul class="notes" style="--sc:${m.c}">${m.facts.map(f=>`<li>${esc(f)}<\/li>`).join("")}<\/ul><\/div>`;
   const I=$("#mod-info");
   I.querySelectorAll("[data-var]").forEach(b=>b.onclick=()=>{ modVar=b.dataset.var; modStep=-1; stopPlay(); modBlock=null; renderModule(); });
   I.querySelectorAll("[data-step]").forEach(b=>b.onclick=()=>{ stopPlay(); setStep(+b.dataset.step); });
@@ -1709,7 +2108,6 @@ function renderModInfo(){
   $("#mp-next").onclick=()=>{ stopPlay(); setStep(modStep>=steps.length-1? -1 : modStep+1); };
   $("#mp-play").onclick=()=>{ if(modTimer){ stopPlay(); renderModInfo(); return; } if(modStep>=steps.length-1||modStep<0) modStep=-1; modTimer=setInterval(()=>{ if(modStep>=modSteps().length-1){ stopPlay(); setStep(-1); return; } setStep(modStep+1); }, 3800); setStep(modStep+1); };
   const all=$("#mp-all"); if(all) all.onclick=()=>{ stopPlay(); setStep(-1); };
-  I.querySelectorAll("[data-dis]").forEach(b=>b.onclick=()=>{ setModBlock(b.dataset.dis||null); if(b.dataset.dis) openRx(b.dataset.dis); });
 }
 function setStep(i){ modStep=i; modApply(); renderModInfo(); }
 function stopPlay(){ if(modTimer){ clearInterval(modTimer); modTimer=null; } }
@@ -1738,14 +2136,45 @@ function openModule(id){ go("ciclos"); selectModule(id); }
 
 /* ======================= Vistas ======================= */
 let currentView="mapa";
-function go(v){ if(!["mapa","balances","reto","ciclos"].includes(v)) v="mapa"; const prev=currentView; currentView=v;
+function renderTissues(){
+  const vt = $("#view-tejidos");
+  if(!vt) return;
+  vt.innerHTML = renderTissueSuite(tissueTab, tissueSelectedId);
+  cssify(vt);
+  setupTissueSuite(vt, {
+    onTabChange: (t) => {
+      tissueTab = t;
+      renderTissues();
+    },
+    onTissueSelect: (id) => {
+      tissueSelectedId = id;
+      renderTissues();
+    },
+    onApplyToMap: (id) => {
+      tissueFilter = id;
+      syncTissueChips();
+      go("mapa");
+      apply();
+      toast(`Mapa filtrado para: ${TISSUES_DATA[id]?.name || id}`);
+    }
+  });
+}
+
+function go(v){
+  if(!["mapa","balances","reto","ciclos","tejidos"].includes(v)) v="mapa";
+  const prev=currentView; currentView=v;
   document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.view===v)));
-  $("#view-mapa").hidden = v==="balances"||v==="ciclos"; $("#view-balances").hidden = v!=="balances"; $("#view-ciclos").hidden = v!=="ciclos";
-  $("#stage").classList.toggle("flow", v==="balances"||v==="ciclos");
-  $(".body").classList.toggle("norail", v==="balances"||v==="ciclos");
+  const isFullFlow = v==="balances"||v==="ciclos"||v==="tejidos";
+  $("#view-mapa").hidden = isFullFlow;
+  $("#view-balances").hidden = v!=="balances";
+  $("#view-ciclos").hidden = v!=="ciclos";
+  const vt = $("#view-tejidos"); if(vt) vt.hidden = v!=="tejidos";
+  $("#stage").classList.toggle("flow", isFullFlow);
+  $(".body").classList.toggle("norail", isFullFlow);
   if(v!==prev) closePanel();
   if(v==="balances"){ renderBalances(); }
   if(v==="ciclos"){ renderModule(); } else stopPlay();
+  if(v==="tejidos"){ renderTissues(); }
   if(v==="reto"){ if(!quiz||quiz.done) newQuiz(); else renderQuiz(); }
   else { $("#quiz").hidden=true; if(quiz){ quiz=null; drawFx(); } }
   drawHud();
@@ -1760,7 +2189,9 @@ IDX = IDX.concat(
   Object.keys(MNODES).map(id=>({kind:"mnode",id,label:MET[id].name,c:PW[MET[id].pathways[0]].c,txt:(MET[id].name+" "+MET[id].abbreviation).toLowerCase()})),
   MRX_LIST.map(r=>({kind:"mrx",id:r.id,label:r.enzymeName,c:PW[r.pathway].c,txt:(r.enzymeName+" "+r.enzymeAbbreviation+" "+r.name).toLowerCase()})),
   MRX_LIST.filter(r=>r.regulation&&r.regulation.clinical).map(r=>({kind:"mdis",id:r.id,label:r.regulation.clinical.diseaseName,c:"var(--danger)",txt:r.regulation.clinical.diseaseName.toLowerCase()})),
-  MODULES.map(m=>({kind:"mod",id:m.id,label:m.title,c:m.c,txt:(m.title+" "+m.kicker).toLowerCase()})));
+  MODULES.map(m=>({kind:"mod",id:m.id,label:m.title,c:m.c,txt:(m.title+" "+m.kicker).toLowerCase()})),
+  Object.values(TISSUES_DATA).map(t=>({kind:"tissue",id:t.id,label:t.name,c:TISSUE_COLORS[t.id]||"var(--accent)",txt:(t.name+" tejido "+t.title+" "+t.fuelFed+" "+t.fuelFasting).toLowerCase()}))
+);
 /* modo claro / oscuro */
 const SUN='<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3.2" fill="currentColor"/><g stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8 1v1.6M8 13.4V15M1 8h1.6M13.4 8H15M3 3l1.1 1.1M11.9 11.9L13 13M3 13l1.1-1.1M11.9 4.1L13 3"/></g></svg>';
 const MOON='<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 10.2A6 6 0 0 1 5.8 2.5a6 6 0 1 0 7.7 7.7z" fill="currentColor"/></svg>';

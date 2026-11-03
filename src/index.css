@@ -1915,3 +1915,772 @@ select{width:100%;background:var(--ink-2);color:var(--fg);border:1px solid var(-
   border-radius: 50%;
   background: var(--accent);
 }
+
+/* ==========================================================
+   Especialización Tisular & Rutas Universales (Metabolix Suite)
+   ========================================================== */
+.tissue-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.tissue-chip {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+#view-tejidos {
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 24px max(24px, env(safe-area-inset-right)) 60px max(24px, env(safe-area-inset-left));
+  background: var(--ink-0);
+}
+
+.tissue-suite-root {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.tissue-header-hero {
+  background: var(--ink-1);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 22px 26px;
+  box-shadow: 0 4px 20px var(--shadow);
+}
+.tissue-badge-ribbon {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.tissue-badge-pill {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+.tissue-badge-dot {
+  font-size: 12px;
+  color: var(--fg-faint);
+  font-weight: 500;
+}
+.tissue-main-title {
+  font-family: var(--f-display);
+  font-size: 26px;
+  font-weight: 800;
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+}
+.tissue-main-p {
+  margin: 0;
+  font-size: 14.5px;
+  color: var(--fg-dim);
+  line-height: 1.55;
+  max-width: 85ch;
+}
+
+/* Nav Tabs */
+.tissue-nav-tabs {
+  display: flex;
+  gap: 6px;
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  padding: 5px;
+  border-radius: 12px;
+  overflow-x: auto;
+}
+.tissue-nav-tab {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg-dim);
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.tissue-nav-tab:hover {
+  color: var(--fg);
+  background: var(--ink-3);
+}
+.tissue-nav-tab.active {
+  background: var(--ink-1);
+  color: var(--fg);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border: 1px solid var(--line);
+}
+
+/* Matriz Comparativa */
+.tissue-matrix-card {
+  background: var(--ink-1);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px var(--shadow);
+}
+.tissue-matrix-legend {
+  padding: 12px 18px;
+  background: var(--ink-2);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 12px;
+}
+.tm-legend-title {
+  font-weight: 700;
+  color: var(--fg-faint);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+.tm-badge-sample {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.tissue-table-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.tissue-matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  text-align: left;
+}
+.tissue-matrix-table thead th {
+  padding: 12px 14px;
+  background: var(--ink-2);
+  border-bottom: 2px solid var(--line);
+  color: var(--fg);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.th-pathway {
+  position: sticky;
+  left: 0;
+  background: var(--ink-2);
+  z-index: 2;
+  min-width: 210px;
+}
+.th-tissue {
+  min-width: 155px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.th-tissue:hover {
+  background: var(--ink-3);
+}
+.th-icon {
+  font-size: 15px;
+  margin-right: 5px;
+}
+.tissue-matrix-table tbody tr {
+  border-bottom: 1px solid var(--line);
+  transition: background 0.12s;
+}
+.tissue-matrix-table tbody tr:hover {
+  background: color-mix(in srgb, var(--accent) 3%, transparent);
+}
+.tissue-matrix-table tbody tr.row-universal {
+  background: color-mix(in srgb, #059669 4%, transparent);
+}
+.td-pathway {
+  position: sticky;
+  left: 0;
+  background: var(--ink-1);
+  z-index: 1;
+  padding: 12px 14px;
+  border-right: 1px solid var(--line);
+}
+.tissue-matrix-table tbody tr.row-universal .td-pathway {
+  background: color-mix(in srgb, #059669 6%, var(--ink-1));
+}
+.td-pathway-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.badge-tag-uni {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+:root[data-mode="dark"] .badge-tag-uni {
+  background: #064e3b;
+  color: #6ee7b7;
+  border-color: #047857;
+}
+.td-pathway-cat {
+  color: var(--fg-faint);
+  font-size: 11px;
+}
+
+.td-matrix-cell {
+  padding: 10px 12px;
+  vertical-align: top;
+  border-right: 1px solid color-mix(in srgb, var(--line) 40%, transparent);
+}
+.td-absent {
+  background: color-mix(in srgb, var(--danger) 2.5%, transparent);
+}
+
+.cell-status-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  white-space: nowrap;
+}
+.cell-badge-exclusive {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+:root[data-mode="dark"] .cell-badge-exclusive {
+  background: #1e3a8a;
+  color: #93c5fd;
+  border-color: #1d4ed8;
+}
+.cell-badge-active {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+:root[data-mode="dark"] .cell-badge-active {
+  background: #14532d;
+  color: #86efac;
+  border-color: #15803d;
+}
+.cell-badge-absent {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+:root[data-mode="dark"] .cell-badge-absent {
+  background: #7f1d1d;
+  color: #fca5a5;
+  border-color: #991b1b;
+}
+.cell-badge-specialized {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+:root[data-mode="dark"] .cell-badge-specialized {
+  background: #78350f;
+  color: #fde68a;
+  border-color: #92400e;
+}
+
+.cell-mini-note {
+  margin: 0;
+  font-size: 11px;
+  color: var(--fg-dim);
+  line-height: 1.38;
+}
+
+.tissue-matrix-footer {
+  padding: 14px 18px;
+  background: var(--ink-2);
+  border-top: 1px solid var(--line);
+}
+.tmf-tip {
+  font-size: 12.5px;
+  color: var(--fg);
+  line-height: 1.5;
+}
+
+/* Vista Universal */
+.universal-view-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.universal-intro-card {
+  background: var(--ink-1);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 22px 24px;
+}
+.uic-badge {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.universal-intro-card h3 {
+  font-family: var(--f-display);
+  font-size: 20px;
+  margin: 0 0 8px;
+  color: var(--fg);
+}
+.universal-intro-card p {
+  margin: 0 0 6px;
+  font-size: 14px;
+  color: var(--fg-dim);
+  line-height: 1.55;
+}
+
+.universal-cards-deck {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+  gap: 16px;
+}
+.universal-card-item {
+  background: var(--ink-1);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 2px 12px var(--shadow);
+}
+.uci-top {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.uci-num {
+  font-family: var(--f-mono);
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+  padding: 6px 10px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-radius: 8px;
+}
+.uci-head-text h4 {
+  margin: 4px 0 2px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--fg);
+}
+.uci-badge-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #15803d;
+}
+:root[data-mode="dark"] .uci-badge-tag {
+  background: #14532d;
+  color: #86efac;
+}
+.uci-organelle {
+  font-size: 12px;
+  color: var(--fg-faint);
+}
+
+.uci-enzymes-box {
+  background: var(--ink-2);
+  border-left: 3px solid var(--accent);
+  padding: 8px 12px;
+  border-radius: 0 8px 8px 0;
+}
+.uci-lbl {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--fg-faint);
+  margin-bottom: 2px;
+}
+.uci-enz-list {
+  margin: 0;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  color: var(--fg);
+}
+.uci-p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--fg-dim);
+  line-height: 1.5;
+}
+.uci-nuance-box {
+  background: color-mix(in srgb, #f59e0b 8%, var(--ink-2));
+  border: 1px solid color-mix(in srgb, #f59e0b 30%, transparent);
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+.uci-lbl-accent {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #b45309;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+:root[data-mode="dark"] .uci-lbl-accent {
+  color: #fbbf24;
+}
+.uci-p-accent {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--fg-dim);
+  line-height: 1.48;
+}
+
+/* Vista Explorador */
+.explorer-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 18px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .explorer-layout {
+    grid-template-columns: 1fr;
+  }
+}
+.explorer-selector-rail {
+  background: var(--ink-1);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.rail-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-faint);
+}
+.explorer-buttons-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.explorer-tissue-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--ink-2);
+  text-align: left;
+  transition: all 0.15s;
+}
+.explorer-tissue-btn:hover {
+  background: var(--ink-3);
+  border-color: var(--hover-line);
+}
+.explorer-tissue-btn.active {
+  background: color-mix(in srgb, var(--accent) 12%, var(--ink-2));
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent) inset;
+}
+.etb-icon {
+  font-size: 18px;
+}
+.etb-text b {
+  display: block;
+  font-size: 13px;
+  color: var(--fg);
+}
+.etb-text small {
+  display: block;
+  font-size: 11px;
+  color: var(--fg-faint);
+}
+
+.explorer-map-link-box {
+  background: var(--ink-2);
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 6px;
+}
+.eml-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--fg);
+  margin-bottom: 4px;
+}
+.eml-desc {
+  margin: 0 0 8px;
+  font-size: 11.5px;
+  color: var(--fg-dim);
+  line-height: 1.4;
+}
+.explorer-btn-map {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--fg);
+  color: var(--ink-0);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.explorer-btn-map:hover {
+  opacity: 0.9;
+}
+
+.explorer-detail-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.tissue-profile-header {
+  background: var(--ink-1);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 20px 24px;
+}
+.tph-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.tph-icon-big {
+  font-size: 38px;
+  padding: 12px;
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+.tph-eyebrow {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.tph-title {
+  font-family: var(--f-display);
+  font-size: 24px;
+  font-weight: 800;
+  margin: 2px 0 4px;
+  color: var(--fg);
+}
+.tph-subtitle {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--fg-dim);
+}
+
+.tissue-fuel-deck {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+.tfd-card {
+  background: var(--ink-1);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.tfd-card.highlight-export {
+  border-color: color-mix(in srgb, #059669 40%, var(--line));
+  background: color-mix(in srgb, #059669 4%, var(--ink-1));
+}
+.tfd-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--fg-faint);
+}
+.tfd-val {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg);
+  line-height: 1.4;
+}
+
+.tissue-sec-block {
+  background: var(--ink-1);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 20px;
+}
+.tissue-sec-block.danger-block {
+  border-color: color-mix(in srgb, var(--danger) 30%, var(--line));
+  background: color-mix(in srgb, var(--danger) 2%, var(--ink-1));
+}
+.tsb-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.tsb-title h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--fg);
+}
+.tsb-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 12px;
+}
+.tsb-card-item {
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.tsb-card-item.absent-card {
+  background: var(--ink-1);
+  border-color: color-mix(in srgb, var(--danger) 25%, transparent);
+}
+.tsb-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.tsb-card-top b {
+  font-size: 13px;
+  color: var(--fg);
+}
+.tsb-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.tsb-badge.exclusive {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+:root[data-mode="dark"] .tsb-badge.exclusive {
+  background: #1e3a8a;
+  color: #93c5fd;
+}
+.tsb-badge.specialized {
+  background: #fef3c7;
+  color: #b45309;
+}
+:root[data-mode="dark"] .tsb-badge.specialized {
+  background: #78350f;
+  color: #fde68a;
+}
+.tsb-badge.absent {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+:root[data-mode="dark"] .tsb-badge.absent {
+  background: #7f1d1d;
+  color: #fca5a5;
+}
+.tsb-card-item p {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--fg-dim);
+  line-height: 1.45;
+}
+
+.tissue-exam-tip-card {
+  background: color-mix(in srgb, #6366f1 8%, var(--ink-1));
+  border: 1px solid color-mix(in srgb, #6366f1 30%, transparent);
+  border-radius: 14px;
+  padding: 16px 20px;
+}
+.tetc-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #4f46e5;
+  margin-bottom: 6px;
+}
+:root[data-mode="dark"] .tetc-head {
+  color: #a5b4fc;
+}
+.tissue-exam-tip-card p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--fg);
+  line-height: 1.5;
+}
+
+/* Sidebar Rail Tissue Chips */
+.tissue-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.tissue-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  color: var(--fg-dim);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+.tissue-chip:hover {
+  background: var(--ink-3);
+  color: var(--fg);
+}
+.tissue-chip[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--tc, var(--accent)) 15%, var(--ink-2));
+  border-color: var(--tc, var(--accent));
+  color: var(--fg);
+  font-weight: 600;
+  box-shadow: 0 0 0 1px var(--tc, var(--accent)) inset;
+}
+.tissue-chip-icon {
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+}
+
+

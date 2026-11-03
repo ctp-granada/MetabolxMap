@@ -6,6 +6,7 @@
     </div>
     <nav class="tabs" role="tablist" aria-label="Vistas">
       <button role="tab" data-view="mapa" aria-selected="true">Mapa<span class="lx"> celular</span></button>
+      <button role="tab" data-view="tejidos" aria-selected="false">Tejidos<span class="lx"> y rutas</span></button>
       <button role="tab" data-view="ciclos" aria-selected="false">Ciclos<span class="lx"> y lanzaderas</span></button>
       <button role="tab" data-view="balances" aria-selected="false">Balances<span class="lx"> de ATP</span></button>
       <button role="tab" data-view="reto" aria-selected="false">Reto</button>
@@ -13,7 +14,7 @@
     <button class="modebtn" id="mode" aria-label="Cambiar a modo oscuro"></button>
     <div class="search">
       <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M11 11l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-      <input id="q" type="search" placeholder="Buscar enzima, metabolito o enfermedad   /" autocomplete="off" aria-label="Buscar">
+      <input id="q" type="search" placeholder="Buscar enzima, metabolito o ruta   /" autocomplete="off" aria-label="Buscar">
       <div class="results" id="results" hidden></div>
     </div>
   </header>
@@ -37,8 +38,8 @@
         <div class="chips" id="pw-chips"></div>
       </div>
       <div class="sec">
-        <div class="eyebrow">Simular una enfermedad</div>
-        <select id="disease" aria-label="Simular una enfermedad"></select>
+        <div class="eyebrow">Especialización tisular · Mapa</div>
+        <div class="tissue-chips" id="tissue-chips"></div>
       </div>
       <div class="sec">
         <div class="eyebrow">Cómo leer el mapa</div>
@@ -46,9 +47,7 @@
           <div><svg width="44" height="12"><line x1="2" y1="6" x2="42" y2="6" stroke="var(--pw-glycolysis)" stroke-width="6" stroke-linecap="round"/></svg>Grosor y brillo = flujo de la ruta</div>
           <div><svg width="44" height="12"><line x1="2" y1="6" x2="42" y2="6" stroke="var(--pw-glycolysis)" stroke-width="1.5" stroke-dasharray="3 5" opacity=".5"/></svg>Línea tenue = ruta casi apagada</div>
           <div><svg width="44" height="12"><circle cx="12" cy="6" r="3" fill="var(--pw-krebs)"/><circle cx="26" cy="6" r="3" fill="var(--pw-krebs)" opacity=".6"/></svg>Partículas = sentido del flujo neto</div>
-          <div><svg width="44" height="16"><circle cx="22" cy="8" r="6" fill="none" stroke="var(--danger)" stroke-width="2"/></svg>Metabolito que se acumula</div>
-          <div><svg width="44" height="16"><path d="M16 2l12 12M28 2L16 14" stroke="var(--danger)" stroke-width="2.6" stroke-linecap="round"/></svg>Enzima deficiente</div>
-          <div><svg width="44" height="18"><rect x="2" y="3" width="38" height="14" rx="7" fill="var(--pw-glycolysis)"/><text x="8" y="14" font-size="10" fill="var(--pill-ink)">★</text><circle cx="39" cy="4" r="3.4" fill="var(--danger)" stroke="var(--ink-1)" stroke-width="1.2"/></svg>★ enzima reguladora · ● con enfermedad: tócala</div>
+          <div><svg width="44" height="18"><rect x="2" y="3" width="38" height="14" rx="7" fill="var(--pw-glycolysis)"/><text x="8" y="14" font-size="10" fill="var(--pill-ink)">★</text></svg>★ enzima reguladora clave</div>
         </div>
       </div>
     </aside>
@@ -66,6 +65,7 @@
         <div class="hint">Arrastra para mover · rueda o pellizco para zoom · toca una flecha o un nodo</div>
         <div class="quiz" id="quiz" hidden></div>
       </section>
+      <section class="view" id="view-tejidos" hidden></section>
       <section class="view" id="view-ciclos" hidden>
         <div class="mod-tabs" id="mod-tabs" role="group" aria-label="Esquemas"></div>
         <div class="mod-grid"><div class="mod-stage"><svg id="mod" role="img" aria-label="Esquema metabólico"></svg></div><aside class="mod-info" id="mod-info"></aside></div>

@@ -1,1 +1,82 @@
-export const METABOLIX_TEMPLATE = "<div class=\"app\">\n  <header class=\"top\">\n    <div class=\"brand\">\n      <svg width=\"30\" height=\"30\" viewBox=\"0 0 30 30\" aria-hidden=\"true\"><circle cx=\"15\" cy=\"15\" r=\"13\" fill=\"none\" stroke=\"var(--pw-mito)\" stroke-width=\"2\"/><circle cx=\"15\" cy=\"15\" r=\"6.5\" fill=\"none\" stroke=\"var(--pw-krebs)\" stroke-width=\"2\" stroke-dasharray=\"3 2.4\"/><circle cx=\"15\" cy=\"2\" r=\"2.6\" fill=\"var(--pw-glycolysis)\"/><circle cx=\"26\" cy=\"21\" r=\"2.2\" fill=\"var(--pw-lipid)\"/><circle cx=\"5\" cy=\"22\" r=\"2\" fill=\"var(--pw-pentose)\"/></svg>\n      <b>Metabolix</b><span>Metabolismo humano, en vivo</span>\n    </div>\n    <nav class=\"tabs\" role=\"tablist\" aria-label=\"Vistas\">\n      <button role=\"tab\" data-view=\"mapa\" aria-selected=\"true\">Mapa<span class=\"lx\"> celular</span></button>\n      <button role=\"tab\" data-view=\"ciclos\" aria-selected=\"false\">Ciclos<span class=\"lx\"> y lanzaderas</span></button>\n      <button role=\"tab\" data-view=\"balances\" aria-selected=\"false\">Balances<span class=\"lx\"> de ATP</span></button>\n      <button role=\"tab\" data-view=\"reto\" aria-selected=\"false\">Reto</button>\n    </nav>\n    <button class=\"modebtn\" id=\"mode\" aria-label=\"Cambiar a modo oscuro\"></button>\n    <div class=\"search\">\n      <svg width=\"14\" height=\"14\" viewBox=\"0 0 16 16\" aria-hidden=\"true\"><circle cx=\"7\" cy=\"7\" r=\"5.5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"/><path d=\"M11 11l4 4\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\"/></svg>\n      <input id=\"q\" type=\"search\" placeholder=\"Buscar enzima, metabolito o enfermedad   /\" autocomplete=\"off\" aria-label=\"Buscar\">\n      <div class=\"results\" id=\"results\" hidden></div>\n    </div>\n  </header>\n\n  <div class=\"body\">\n    <aside class=\"rail\" id=\"rail\">\n      <div class=\"sec\">\n        <div class=\"eyebrow\">Estado fisiológico</div>\n        <div class=\"states\" id=\"states\"></div>\n      </div>\n      <div class=\"sec\">\n        <div class=\"eyebrow\">Señales</div>\n        <div class=\"meters\" id=\"meters\"></div>\n      </div>\n      <div class=\"sec\">\n        <h3 id=\"st-title\"></h3>\n        <ul class=\"notes\" id=\"st-notes\"></ul>\n      </div>\n      <div class=\"sec\">\n        <div class=\"eyebrow\">Rutas · toca para aislar</div>\n        <div class=\"chips\" id=\"pw-chips\"></div>\n      </div>\n      <div class=\"sec\">\n        <div class=\"eyebrow\">Simular una enfermedad</div>\n        <select id=\"disease\" aria-label=\"Simular una enfermedad\"></select>\n      </div>\n      <div class=\"sec\">\n        <div class=\"eyebrow\">Cómo leer el mapa</div>\n        <div class=\"legend\">\n          <div><svg width=\"44\" height=\"12\"><line x1=\"2\" y1=\"6\" x2=\"42\" y2=\"6\" stroke=\"var(--pw-glycolysis)\" stroke-width=\"6\" stroke-linecap=\"round\"/></svg>Grosor y brillo = flujo de la ruta</div>\n          <div><svg width=\"44\" height=\"12\"><line x1=\"2\" y1=\"6\" x2=\"42\" y2=\"6\" stroke=\"var(--pw-glycolysis)\" stroke-width=\"1.5\" stroke-dasharray=\"3 5\" opacity=\".5\"/></svg>Línea tenue = ruta casi apagada</div>\n          <div><svg width=\"44\" height=\"12\"><circle cx=\"12\" cy=\"6\" r=\"3\" fill=\"var(--pw-krebs)\"/><circle cx=\"26\" cy=\"6\" r=\"3\" fill=\"var(--pw-krebs)\" opacity=\".6\"/></svg>Partículas = sentido del flujo neto</div>\n          <div><svg width=\"44\" height=\"16\"><circle cx=\"22\" cy=\"8\" r=\"6\" fill=\"none\" stroke=\"var(--danger)\" stroke-width=\"2\"/></svg>Metabolito que se acumula</div>\n          <div><svg width=\"44\" height=\"16\"><path d=\"M16 2l12 12M28 2L16 14\" stroke=\"var(--danger)\" stroke-width=\"2.6\" stroke-linecap=\"round\"/></svg>Enzima deficiente</div>\n          <div><svg width=\"44\" height=\"18\"><rect x=\"2\" y=\"3\" width=\"38\" height=\"14\" rx=\"7\" fill=\"var(--pw-glycolysis)\"/><text x=\"8\" y=\"14\" font-size=\"10\" fill=\"var(--pill-ink)\">★</text><circle cx=\"39\" cy=\"4\" r=\"3.4\" fill=\"var(--danger)\" stroke=\"var(--ink-1)\" stroke-width=\"1.2\"/></svg>★ enzima reguladora · ● con enfermedad: tócala</div>\n        </div>\n      </div>\n    </aside>\n\n    <main class=\"stage\" id=\"stage\">\n      <section class=\"view\" id=\"view-mapa\">\n        <svg id=\"map\" role=\"img\" aria-label=\"Mapa metabólico de una célula humana\"></svg>\n        <div class=\"map-hud\" id=\"hud\"></div>\n        <div class=\"zoom\">\n          <button id=\"z-in\" aria-label=\"Acercar\">+</button>\n          <button id=\"z-out\" aria-label=\"Alejar\">−</button>\n          <button id=\"z-fit\" aria-label=\"Encuadrar todo\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\"><path d=\"M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\"/></svg></button>\n          <button id=\"z-play\" aria-label=\"Pausar animación\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 14 14\"><rect x=\"2\" y=\"2\" width=\"3.4\" height=\"10\" rx=\"1\" fill=\"currentColor\"/><rect x=\"8.6\" y=\"2\" width=\"3.4\" height=\"10\" rx=\"1\" fill=\"currentColor\"/></svg></button>\n        </div>\n        <div class=\"hint\">Arrastra para mover · rueda o pellizco para zoom · toca una flecha o un nodo</div>\n        <div class=\"quiz\" id=\"quiz\" hidden></div>\n      </section>\n      <section class=\"view\" id=\"view-ciclos\" hidden>\n        <div class=\"mod-tabs\" id=\"mod-tabs\" role=\"group\" aria-label=\"Esquemas\"></div>\n        <div class=\"mod-grid\"><div class=\"mod-stage\"><svg id=\"mod\" role=\"img\" aria-label=\"Esquema metabólico\"></svg></div><aside class=\"mod-info\" id=\"mod-info\"></aside></div>\n      </section>\n      <section class=\"view\" id=\"view-balances\" hidden></section>\n    </main>\n\n    <aside class=\"panel\" id=\"panel\" aria-live=\"polite\">\n      <div class=\"panel-head\"><span class=\"eyebrow\" id=\"panel-kind\">Detalle</span><button class=\"close\" id=\"panel-close\" aria-label=\"Cerrar\">✕</button></div>\n      <div class=\"panel-body\" id=\"panel-body\"></div>\n    </aside>\n  </div>\n</div>\n<div class=\"toast\" id=\"toast\"></div>";
+export const METABOLIX_TEMPLATE = `<div class="app">
+  <header class="top">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="13" fill="none" stroke="var(--pw-mito)" stroke-width="2"/><circle cx="15" cy="15" r="6.5" fill="none" stroke="var(--pw-krebs)" stroke-width="2" stroke-dasharray="3 2.4"/><circle cx="15" cy="2" r="2.6" fill="var(--pw-glycolysis)"/><circle cx="26" cy="21" r="2.2" fill="var(--pw-lipid)"/><circle cx="5" cy="22" r="2" fill="var(--pw-pentose)"/></svg>
+      <b>Metabolix</b><span>Metabolismo humano, en vivo</span>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Vistas">
+      <button role="tab" data-view="mapa" aria-selected="true">Mapa<span class="lx"> celular</span></button>
+      <button role="tab" data-view="tejidos" aria-selected="false">Tejidos<span class="lx"> y rutas</span></button>
+      <button role="tab" data-view="ciclos" aria-selected="false">Ciclos<span class="lx"> y lanzaderas</span></button>
+      <button role="tab" data-view="balances" aria-selected="false">Balances<span class="lx"> de ATP</span></button>
+      <button role="tab" data-view="reto" aria-selected="false">Reto</button>
+    </nav>
+    <button class="modebtn" id="mode" aria-label="Cambiar a modo oscuro"></button>
+    <div class="search">
+      <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M11 11l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <input id="q" type="search" placeholder="Buscar enzima, metabolito o ruta   /" autocomplete="off" aria-label="Buscar">
+      <div class="results" id="results" hidden></div>
+    </div>
+  </header>
+
+  <div class="body">
+    <aside class="rail" id="rail">
+      <div class="sec">
+        <div class="eyebrow">Estado fisiológico</div>
+        <div class="states" id="states"></div>
+      </div>
+      <div class="sec">
+        <div class="eyebrow">Señales</div>
+        <div class="meters" id="meters"></div>
+      </div>
+      <div class="sec">
+        <h3 id="st-title"></h3>
+        <ul class="notes" id="st-notes"></ul>
+      </div>
+      <div class="sec">
+        <div class="eyebrow">Rutas · toca para aislar</div>
+        <div class="chips" id="pw-chips"></div>
+      </div>
+      <div class="sec">
+        <div class="eyebrow">Especialización tisular · Mapa</div>
+        <div class="tissue-chips" id="tissue-chips"></div>
+      </div>
+      <div class="sec">
+        <div class="eyebrow">Cómo leer el mapa</div>
+        <div class="legend">
+          <div><svg width="44" height="12"><line x1="2" y1="6" x2="42" y2="6" stroke="var(--pw-glycolysis)" stroke-width="6" stroke-linecap="round"/></svg>Grosor y brillo = flujo de la ruta</div>
+          <div><svg width="44" height="12"><line x1="2" y1="6" x2="42" y2="6" stroke="var(--pw-glycolysis)" stroke-width="1.5" stroke-dasharray="3 5" opacity=".5"/></svg>Línea tenue = ruta casi apagada</div>
+          <div><svg width="44" height="12"><circle cx="12" cy="6" r="3" fill="var(--pw-krebs)"/><circle cx="26" cy="6" r="3" fill="var(--pw-krebs)" opacity=".6"/></svg>Partículas = sentido del flujo neto</div>
+          <div><svg width="44" height="18"><rect x="2" y="3" width="38" height="14" rx="7" fill="var(--pw-glycolysis)"/><text x="8" y="14" font-size="10" fill="var(--pill-ink)">★</text></svg>★ enzima reguladora clave</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="stage" id="stage">
+      <section class="view" id="view-mapa">
+        <svg id="map" role="img" aria-label="Mapa metabólico de una célula humana"></svg>
+        <div class="map-hud" id="hud"></div>
+        <div class="zoom">
+          <button id="z-in" aria-label="Acercar">+</button>
+          <button id="z-out" aria-label="Alejar">−</button>
+          <button id="z-fit" aria-label="Encuadrar todo"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4" fill="none" stroke="currentColor" stroke-width="1.7"/></svg></button>
+          <button id="z-play" aria-label="Pausar animación"><svg width="14" height="14" viewBox="0 0 14 14"><rect x="2" y="2" width="3.4" height="10" rx="1" fill="currentColor"/><rect x="8.6" y="2" width="3.4" height="10" rx="1" fill="currentColor"/></svg></button>
+        </div>
+        <div class="hint">Arrastra para mover · rueda o pellizco para zoom · toca una flecha o un nodo</div>
+        <div class="quiz" id="quiz" hidden></div>
+      </section>
+      <section class="view" id="view-tejidos" hidden></section>
+      <section class="view" id="view-ciclos" hidden>
+        <div class="mod-tabs" id="mod-tabs" role="group" aria-label="Esquemas"></div>
+        <div class="mod-grid"><div class="mod-stage"><svg id="mod" role="img" aria-label="Esquema metabólico"></svg></div><aside class="mod-info" id="mod-info"></aside></div>
+      </section>
+      <section class="view" id="view-balances" hidden></section>
+    </main>
+
+    <aside class="panel" id="panel" aria-live="polite">
+      <div class="panel-head"><span class="eyebrow" id="panel-kind">Detalle</span><button class="close" id="panel-close" aria-label="Cerrar">✕</button></div>
+      <div class="panel-body" id="panel-body"></div>
+    </aside>
+  </div>
+</div>
+<div class="toast" id="toast"></div>`;

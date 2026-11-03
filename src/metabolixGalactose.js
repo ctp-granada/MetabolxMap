@@ -558,16 +558,16 @@ export function renderGalactoseClinicalSuite(contextId) {
       </div>
     </div>
 
-    <!-- Barra de Conducta Terapéutica y Acción de Simulación -->
+    <!-- Barra de Conducta Terapéutica y Navegación -->
     <div class="gala-footer-card">
       <div class="gala-footer-info">
         <span class="gala-card-eyebrow">MANEJO TERAPÉUTICO BASADO EN GUÍAS</span>
         <p class="gala-footer-text" id="gala-mgmt-p">${v.managementSummary}</p>
       </div>
       <div class="gala-footer-actions">
-        <button class="gala-sim-btn" id="gala-sim-btn" data-block="${v.blockRx || ''}">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          <span id="gala-sim-lbl">Simular déficit de ${v.enzyme} en el mapa</span>
+        <button class="gala-sim-btn" id="gala-sim-btn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+          <span id="gala-sim-lbl">Enfocar vía de la galactosa en el mapa</span>
         </button>
       </div>
     </div>
@@ -777,17 +777,11 @@ export function setupGalactoseClinicalSuite(container, contextId, actions) {
     const pMgmt = root.querySelector('#gala-mgmt-p');
     if (pMgmt) pMgmt.textContent = v.managementSummary;
 
-    // Simulation button label & action
+    // Focus button label & action
     if (simBtn) {
       const lbl = root.querySelector('#gala-sim-lbl');
-      if (v.blockRx) {
-        simBtn.style.display = '';
-        simBtn.dataset.block = v.blockRx;
-        if (lbl) lbl.textContent = `Simular déficit de ${v.enzyme} en el mapa`;
-      } else {
-        simBtn.dataset.block = '';
-        if (lbl) lbl.textContent = `Restablecer mapa (Vía Fisiológica)`;
-      }
+      simBtn.style.display = '';
+      if (lbl) lbl.textContent = `Enfocar vía de la galactosa en el mapa`;
     }
   }
 
@@ -798,19 +792,14 @@ export function setupGalactoseClinicalSuite(container, contextId, actions) {
     };
   });
 
-  // Bind simulation button
+  // Bind focus button
   if (simBtn) {
     simBtn.onclick = () => {
-      const blockId = simBtn.dataset.block || null;
-      if (actions && typeof actions.setBlock === 'function') {
-        actions.setBlock(blockId);
-      }
       if (actions && typeof actions.focusGalactoseArea === 'function') {
         actions.focusGalactoseArea();
       }
       if (actions && typeof actions.toast === 'function') {
-        const v = GALA_VARIANTS[root.dataset.activeVar || 'clasica'];
-        actions.toast(blockId ? `Simulando déficit de ${v.enzyme}: observa la acumulación en el mapa` : 'Mapa restaurado al estado normal');
+        actions.toast('Vía de la galactosa enfocada en el mapa celular');
       }
     };
   }

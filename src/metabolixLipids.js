@@ -491,8 +491,8 @@ export function renderLipidClinicalSuite(selectedId) {
 
       <div class="lipid-actions-bar">
         <button class="lipid-btn-primary" id="lipid-sim-btn">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          <span>Simular este escenario en el mapa celular</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>Enfocar ruta de lípidos en el mapa celular</span>
         </button>
       </div>
     </div>
@@ -740,18 +740,8 @@ export function setupLipidClinicalSuite(container, selectedId, actions = {}) {
   const simBtn = root.querySelector('#lipid-sim-btn');
   if (simBtn) {
     simBtn.onclick = () => {
-      const currentScId = root.getAttribute('data-current-sc') || 'sintesis_palmitato';
-      const sc = LIPID_SCENARIOS[currentScId];
-      if (sc && actions.setBlock) {
-        if (sc.blockRx) {
-          actions.setBlock(sc.blockRx);
-          if (actions.toast) actions.toast(`Bloqueo simulado en el mapa: ${sc.name}`);
-        } else {
-          actions.setBlock(null);
-          if (actions.toast) actions.toast(`Mapa restaurado a flujo fisiológico (${sc.name})`);
-        }
-      }
       if (actions.focusLipidArea) actions.focusLipidArea();
+      if (actions.toast) actions.toast("Ruta de lípidos enfocada en el mapa celular");
     };
   }
 }
