@@ -12,9 +12,9 @@ export const METABOLIX_TEMPLATE = `<div class="app">
       <button role="tab" data-view="reto" aria-selected="false">Reto</button>
     </nav>
     <div class="header-actions" style="display:flex;align-items:center;gap:6px">
-      <button type="button" class="hdr-btn" id="btn-guide" title="Guía de uso y asistente virtual de la plataforma" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600;background:var(--ink-2);border:1px solid var(--line);color:var(--fg);cursor:pointer">
+      <button type="button" class="hdr-btn" id="btn-guide" title="Paseo interactivo y tutorial guiado por Metabolix" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600;background:var(--ink-2);border:1px solid var(--line);color:var(--fg);cursor:pointer">
         <span style="font-size:13px">🧭</span>
-        <span>Guía<span class="lx"> de uso</span></span>
+        <span>Paseo<span class="lx"> / Tutorial</span></span>
       </button>
       <button type="button" class="hdr-btn" id="btn-survey" title="Encuesta de satisfacción (Escala Likert)" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600;background:var(--ink-2);border:1px solid var(--line);color:var(--fg);cursor:pointer">
         <span style="font-size:13px">⭐</span>
@@ -56,6 +56,19 @@ export const METABOLIX_TEMPLATE = `<div class="app">
         <div class="eyebrow">Especialización tisular · Mapa</div>
         <div class="tissue-chips" id="tissue-chips"></div>
       </div>
+      <div class="sec" id="sec-learning-stats">
+        <div class="eyebrow" style="display:flex;align-items:center;justify-content:space-between">
+          <span>Estadísticas de Aprendizaje</span>
+          <span class="stats-badge-pill" id="stats-summary-pill">0 repasos</span>
+        </div>
+        <div class="learning-stats-widget" id="learning-stats-widget">
+          <div class="stats-tabs-pill">
+            <button type="button" class="stats-tab active" data-stat-tab="practiced" id="tab-stat-practiced">📊 Más practicadas</button>
+            <button type="button" class="stats-tab" data-stat-tab="accuracy" id="tab-stat-accuracy">🎯 % Aciertos</button>
+          </div>
+          <div class="stats-bars-list" id="stats-bars-list"></div>
+        </div>
+      </div>
       <div class="sec">
         <div class="eyebrow">Cómo leer el mapa</div>
         <div class="legend">
@@ -89,7 +102,14 @@ export const METABOLIX_TEMPLATE = `<div class="app">
     </main>
 
     <aside class="panel" id="panel" aria-live="polite">
-      <div class="panel-head"><span class="eyebrow" id="panel-kind">Detalle</span><button class="close" id="panel-close" aria-label="Cerrar">✕</button></div>
+      <div class="panel-head">
+        <span class="eyebrow" id="panel-kind">Detalle</span>
+        <button type="button" class="fc-toggle-btn" id="panel-flashcard-btn" title="Modo Estudio Flashcard: oculta nombres de enzimas y metabolitos para memorizar y autoevaluarte">
+          <span class="fc-ico">🎴</span>
+          <span class="fc-txt">Flashcard</span>
+        </button>
+        <button class="close" id="panel-close" aria-label="Cerrar">✕</button>
+      </div>
       <div class="panel-body" id="panel-body"></div>
     </aside>
   </div>

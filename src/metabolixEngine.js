@@ -2,6 +2,7 @@ import { D } from "./metabolixData.js";
 import { isGalactoseEntity, renderGalactoseClinicalSuite, setupGalactoseClinicalSuite } from "./metabolixGalactose.js";
 import { isLipidEntity, renderLipidClinicalSuite, setupLipidClinicalSuite } from "./metabolixLipids.js";
 import { renderTissueSuite, setupTissueSuite, TISSUES_DATA, UNIVERSAL_PATHWAYS } from "./metabolixTissues.js";
+import { getFlashcardStats, recordFlashcardPractice, resetFlashcardStats } from "./services/storageService";
 
 export function initMetabolix() {
 
@@ -503,8 +504,111 @@ function buildRail(){
       tc.appendChild(b);
     });
   }
+
+  // Wire up learning statistics tabs
+  const tPracticed = document.getElementById("tab-stat-practiced");
+  if(tPracticed) tPracticed.onclick = () => { learningStatsTab = "practiced"; renderLearningStatsRail(); };
+  const tAccuracy = document.getElementById("tab-stat-accuracy");
+  if(tAccuracy) tAccuracy.onclick = () => { learningStatsTab = "accuracy"; renderLearningStatsRail(); };
+
+  renderLearningStatsRail();
 }
-function syncChips(){ document.querySelectorAll("#pw-chips .chip").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.pw===focusPw))); }
+
+let learningStatsTab = "practiced"; // "practiced" | "accuracy"
+
+function renderLearningStatsRail(){
+  const container = document.getElementById("stats-bars-list");
+  if(!container) return;
+  const pill = document.getElementById("stats-summary-pill");
+  const tabPracticed = document.getElementById("tab-stat-practiced");
+  const tabAccuracy = document.getElementById("tab-stat-accuracy");
+
+  if(tabPracticed) tabPracticed.classList.toggle("active", learningStatsTab === "practiced");
+  if(tabAccuracy) tabAccuracy.classList.toggle("active", learningStatsTab === "accuracy");
+
+  const statsData = getFlashcardStats();
+  if(pill) {
+    pill.textContent = `${statsData.totalPracticed} repasos · ${statsData.overallAccuracy}% acierto`;
+  }
+
+  const items = MAP_PW.map(k => {
+    const st = statsData.byPathway[k] || { practiced: 0, correct: 0 };
+    const accuracy = st.practiced > 0 ? Math.round((st.correct / st.practiced) * 100) : 0;
+    return {
+      id: k,
+      name: PW[k]?.name || k,
+      color: PW[k]?.c || "var(--accent)",
+      practiced: st.practiced,
+      correct: st.correct,
+      accuracy
+    };
+  });
+
+  if(learningStatsTab === "practiced") {
+    items.sort((a,b) => b.practiced - a.practiced || b.accuracy - a.accuracy);
+  } else {
+    items.sort((a,b) => b.accuracy - a.accuracy || b.practiced - a.practiced);
+  }
+
+  const maxPracticed = Math.max(1, ...items.map(x => x.practiced));
+
+  container.innerHTML = items.map(s => {
+    const isAct = focusPw === s.id;
+    const accClass = s.accuracy >= 80 ? "ok" : s.accuracy >= 60 ? "warn" : "danger";
+    if(learningStatsTab === "practiced") {
+      const pct = Math.round((s.practiced / maxPracticed) * 100);
+      return `
+        <div class="stats-row ${isAct ? 'active' : ''}" data-stat-pw="${s.id}" title="Toca para aislar ${esc(s.name)} en el mapa celular">
+          <div class="stats-row-header">
+            <span class="stats-pw-name-wrap">
+              <span class="stats-pw-dot" style="background:${s.color}"></span>
+              <span>${esc(s.name)}</span>
+            </span>
+            <span class="stats-pw-val">
+              <b>${s.practiced}</b> <small>tarjetas</small>
+              <span class="stats-acc-chip ${accClass}">${s.accuracy}%</span>
+            </span>
+          </div>
+          <div class="stats-track">
+            <div class="stats-fill" style="width:${Math.max(s.practiced > 0 ? 6 : 0, pct)}%;background:${s.color}"></div>
+          </div>
+        </div>
+      `;
+    } else {
+      return `
+        <div class="stats-row ${isAct ? 'active' : ''}" data-stat-pw="${s.id}" title="Toca para aislar ${esc(s.name)} en el mapa celular">
+          <div class="stats-row-header">
+            <span class="stats-pw-name-wrap">
+              <span class="stats-pw-dot" style="background:${s.color}"></span>
+              <span>${esc(s.name)}</span>
+            </span>
+            <span class="stats-pw-val">
+              <span class="stats-acc-badge ${accClass}">${s.accuracy}%</span>
+              <small>(${s.correct}/${s.practiced})</small>
+            </span>
+          </div>
+          <div class="stats-track">
+            <div class="stats-fill ${accClass}" style="width:${Math.max(s.practiced > 0 ? 5 : 0, s.accuracy)}%"></div>
+          </div>
+        </div>
+      `;
+    }
+  }).join("");
+
+  container.querySelectorAll("[data-stat-pw]").forEach(row => {
+    row.onclick = () => {
+      const pw = row.getAttribute("data-stat-pw");
+      focusPw = focusPw === pw ? null : pw;
+      syncChips();
+      apply();
+    };
+  });
+}
+
+function syncChips(){
+  document.querySelectorAll("#pw-chips .chip").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.pw===focusPw)));
+  document.querySelectorAll("#stats-bars-list .stats-row").forEach(r=>r.classList.toggle("active", r.dataset.statPw===focusPw));
+}
 function syncTissueChips(){
   document.querySelectorAll("#tissue-chips .tissue-chip").forEach(b => {
     const isAll = b.dataset.tissue === "all";
@@ -526,20 +630,119 @@ function drawHud(){
   const tName = tissueFilter === "universal" ? "Rutas Universales" : (TISSUES_DATA[tissueFilter]?.name || tissueFilter);
   const tColor = TISSUE_COLORS[tissueFilter] || "var(--accent)";
   const tBadge = tissueFilter ? `<button class="pill" id="hud-tf" style="border-color:${tColor};background:color-mix(in srgb,${tColor} 12%,var(--ink-1))"><span class="dot" style="color:${tColor}"></span><b>Filtro:</b> ${esc(tName)} <span style="color:var(--fg-faint);margin-left:4px">✕</span></button>` : "";
+  const fcBadge = flashcardMode ? `<button class="pill" id="hud-fc" style="border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--ink-1))" title="Modo Flashcard activo en el panel de detalle"><span class="dot" style="color:var(--accent)"></span><b>🎴 Flashcard activo</b> <span style="color:var(--fg-faint);margin-left:4px">✕</span></button>` : "";
 
   $("#hud").innerHTML = `<span class="pill"><span class="dot" style="color:${ST.c}"></span><b>${esc(ST.name)}</b><span style="color:var(--fg-dim)">${esc(ST.tissue)}</span></span>` +
    tBadge +
+   fcBadge +
    (focusPw? `<button class="pill" id="hud-pw"><span class="dot" style="color:${PW[focusPw].c}"></span>${esc(PW[focusPw].name)} <span style="color:var(--fg-faint)">✕</span></button>`:"");
   $("#hud").insertAdjacentHTML("beforeend",`<span class="pill seg-mini" role="group" aria-label="Etiquetas de enzimas"><button data-enz="key" aria-pressed="${enzMode==="key"}"><span class="star">★</span> Reguladoras</button><button data-enz="all" aria-pressed="${enzMode==="all"}">Todas las enzimas</button></span>`);
   document.querySelectorAll("[data-enz]").forEach(b=>b.onclick=()=>{ enzMode=b.dataset.enz; drawEnz(); apply(); });
   const a=$("#hud-pw"); if(a) a.onclick=()=>{focusPw=null;syncChips();apply();};
   const htf=$("#hud-tf"); if(htf) htf.onclick=()=>{tissueFilter=null;syncTissueChips();apply();};
+  const hfc=$("#hud-fc"); if(hfc) hfc.onclick=()=>{toggleFlashcardMode();};
 }
 
-/* ======================= Panel de detalle ======================= */
+/* ======================= Panel de detalle & Modo Flashcard ======================= */
+let flashcardMode = (function() {
+  try { return localStorage.getItem("metabolix_flashcard_mode") === "true"; }
+  catch(e) { return false; }
+})();
+let currentPanelItem = null; // { kind: 'rx' | 'node', id: string, fromDisease?: boolean }
+
+function syncFlashcardBtn() {
+  const btn = document.getElementById("panel-flashcard-btn");
+  if (!btn) return;
+  btn.classList.toggle("active", flashcardMode);
+  btn.setAttribute("aria-pressed", String(flashcardMode));
+  const txt = btn.querySelector(".fc-txt");
+  if (txt) txt.textContent = flashcardMode ? "Flashcard ✓" : "Flashcard";
+}
+
+function toggleFlashcardMode() {
+  flashcardMode = !flashcardMode;
+  try { localStorage.setItem("metabolix_flashcard_mode", String(flashcardMode)); } catch(e) {}
+  syncFlashcardBtn();
+  drawHud();
+  if (currentPanelItem) {
+    if (currentPanelItem.kind === "rx") openRx(currentPanelItem.id, currentPanelItem.fromDisease);
+    else openNode(currentPanelItem.id);
+  }
+  toast(flashcardMode
+    ? "🎴 Modo Estudio Flashcard ACTIVADO: Nombres ocultos. ¡Toca para revelar!"
+    : "Modo Flashcard desactivado: Nombres visibles.");
+}
+
+function setupFlashcardInteractions(container) {
+  if (!flashcardMode) return;
+  container.querySelectorAll("[data-fc-block]").forEach(el => {
+    el.addEventListener("click", (e) => {
+      if (el.classList.contains("revealed")) {
+        const nodeId = el.getAttribute("data-node");
+        const rxId = el.getAttribute("data-rx");
+        if (nodeId && (e.target.closest(".fc-eq-secret") || e.target.classList.contains("fc-eq-secret"))) {
+          openNode(nodeId);
+          return;
+        }
+        if (rxId && (e.target.closest(".fc-rx-secret") || e.target.classList.contains("fc-rx-secret"))) {
+          openRx(rxId);
+          return;
+        }
+      }
+      el.classList.toggle("revealed");
+    });
+  });
+
+  const btnRevealAll = container.querySelector("#fc-reveal-all");
+  if (btnRevealAll) {
+    btnRevealAll.onclick = (e) => {
+      e.stopPropagation();
+      container.querySelectorAll("[data-fc-block]").forEach(el => el.classList.add("revealed"));
+    };
+  }
+
+  const btnHideAll = container.querySelector("#fc-hide-all");
+  if (btnHideAll) {
+    btnHideAll.onclick = (e) => {
+      e.stopPropagation();
+      container.querySelectorAll("[data-fc-block]").forEach(el => el.classList.remove("revealed"));
+    };
+  }
+
+  const evalBox = container.querySelector("#fc-self-eval-box");
+  if (evalBox) {
+    const pw = evalBox.getAttribute("data-pw");
+    const btnOk = evalBox.querySelector("#btn-fc-eval-ok");
+    const btnKo = evalBox.querySelector("#btn-fc-eval-ko");
+    const feedback = evalBox.querySelector("#fc-eval-feedback");
+
+    const handleEval = (isCorrect) => {
+      if (!pw) return;
+      const updated = recordFlashcardPractice(pw, isCorrect);
+      renderLearningStatsRail();
+
+      if (btnOk) { btnOk.disabled = true; if (isCorrect) btnOk.classList.add("selected"); }
+      if (btnKo) { btnKo.disabled = true; if (!isCorrect) btnKo.classList.add("selected"); }
+
+      if (feedback) {
+        feedback.style.display = "block";
+        feedback.className = `fc-eval-feedback ${isCorrect ? "ok" : "ko"}`;
+        const pwName = PW[pw]?.name || pw;
+        feedback.innerHTML = isCorrect 
+          ? `✓ <b>¡Excelente retención!</b> Registrado en <b>${esc(pwName)}</b> (${updated.correct}/${updated.practiced} aciertos, ${updated.accuracyRate}%).`
+          : `✕ <b>Anotado para repaso.</b> Registrado en <b>${esc(pwName)}</b> (${updated.correct}/${updated.practiced} aciertos, ${updated.accuracyRate}%).`;
+      }
+      toast(isCorrect ? "🎯 ¡Acierto registrado en tus estadísticas!" : "📌 Guardado para repaso en tus estadísticas.");
+    };
+
+    if (btnOk) btnOk.onclick = (e) => { e.stopPropagation(); handleEval(true); };
+    if (btnKo) btnKo.onclick = (e) => { e.stopPropagation(); handleEval(false); };
+  }
+}
+
 const panel=$("#panel"), pbody=$("#panel-body");
 $("#panel-close").onclick=()=>closePanel();
-function closePanel(){ panel.classList.remove("open"); $(".body").classList.remove("po"); }
+function closePanel(){ panel.classList.remove("open"); $(".body").classList.remove("po"); currentPanelItem = null; }
 document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ closePanel(); $("#results").hidden=true; } if(e.key==="/" && document.activeElement!==$("#q")){ e.preventDefault(); $("#q").focus(); } });
 
 function onPick(kind,id){
@@ -551,13 +754,130 @@ function gauge(dg){ const min=-65,max=35; const k=(Math.max(min,Math.min(max,dg)
   <div class="dg-bar"><s style="left:${z}%"></s><i style="left:calc(${k}% - 1.5px)"></i></div><div class="dg-axis"><span>−65 · muy exergónica</span><span>0</span><span>+35</span></div></div>`; }
 
 function openRx(id, fromDisease){
+  currentPanelItem = { kind: "rx", id, fromDisease };
+  syncFlashcardBtn();
   const r=RXM[id]; const c=PW[r.pathway].c; const reg=r.regulation;
   const A=MET[r.fromNodeId], B=MET[r.toNodeId];
   $("#panel-kind").textContent = "Reacción · enzima";
-  let h = `<div><div class="tags"><span class="tag" style="color:${c};border-color:color-mix(in srgb,${c} 40%,transparent)">${esc(PW[r.pathway].name)}</span><span class="tag">${esc(COMP[r.compartment]||r.compartment)}</span>${reg&&reg.isKeyRegulator?'<span class="tag k">Punto de control</span>':""}${r.reversible?'<span class="tag">Reversible</span>':'<span class="tag">Irreversible</span>'}</div>
-   <h2 class="p-title">${esc(r.enzymeName)}</h2><div class="p-sub">${esc(r.name)}${r.ecNumber?` · <span class="mono">${esc(r.ecNumber)}</span>`:""}</div></div>
-   <div class="eq" style="--pc:${c}"><button class="lnk" data-node="${A.id}" style="text-decoration:underline dotted;text-underline-offset:3px">${esc(A.abbreviation)}</button><span class="arrow">${r.reversible?"⇌":"⟶"}</span><button class="lnk" data-node="${B.id}" style="text-decoration:underline dotted;text-underline-offset:3px">${esc(B.abbreviation)}</button><span style="margin-left:auto;color:var(--fg-faint);font-size:11px">${esc(r.enzymeAbbreviation)}</span></div>
-   ${r.deltaG0!=null?gauge(r.deltaG0):""}`;
+
+  let flashcardBanner = "";
+  let headerHtml = "";
+  let eqHtml = "";
+
+  if (flashcardMode) {
+    flashcardBanner = `
+      <div class="flashcard-study-banner">
+        <div class="fc-banner-top">
+          <div class="fc-badge"><span class="fc-dot"></span><b>Modo Estudio Flashcard</b></div>
+          <div class="fc-banner-actions">
+            <button type="button" class="fc-action-btn" id="fc-reveal-all" title="Revelar todos los nombres de esta ficha">👁️ Revelar todo</button>
+            <button type="button" class="fc-action-btn" id="fc-hide-all" title="Ocultar de nuevo para volver a memorizar">🔒 Ocultar</button>
+          </div>
+        </div>
+        <p class="fc-banner-desc">
+          Los nombres de la enzima y metabolitos están ocultos. Deduce la respuesta por su ruta, cofactores y regulación antes de tocar para revelar.
+        </p>
+      </div>
+    `;
+
+    headerHtml = `
+      <div>
+        <div class="tags">
+          <span class="tag" style="color:${c};border-color:color-mix(in srgb,${c} 40%,transparent)">${esc(PW[r.pathway].name)}</span>
+          <span class="tag">${esc(COMP[r.compartment]||r.compartment)}</span>
+          ${reg&&reg.isKeyRegulator?'<span class="tag k">Punto de control</span>':""}
+          ${r.reversible?'<span class="tag">Reversible</span>':'<span class="tag">Irreversible</span>'}
+        </div>
+        <div class="flashcard-card-block" data-fc-block="title" style="margin-top:8px">
+          <div class="fc-card-label">
+            <span>¿Qué enzima cataliza este paso?</span>
+            <span style="font-size:10px;opacity:0.8">Toca para revelar 👁️</span>
+          </div>
+          <div class="fc-card-trigger">
+            <div class="fc-card-cover"><span class="fc-eye">👁️</span><span>Revelar nombre de la enzima</span></div>
+            <div class="fc-card-secret p-title" style="margin:0">${esc(r.enzymeName)}</div>
+          </div>
+        </div>
+        <div class="flashcard-card-block compact" data-fc-block="sub" style="margin-top:6px">
+          <div class="fc-card-label">
+            <span>Reacción química y código EC</span>
+            <span style="font-size:10px;opacity:0.8">Toca para revelar 👁️</span>
+          </div>
+          <div class="fc-card-trigger">
+            <div class="fc-card-cover" style="font-size:11.5px;padding:4px 10px"><span class="fc-eye">👁️</span><span>Revelar reacción</span></div>
+            <div class="fc-card-secret p-sub" style="margin:0">${esc(r.name)}${r.ecNumber?` · <span class="mono">${esc(r.ecNumber)}</span>`:""}</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    eqHtml = `
+      <div class="eq fc-eq" style="--pc:${c}">
+        <div class="fc-eq-item" data-fc-block="sub_a" data-node="${A.id}" title="Toca para revelar sustrato (haz clic para navegar tras revelar)">
+          <span class="fc-eq-label">Sustrato inicial</span>
+          <span class="fc-eq-cover">¿Sustrato? 👁️</span>
+          <span class="fc-eq-secret">${esc(A.abbreviation)}</span>
+        </div>
+        <span class="arrow">${r.reversible?"⇌":"⟶"}</span>
+        <div class="fc-eq-item" data-fc-block="sub_b" data-node="${B.id}" title="Toca para revelar producto (haz clic para navegar tras revelar)">
+          <span class="fc-eq-label">Producto formado</span>
+          <span class="fc-eq-cover">¿Producto? 👁️</span>
+          <span class="fc-eq-secret">${esc(B.abbreviation)}</span>
+        </div>
+        <div class="fc-eq-item" data-fc-block="enz_abbr" style="margin-left:auto" title="Toca para revelar siglas de la enzima">
+          <span class="fc-eq-label">Enzima</span>
+          <span class="fc-eq-cover">¿Siglas? 👁️</span>
+          <span class="fc-eq-secret">${esc(r.enzymeAbbreviation)}</span>
+        </div>
+      </div>
+    `;
+  } else {
+    headerHtml = `
+      <div>
+        <div class="tags">
+          <span class="tag" style="color:${c};border-color:color-mix(in srgb,${c} 40%,transparent)">${esc(PW[r.pathway].name)}</span>
+          <span class="tag">${esc(COMP[r.compartment]||r.compartment)}</span>
+          ${reg&&reg.isKeyRegulator?'<span class="tag k">Punto de control</span>':""}
+          ${r.reversible?'<span class="tag">Reversible</span>':'<span class="tag">Irreversible</span>'}
+        </div>
+        <h2 class="p-title">${esc(r.enzymeName)}</h2>
+        <div class="p-sub">${esc(r.name)}${r.ecNumber?` · <span class="mono">${esc(r.ecNumber)}</span>`:""}</div>
+      </div>
+    `;
+
+    eqHtml = `
+      <div class="eq" style="--pc:${c}">
+        <button class="lnk" data-node="${A.id}" style="text-decoration:underline dotted;text-underline-offset:3px">${esc(A.abbreviation)}</button>
+        <span class="arrow">${r.reversible?"⇌":"⟶"}</span>
+        <button class="lnk" data-node="${B.id}" style="text-decoration:underline dotted;text-underline-offset:3px">${esc(B.abbreviation)}</button>
+        <span style="margin-left:auto;color:var(--fg-faint);font-size:11px">${esc(r.enzymeAbbreviation)}</span>
+      </div>
+    `;
+  }
+
+  let selfEvalBox = "";
+  if (flashcardMode) {
+    selfEvalBox = `
+      <div class="fc-self-eval-box" id="fc-self-eval-box" data-pw="${r.pathway}">
+        <div class="fc-eval-prompt">
+          <span class="fc-eval-title">🎯 Autoevaluación Activa</span>
+          <span class="fc-eval-sub">Tras revelar los nombres, ¿recordabas la enzima o sustratos?</span>
+        </div>
+        <div class="fc-eval-btns">
+          <button type="button" class="fc-eval-btn ok" id="btn-fc-eval-ok" title="Registrar como acierto en tus estadísticas de aprendizaje">
+            <span>✓</span> <span>Me la sabía</span>
+          </button>
+          <button type="button" class="fc-eval-btn ko" id="btn-fc-eval-ko" title="Registrar para repasar en tus estadísticas de aprendizaje">
+            <span>✕</span> <span>A repasar</span>
+          </button>
+        </div>
+        <div class="fc-eval-feedback" id="fc-eval-feedback" style="display:none"></div>
+      </div>
+    `;
+  }
+
+  let h = flashcardBanner + headerHtml + eqHtml + selfEvalBox + (r.deltaG0!=null?gauge(r.deltaG0):"");
+
   const cc=[...(r.cofactorsConsumed||[]).map(x=>`<span class="in">− ${esc(x)}</span>`),...(r.cofactorsProduced||[]).map(x=>`<span class="out">+ ${esc(x)}</span>`)];
   if(cc.length) h+=`<div class="blk"><h4>Cofactores</h4><div class="cof">${cc.join("")}</div></div>`;
   if(r.pathWayNotes) h+=`<div class="blk"><h4>Por qué importa</h4><p>${esc(r.pathWayNotes)}</p></div>`;
@@ -577,6 +897,7 @@ function openRx(id, fromDisease){
   pbody.innerHTML=h; pbody.scrollTop=0; panel.classList.add("open"); $(".body").classList.add("po");
   pbody.querySelectorAll("[data-node]").forEach(b=>b.onclick=()=>openNode(b.dataset.node));
   pbody.querySelectorAll("[data-portal]").forEach(b=>b.onclick=()=>openModule(b.dataset.portal));
+  setupFlashcardInteractions(pbody);
   if(reg&&reg.kinetics) kinetics(reg.kinetics, c);
   if(!fromDisease && currentView!=="reto"){ const E=EDGES.find(e=>e.r.id===id); if(E && innerWidth>860){ /* sin zoom forzado al explorar */ } }
   if(isGalactoseEntity(id)) {
@@ -596,13 +917,110 @@ function openRx(id, fromDisease){
 }
 
 function openNode(id){
+  currentPanelItem = { kind: "node", id };
+  syncFlashcardBtn();
   const m=MET[id]; const c=PW[m.pathways[0]]?.c||"var(--fg)";
   $("#panel-kind").textContent="Metabolito";
   const ins=ALLRX.filter(r=>r.toNodeId===id), outs=ALLRX.filter(r=>r.fromNodeId===id);
-  const li=(r,dir)=>`<button data-rx="${r.id}"><span class="dot" style="color:${PW[r.pathway].c}"></span><span>${dir} <b>${esc(r.enzymeAbbreviation)}</b> · ${esc(MET[dir==="←"?r.fromNodeId:r.toNodeId]?.abbreviation||"")}</span><small>${esc(PW[r.pathway].name)}</small></button>`;
-  let nh = `<div><div class="tags"><span class="tag">${esc(COMP[m.compartment]||m.compartment)}</span>${m.isBranchPoint?'<span class="tag k">Encrucijada metabólica</span>':""}</div>
-   <h2 class="p-title" style="color:${c}">${esc(m.name)}</h2><div class="p-sub mono">${esc(m.abbreviation)}${m.formula?` · ${esc(m.formula)}`:""}</div></div>
-   ${m.carbons>0?`<div class="blk"><h4>Esqueleto carbonado</h4><div class="carb">${Array.from({length:m.carbons},()=>`<i style="border-color:${c}"></i>`).join("")}<span class="mono" style="margin-left:8px;color:var(--fg-dim)">${m.carbons} C</span></div></div>`:""}
+
+  const li = (r, dir) => {
+    const partnerId = dir === "←" ? r.fromNodeId : r.toNodeId;
+    const partner = MET[partnerId];
+    if (!flashcardMode) {
+      return `<button data-rx="${r.id}"><span class="dot" style="color:${PW[r.pathway].c}"></span><span>${dir} <b>${esc(r.enzymeAbbreviation)}</b> · ${esc(partner?.abbreviation||"")}</span><small>${esc(PW[r.pathway].name)}</small></button>`;
+    }
+    return `<div class="fc-rx-button" data-fc-block="rx_${r.id}" data-rx="${r.id}" title="Toca para revelar o doble clic para abrir reacción">
+      <span class="dot" style="color:${PW[r.pathway].c}"></span>
+      <span style="font-weight:700;font-family:var(--f-mono)">${dir}</span>
+      <span class="fc-rx-cover">¿Enzima y conector? 👁️</span>
+      <span class="fc-rx-secret"><b>${esc(r.enzymeAbbreviation)}</b> · ${esc(partner?.abbreviation||"")}</span>
+      <small>${esc(PW[r.pathway].name)}</small>
+    </div>`;
+  };
+
+  let flashcardBanner = "";
+  let headerHtml = "";
+
+  if (flashcardMode) {
+    flashcardBanner = `
+      <div class="flashcard-study-banner">
+        <div class="fc-banner-top">
+          <div class="fc-badge"><span class="fc-dot"></span><b>Modo Estudio Flashcard</b></div>
+          <div class="fc-banner-actions">
+            <button type="button" class="fc-action-btn" id="fc-reveal-all" title="Revelar todos los nombres de esta ficha">👁️ Revelar todo</button>
+            <button type="button" class="fc-action-btn" id="fc-hide-all" title="Ocultar de nuevo para volver a memorizar">🔒 Ocultar</button>
+          </div>
+        </div>
+        <p class="fc-banner-desc">
+          El nombre y abreviatura de este metabolito están ocultos. Deduce la molécula por su compartimento, número de carbonos (${m.carbons > 0 ? m.carbons + 'C' : 'inorgánico'}), descripción y rutas antes de tocar para revelar.
+        </p>
+      </div>
+    `;
+
+    headerHtml = `
+      <div>
+        <div class="tags">
+          <span class="tag">${esc(COMP[m.compartment]||m.compartment)}</span>
+          ${m.isBranchPoint?'<span class="tag k">Encrucijada metabólica</span>':""}
+        </div>
+        <div class="flashcard-card-block" data-fc-block="title" style="margin-top:8px">
+          <div class="fc-card-label">
+            <span>¿Qué metabolito intermedio es este?</span>
+            <span style="font-size:10px;opacity:0.8">Toca para revelar 👁️</span>
+          </div>
+          <div class="fc-card-trigger">
+            <div class="fc-card-cover"><span class="fc-eye">👁️</span><span>Revelar Metabolito</span></div>
+            <div class="fc-card-secret p-title" style="color:${c};margin:0">${esc(m.name)}</div>
+          </div>
+        </div>
+        <div class="flashcard-card-block compact" data-fc-block="sub" style="margin-top:6px">
+          <div class="fc-card-label">
+            <span>Abreviatura y fórmula</span>
+            <span style="font-size:10px;opacity:0.8">Toca para revelar 👁️</span>
+          </div>
+          <div class="fc-card-trigger">
+            <div class="fc-card-cover" style="font-size:11.5px;padding:4px 10px"><span class="fc-eye">👁️</span><span>Revelar abreviatura</span></div>
+            <div class="fc-card-secret p-sub mono" style="margin:0">${esc(m.abbreviation)}${m.formula?` · ${esc(m.formula)}`:""}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  } else {
+    headerHtml = `
+      <div>
+        <div class="tags">
+          <span class="tag">${esc(COMP[m.compartment]||m.compartment)}</span>
+          ${m.isBranchPoint?'<span class="tag k">Encrucijada metabólica</span>':""}
+        </div>
+        <h2 class="p-title" style="color:${c}">${esc(m.name)}</h2>
+        <div class="p-sub mono">${esc(m.abbreviation)}${m.formula?` · ${esc(m.formula)}`:""}</div>
+      </div>
+    `;
+  }
+  let selfEvalBox = "";
+  const primaryPw = (m.pathways && m.pathways[0]) || "glycolysis";
+  if (flashcardMode) {
+    selfEvalBox = `
+      <div class="fc-self-eval-box" id="fc-self-eval-box" data-pw="${primaryPw}">
+        <div class="fc-eval-prompt">
+          <span class="fc-eval-title">🎯 Autoevaluación Activa</span>
+          <span class="fc-eval-sub">Tras revelar el metabolito, ¿recordabas su estructura y función?</span>
+        </div>
+        <div class="fc-eval-btns">
+          <button type="button" class="fc-eval-btn ok" id="btn-fc-eval-ok" title="Registrar como acierto en tus estadísticas de aprendizaje">
+            <span>✓</span> <span>Me la sabía</span>
+          </button>
+          <button type="button" class="fc-eval-btn ko" id="btn-fc-eval-ko" title="Registrar para repasar en tus estadísticas de aprendizaje">
+            <span>✕</span> <span>A repasar</span>
+          </button>
+        </div>
+        <div class="fc-eval-feedback" id="fc-eval-feedback" style="display:none"></div>
+      </div>
+    `;
+  }
+
+  let nh = flashcardBanner + headerHtml + selfEvalBox +
+   `${m.carbons>0?`<div class="blk"><h4>Esqueleto carbonado</h4><div class="carb">${Array.from({length:m.carbons},()=>`<i style="border-color:${c}"></i>`).join("")}<span class="mono" style="margin-left:8px;color:var(--fg-dim)">${m.carbons} C</span></div></div>`:""}
    <div class="blk"><p style="color:var(--fg);font-size:14px">${esc(m.description)}</p></div>
    <div class="blk"><h4>Rutas</h4><div class="chips">${m.pathways.filter(p=>PW[p]).map(p=>`<span class="chip" style="color:${PW[p].c}"><span class="dot"></span><span style="color:var(--fg)">${esc(PW[p].name)}</span></span>`).join("")}</div></div>
    ${PORTAL[id]?`<button class="btn" data-portal="${PORTAL[id]}">Ver en detalle: ${esc(MODM[PORTAL[id]].title)} →</button>`:""}
@@ -614,6 +1032,7 @@ function openNode(id){
   pbody.scrollTop=0; panel.classList.add("open"); $(".body").classList.add("po");
   pbody.querySelectorAll("[data-rx]").forEach(b=>b.onclick=()=>openRx(b.dataset.rx));
   pbody.querySelectorAll("[data-portal]").forEach(b=>b.onclick=()=>openModule(b.dataset.portal));
+  setupFlashcardInteractions(pbody);
   if(isGalactoseEntity(id)) {
     setupGalactoseClinicalSuite(pbody, id, {
       setBlock: bid => { setBlock(bid); apply(); },
@@ -2265,6 +2684,11 @@ $("#mode").onclick=()=>setMode(document.documentElement.dataset.mode==="dark"?"l
 let m0="light"; try{ m0=localStorage.getItem("metabolix-mode")||"light"; }catch(e){}
 /* arranque */
 cssify(document.querySelector(".app"));
+const fcBtn = document.getElementById("panel-flashcard-btn");
+if (fcBtn) {
+  fcBtn.onclick = () => toggleFlashcardMode();
+  syncFlashcardBtn();
+}
 buildRail(); renderStateInfo(); setMode(m0);
 go(location.hash.slice(1)||"mapa");
 Object.assign(VB, fitBox()); setVB();

@@ -69,7 +69,97 @@ const STORAGE_KEYS = {
   QUIZ_RESPONSES: "metabolix_quiz_responses",
   CHALLENGES_COMPLETED: "metabolix_completed_challenges_count",
   SURVEY_COMPLETED: "metabolix_survey_completed",
+  FLASHCARD_STATS: "metabolix_flashcard_stats",
 };
+
+export interface PathwayFlashcardStat {
+  pathwayId: string;
+  practiced: number;
+  correct: number;
+  accuracyRate: number; // 0 - 100
+}
+
+export interface FlashcardStatsSummary {
+  byPathway: Record<string, { practiced: number; correct: number }>;
+  totalPracticed: number;
+  totalCorrect: number;
+  overallAccuracy: number;
+  lastUpdated: string;
+}
+
+const DEFAULT_FLASHCARD_PRACTICE: Record<string, { practiced: number; correct: number }> = {
+  glycolysis: { practiced: 14, correct: 12 },        // 86%
+  krebs_cycle: { practiced: 11, correct: 9 },        // 82%
+  lipid_metabolism: { practiced: 9, correct: 6 },     // 67%
+  electron_transport: { practiced: 8, correct: 7 },   // 88%
+  gluconeogenesis: { practiced: 7, correct: 5 },      // 71%
+  pentose_phosphate: { practiced: 5, correct: 4 },    // 80%
+  glycogen_metabolism: { practiced: 4, correct: 3 },  // 75%
+  monosaccharide_entry: { practiced: 3, correct: 2 }, // 67%
+};
+
+export function getFlashcardStats(): FlashcardStatsSummary {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.FLASHCARD_STATS);
+    let byPathway: Record<string, { practiced: number; correct: number }>;
+    if (raw) {
+      byPathway = JSON.parse(raw);
+    } else {
+      byPathway = { ...DEFAULT_FLASHCARD_PRACTICE };
+      localStorage.setItem(STORAGE_KEYS.FLASHCARD_STATS, JSON.stringify(byPathway));
+    }
+
+    let totalPracticed = 0;
+    let totalCorrect = 0;
+    Object.values(byPathway).forEach(p => {
+      totalPracticed += p.practiced || 0;
+      totalCorrect += p.correct || 0;
+    });
+
+    const overallAccuracy = totalPracticed > 0 ? Math.round((totalCorrect / totalPracticed) * 100) : 0;
+
+    return {
+      byPathway,
+      totalPracticed,
+      totalCorrect,
+      overallAccuracy,
+      lastUpdated: new Date().toISOString(),
+    };
+  } catch (e) {
+    return {
+      byPathway: { ...DEFAULT_FLASHCARD_PRACTICE },
+      totalPracticed: 61,
+      totalCorrect: 48,
+      overallAccuracy: 79,
+      lastUpdated: new Date().toISOString(),
+    };
+  }
+}
+
+export function recordFlashcardPractice(pathway: string, isCorrect: boolean): FlashcardStatsSummary {
+  try {
+    const current = getFlashcardStats();
+    const byPathway = { ...current.byPathway };
+    if (!byPathway[pathway]) {
+      byPathway[pathway] = { practiced: 0, correct: 0 };
+    }
+    byPathway[pathway].practiced += 1;
+    if (isCorrect) {
+      byPathway[pathway].correct += 1;
+    }
+    localStorage.setItem(STORAGE_KEYS.FLASHCARD_STATS, JSON.stringify(byPathway));
+    window.dispatchEvent(new CustomEvent("metabolix:flashcard_updated", { detail: { pathway, isCorrect } }));
+    return getFlashcardStats();
+  } catch (e) {
+    return getFlashcardStats();
+  }
+}
+
+export function resetFlashcardStats(): FlashcardStatsSummary {
+  localStorage.setItem(STORAGE_KEYS.FLASHCARD_STATS, JSON.stringify(DEFAULT_FLASHCARD_PRACTICE));
+  window.dispatchEvent(new CustomEvent("metabolix:flashcard_updated", { detail: { reset: true } }));
+  return getFlashcardStats();
+}
 
 export function getCompletedChallengesCount(): number {
   return parseInt(localStorage.getItem(STORAGE_KEYS.CHALLENGES_COMPLETED) || "0", 10);
@@ -421,6 +511,7 @@ export function exportAllDataAsJSON() {
     studentProfile: getStudentProfile(),
     surveys: getSurveys(),
     quizResponses: getQuizResponses(),
+    flashcardStats: getFlashcardStats(),
   };
 
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });

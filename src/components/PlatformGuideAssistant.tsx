@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Compass,
   ArrowRight,
@@ -17,12 +17,16 @@ import {
   Award,
   Zap,
   HelpCircle,
+  Sparkles,
+  Play,
+  RotateCcw,
 } from "lucide-react";
 
 interface PlatformGuideAssistantProps {
   isOpen: boolean;
   onClose: () => void;
   onNavigateToView?: (viewId: string) => void;
+  isAutoTriggered?: boolean;
 }
 
 interface GuideStep {
@@ -32,11 +36,20 @@ interface GuideStep {
   kicker: string;
   icon: React.ReactNode;
   content: string;
-  keyPoints: string[];
   tips: string;
 }
 
 const GUIDE_STEPS: GuideStep[] = [
+  {
+    step: 0,
+    viewId: "mapa",
+    kicker: "Bienvenida · Ciencias de la Salud",
+    title: "Paseo Interactivo por Metabolix",
+    icon: <Sparkles className="w-5 h-5 text-[var(--accent)]" />,
+    content:
+      "Te damos la bienvenida al mapa dinámico de Bioquímica Humana y Metabolismo para Ciencias de la Salud. Este paseo interactivo te guiará por los flujos celulares en tiempo real, la regulación hormonal, la compartimentación tisular, el rendimiento energético y los retos de autoevaluación formativa.",
+    tips: "Puedes repetir este paseo en cualquier momento pulsando el botón '🧭 Paseo / Tutorial' en la barra superior.",
+  },
   {
     step: 1,
     viewId: "mapa",
@@ -44,14 +57,8 @@ const GUIDE_STEPS: GuideStep[] = [
     title: "El Mapa Celular Interactivo y Flujos Metabólicos",
     icon: <Layers className="w-5 h-5 text-[var(--pw-glycolysis)]" />,
     content:
-      "Metabolix representa una célula eucariota humana completa en un lienzo dinámico. Cada ruta metabólica tiene un código cromático estandarizado (colorante).",
-    keyPoints: [
-      "Grosor y luminosidad: Indican la tasa de flujo metabólico en tiempo real.",
-      "Líneas discontinuas tenues: Rutas fisiológicamente inhibidas o apagadas.",
-      "Partículas dinámicas: Muestran la dirección y sentido neto del flujo en cada sustrato.",
-      "★ Estrella: Identifica las enzimas marcapasos o de regulación alostérica/covalente clave (ej. PFK-1, ACC1, CPT-1, Citrato sintasa).",
-    ],
-    tips: "Toca cualquier enzima o metabolito para desplegar su ficha molecular completa con coeficientes estequiométricos, deltaGº y notas de regulación.",
+      "Metabolix representa una célula eucariota humana en un lienzo interactivo en vivo. El grosor y la luminosidad de las líneas indican la tasa de flujo metabólico en tiempo real, y las partículas vectoriales muestran la dirección del sustrato. Las estrellas (★) identifican las enzimas marcapasos clave sometidas a control alostérico y covalente (como PFK-1, ACC1, CPT-1 o Citrato sintasa).",
+    tips: "Toca cualquier enzima o metabolito para ver su ficha. Puedes activar el 'Modo Flashcard (🎴)' en el panel para ocultar nombres y memorizarlos activamente antes de revelarlos.",
   },
   {
     step: 2,
@@ -60,13 +67,7 @@ const GUIDE_STEPS: GuideStep[] = [
     title: "Estados Fisiológicos y Reprogramación Celular",
     icon: <Flame className="w-5 h-5 text-[var(--pw-gluconeogenesis)]" />,
     content:
-      "En el raíl lateral izquierdo puedes alternar entre cuatro condiciones fisiológicas fundamentales. Observa cómo cambian los niveles de insulina, glucagón, AMP/ATP y el sentido de las reacciones.",
-    keyPoints: [
-      "Posprandial (Insulina ↑): Glucólisis activa, lipogénesis de novo, síntesis de glucógeno y bloqueo de la β-oxidación.",
-      "Ayuno temprano (Glucagón ↑): Activación de la glucogenólisis y gluconeogénesis hepática para mantener la normoglucemia (70-100 mg/dL).",
-      "Ayuno prolongado / Dieta Cetogénica: Máxima lipólisis, β-oxidación mitocondrial acelerada y exportación de cuerpos cetónicos (acetoacetato y β-hidroxibutirato).",
-      "Ejercicio vigoroso: Activación anaerobia de glucólisis muscular y ciclo de Cori.",
-    ],
+      "En el raíl lateral puedes alternar entre cuatro condiciones fisiológicas cardinales: estado posprandial (alta insulina y lipogénesis activa), ayuno temprano (glucagón elevado y gluconeogénesis hepática), ayuno prolongado o cetogénico (máxima lipólisis y exportación de cuerpos cetónicos) y ejercicio vigoroso (glucólisis anaerobia). Los medidores hormonales y de carga energética se adaptan instantáneamente a cada situación.",
     tips: "Fíjate en cómo los medidores hormonales y de carga energética se adaptan automáticamente al estado seleccionado.",
   },
   {
@@ -76,13 +77,7 @@ const GUIDE_STEPS: GuideStep[] = [
     title: "Especialización Tisular y Rutas Universales",
     icon: <Activity className="w-5 h-5 text-[var(--pw-mito)]" />,
     content:
-      "La pestaña 'Tejidos y rutas' te permite examinar qué vías metabólicas son ubicuas (universales a todas las células) frente a las especializaciones específicas de cada tejido.",
-    keyPoints: [
-      "Rutas Universales: Glucólisis, Ciclo de Krebs, Cadena Respiratoria y Vía de las Pentosas Fosfato.",
-      "Hígado (Hepatocito): Expresa el repertorio enzimático completo, incluyendo gluconeogénesis (G6Pasa), cetogénesis y ciclo de la urea.",
-      "Eritrocito: Carece de mitocondrias; depende al 100% de la glucólisis anaerobia (LDH) y de la vía de las pentosas (G6PD) para generar NADPH protector.",
-      "Músculo Esquelético y Miocardio: Especializados en alta producción de ATP mediante fosforilación oxidativa y lanzaderas.",
-    ],
+      "La pestaña 'Tejidos y rutas' permite discriminar entre las rutas metabólicas universales (glucólisis, ciclo de Krebs, cadena respiratoria y vía de las pentosas) y las especializaciones de cada órgano: la dotación enzimática completa del hepatocito (gluconeogénesis por G6Pasa, cetogénesis y ciclo de la urea), el eritrocito (dependiente al 100% de la vía anaerobia y pentosas fosfato para NADPH), o el músculo esquelético y miocardio de alta tasa oxidativa.",
     tips: "Usa el selector de tejidos para iluminar las enzimas expresadas y atenuar las ausentes en cada órgano.",
   },
   {
@@ -92,12 +87,7 @@ const GUIDE_STEPS: GuideStep[] = [
     title: "Lanzaderas de NADH y Balance de ATP",
     icon: <Zap className="w-5 h-5 text-[var(--accent)]" />,
     content:
-      "La membrana mitocondrial interna es impermeable al NADH citosólico. Compara cómo el tipo de lanzadera modifica el rendimiento neto de ATP por molécula de glucosa:",
-    keyPoints: [
-      "Lanzadera Malato-Aspartato (MAS): Predomina en hígado, corazón y riñón. Transfiere electrones al Complejo I (NADH de matriz) rindiendo ≈32 ATP netos por glucosa.",
-      "Lanzadera Glicerol-3-Fosfato (G3P): Predomina en músculo rápido y cerebro. Entrega electrones directamente al CoQ vía FADH₂ de la GPD2, rindiendo ≈30 ATP netos (más veloz pero con 2 ATP menos).",
-      "Fórmulas estequiométricas: Desglose completo de ATP consumido en fase de inversión y regenerado por fosforilación a nivel de sustrato y fosforilación oxidativa.",
-    ],
+      "La membrana mitocondrial interna es impermeable al NADH citosólico. En la pestaña 'Balances de ATP' puedes comparar cómo la lanzadera Malato-Aspartato (predominante en hígado, corazón y riñón) transfiere electrones al Complejo I rindiendo ~32 ATP netos por glucosa, mientras que la lanzadera Glicerol-3-Fosfato (típica de músculo rápido y cerebro) los entrega al Complejo III rindiendo ~30 ATP netos.",
     tips: "En la pestaña 'Balances de ATP' puedes alternar los botones MAS y G3P para observar la actualización en vivo del contador de ATP.",
   },
   {
@@ -107,12 +97,7 @@ const GUIDE_STEPS: GuideStep[] = [
     title: "Síntesis de Palmitato vs. β-Oxidación (No simultáneas)",
     icon: <Activity className="w-5 h-5 text-[var(--pw-lipid)]" />,
     content:
-      "En la pestaña 'Ciclos y lanzaderas', el módulo de Lípidos demuestra el principio de no simultaneidad para evitar ciclos fútiles de despilfarro energético.",
-    keyPoints: [
-      "Síntesis de novo (Citosol): Estimulada por insulina; la ACC1 genera Malonil-CoA y la FASN ensambla palmitato (14 NADPH), esterificándose en triacilgliceroles (TAG).",
-      "Sensor Alostérico Maestro: El Malonil-CoA citosólico bloquea con alta afinidad a la carnitina palmitoiltransferasa 1 (CPT-1), impidiendo que los ácidos grasos entren a la mitocondria mientras se sintetizan.",
-      "β-Oxidación (Matriz): En ayuno, la ACC1 se apaga, desaparece el Malonil-CoA, y la CPT-1 se desinhibe para oxidar ácidos grasos de la lipólisis adiposa rindiendo 106 ATP netos.",
-    ],
+      "En la pestaña 'Ciclos y lanzaderas', el módulo de Lípidos ilustra el principio de mutua exclusión para impedir ciclos fútiles: la síntesis citosólica de palmitato genera Malonil-CoA estimulada por insulina. Este metabolito actúa como sensor alostérico maestro e inhibe fuertemente a la CPT-1 mitocondrial, impidiendo que los ácidos grasos entren a la matriz a oxidarse mientras se están sintetizando.",
     tips: "Usa las 3 variantes del módulo ('Regulación recíproca', '1. Síntesis' y '2. β-Oxidación') para ver la inhibición alostérica en acción.",
   },
   {
@@ -122,13 +107,7 @@ const GUIDE_STEPS: GuideStep[] = [
     title: "Patología Molecular: Galactosemias y Galactitol",
     icon: <HelpCircle className="w-5 h-5 text-[var(--pw-mono)]" />,
     content:
-      "Toca los metabolitos de la galactosa o la enzima GALT para inspeccionar las implicaciones biomédicas de las deficiencias enzimáticas congénitas de la vía de Leloir.",
-    keyPoints: [
-      "Galactosemia Clásica (Déficit de GALT): Acumulación tóxica de Galactosa-1-P que inhibe la fosfoglucomutasa y lesiona hígado, cerebro y riñón.",
-      "Vía Alternativa de la Aldosa Reductasa: En exceso de galactosa libre, se reduce irreversiblemente a galactitol con consumo de NADPH.",
-      "Mecanismo de Cataratas: El galactitol no puede salir del cristalino (impermeable), atrayendo agua por ósmosis y desnaturalizando las cristalinas.",
-      "Variante Duarte (D2): Forma frecuente con actividad reducida de GALT (≈25-50%) habitualmente benigna.",
-    ],
+      "Al pulsar sobre la vía de la galactosa o la enzima GALT, se analizan las implicaciones del déficit enzimático congénito: la acumulación de galactosa-1-P lesiona órganos diana y desvía el sustrato hacia la aldosa reductasa, sintetizando galactitol. Al ser impermeable y quedar atrapado en el cristalino, el galactitol retiene agua por ósmosis y precipita cataratas precoces.",
     tips: "La suite clínica incluye las pautas dietéticas de exclusión estricta de lactosa y fórmulas de soja/elementales.",
   },
   {
@@ -138,12 +117,7 @@ const GUIDE_STEPS: GuideStep[] = [
     title: "Modo Reto de Bioquímica General y Encuesta",
     icon: <Award className="w-5 h-5 text-[var(--ok)]" />,
     content:
-      "Pon a prueba tu razonamiento metabólico con preguntas diseñadas específicamente para estudiantes de Bioquímica General de Ciencias de la Salud.",
-    keyPoints: [
-      "Preguntas centradas en consecuencias: Qué metabolito se acumula ante un fallo enzimático y qué vía alternativa se activa.",
-      "Registro de Alumno y Visitas: Identifícate con tu nombre y correo para guardar tu progreso académico en la base de datos.",
-      "Encuesta de Satisfacción tipo Likert: Valora del 1 al 5 la utilidad de la plataforma para ayudarnos a seguir mejorándola.",
-    ],
+      "Pon a prueba tu razonamiento metabólico resolviendo preguntas sobre consecuencias celulares ante fallos enzimáticos. Puedes realizar hasta 3 retos formativos iniciales; tras el 3.º, cumplimentarás una breve encuesta de satisfacción (escala Likert del 1 al 5) para continuar desbloqueando retos ilimitados y registrar tu progreso académico en Ciencias de la Salud.",
     tips: "Al finalizar el reto, puedes pulsar en '⭐ Encuesta' en la barra superior para registrar tu evaluación y comentarios.",
   },
 ];
@@ -152,13 +126,37 @@ export const PlatformGuideAssistant: React.FC<PlatformGuideAssistantProps> = ({
   isOpen,
   onClose,
   onNavigateToView,
+  isAutoTriggered = false,
 }) => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [mode, setMode] = useState<"tour" | "reference">("tour");
+  const [dontShowAgain, setDontShowAgain] = useState(true);
+
+  useEffect(() => {
+    if (isOpen) {
+      // If auto-triggered on entry, start at step 0 (welcome card)
+      if (isAutoTriggered) {
+        setCurrentStepIndex(0);
+      }
+    }
+  }, [isOpen, isAutoTriggered]);
 
   if (!isOpen) return null;
 
   const currentStep = GUIDE_STEPS[currentStepIndex];
+
+  const handleClose = () => {
+    if (dontShowAgain) {
+      try {
+        localStorage.setItem("metabolix_onboarding_tour_seen", "true");
+      } catch {}
+    } else {
+      try {
+        localStorage.removeItem("metabolix_onboarding_tour_seen");
+      } catch {}
+    }
+    onClose();
+  };
 
   const handleNext = () => {
     if (currentStepIndex < GUIDE_STEPS.length - 1) {
@@ -168,7 +166,7 @@ export const PlatformGuideAssistant: React.FC<PlatformGuideAssistantProps> = ({
         onNavigateToView(GUIDE_STEPS[nextIdx].viewId!);
       }
     } else {
-      onClose();
+      handleClose();
     }
   };
 
@@ -209,15 +207,15 @@ export const PlatformGuideAssistant: React.FC<PlatformGuideAssistantProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-[var(--accent)]/15 text-[var(--accent)] font-semibold">
-                  Asistente Virtual Metabolix
+                  {currentStepIndex === 0 ? "Bienvenida" : "Paseo interactivo guiado"}
                 </span>
-                <span className="text-xs text-[var(--fg-faint)]">Guía metodológica</span>
+                <span className="text-xs text-[var(--fg-faint)]">Bioquímica Humana</span>
               </div>
               <h2
                 id="guide-modal-title"
                 className="text-lg font-bold leading-tight font-[var(--f-display)] text-[var(--fg)] mt-0.5"
               >
-                Guía de Uso de la Plataforma
+                {currentStepIndex === 0 ? "Tutorial de Inicio en Metabolix" : "Paseo por la Aplicación"}
               </h2>
             </div>
           </div>
@@ -233,7 +231,7 @@ export const PlatformGuideAssistant: React.FC<PlatformGuideAssistantProps> = ({
                     : "text-[var(--fg-dim)] hover:text-[var(--fg)]"
                 }`}
               >
-                Tour Guiado
+                Paseo Guiado
               </button>
               <button
                 type="button"
@@ -245,13 +243,13 @@ export const PlatformGuideAssistant: React.FC<PlatformGuideAssistantProps> = ({
                 }`}
               >
                 <BookOpen className="w-3.5 h-3.5" />
-                Índice Rápido
+                Índice de Módulos
               </button>
             </div>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--fg-faint)] hover:text-[var(--fg)] hover:bg-[var(--ink-3)] transition-colors ml-1"
-              aria-label="Cerrar guía"
+              aria-label="Cerrar tutorial"
             >
               <X className="w-5 h-5" />
             </button>
@@ -265,7 +263,7 @@ export const PlatformGuideAssistant: React.FC<PlatformGuideAssistantProps> = ({
               {/* Step indicator */}
               <div className="flex items-center justify-between gap-1 text-xs">
                 <span className="font-mono text-[var(--accent)] font-bold">
-                  Paso {currentStep.step} de {GUIDE_STEPS.length}
+                  {currentStep.step === 0 ? "Introducción" : `Paso ${currentStep.step} de ${GUIDE_STEPS.length - 1}`}
                 </span>
                 <div className="flex gap-1.5 flex-1 max-w-xs mx-4">
                   {GUIDE_STEPS.map((_, i) => (
@@ -280,26 +278,26 @@ export const PlatformGuideAssistant: React.FC<PlatformGuideAssistantProps> = ({
                           ? "bg-[var(--ok)]"
                           : "bg-[var(--ink-3)]"
                       }`}
-                      aria-label={`Ir al paso ${i + 1}`}
+                      aria-label={`Ir al paso ${i}`}
                     />
                   ))}
                 </div>
                 <span className="text-[11px] font-mono text-[var(--fg-faint)]">
-                  {Math.round(((currentStepIndex + 1) / GUIDE_STEPS.length) * 100)}%
+                  {Math.round(((currentStepIndex) / (GUIDE_STEPS.length - 1)) * 100)}%
                 </span>
               </div>
 
               {/* Step Card */}
               <div className="p-5 rounded-2xl border border-[var(--line)] bg-[var(--ink-2)]/60 space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[var(--ink-1)] border border-[var(--line)] flex items-center justify-center flex-shrink-0 shadow-sm">
+                <div className="flex items-start gap-3.5">
+                  <div className="w-11 h-11 rounded-xl bg-[var(--ink-1)] border border-[var(--line)] flex items-center justify-center flex-shrink-0 shadow-sm">
                     {currentStep.icon}
                   </div>
                   <div>
                     <span className="text-xs font-mono uppercase tracking-wider text-[var(--fg-faint)] font-semibold">
                       {currentStep.kicker}
                     </span>
-                    <h3 className="text-base font-bold text-[var(--fg)] font-[var(--f-display)] mt-0.5">
+                    <h3 className="text-lg font-bold text-[var(--fg)] font-[var(--f-display)] mt-0.5">
                       {currentStep.title}
                     </h3>
                   </div>
@@ -309,21 +307,7 @@ export const PlatformGuideAssistant: React.FC<PlatformGuideAssistantProps> = ({
                   {currentStep.content}
                 </p>
 
-                <div className="space-y-2 pt-1">
-                  <span className="text-xs font-mono uppercase text-[var(--fg-faint)] tracking-wider">
-                    Aspectos Clave a Observar:
-                  </span>
-                  <ul className="space-y-2 text-xs text-[var(--fg)]">
-                    {currentStep.keyPoints.map((pt, idx) => (
-                      <li key={idx} className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-[var(--ok)] flex-shrink-0 mt-0.5" />
-                        <span className="leading-snug">{pt}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="p-3 rounded-xl bg-[var(--ink-1)] border border-[var(--line)] text-xs text-[var(--fg-dim)] flex items-start gap-2">
+                <div className="p-3.5 rounded-xl bg-[var(--ink-1)] border border-[var(--line)] text-xs text-[var(--fg-dim)] flex items-start gap-2.5">
                   <span className="text-base flex-shrink-0">💡</span>
                   <span className="leading-relaxed">
                     <b>Consejo práctico:</b> {currentStep.tips}
@@ -366,54 +350,81 @@ export const PlatformGuideAssistant: React.FC<PlatformGuideAssistantProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3.5 border-t border-[var(--line)] bg-[var(--ink-2)] flex items-center justify-between flex-shrink-0">
-          {mode === "tour" ? (
-            <>
-              <button
-                type="button"
-                onClick={handlePrev}
-                disabled={currentStepIndex === 0}
-                className="px-3.5 py-2 rounded-xl text-xs font-medium border border-[var(--line)] text-[var(--fg-dim)] hover:bg-[var(--ink-1)] disabled:opacity-40 disabled:pointer-events-none transition-colors flex items-center gap-1.5"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                Anterior
-              </button>
+        <div className="px-6 py-3.5 border-t border-[var(--line)] bg-[var(--ink-2)] flex items-center justify-between flex-shrink-0 flex-wrap gap-3">
+          <label className="flex items-center gap-2 text-xs text-[var(--fg-dim)] cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={dontShowAgain}
+              onChange={(e) => setDontShowAgain(e.target.checked)}
+              className="rounded border-[var(--line)] text-[var(--accent)] focus:ring-0 cursor-pointer"
+            />
+            <span>No volver a mostrar automáticamente al entrar</span>
+          </label>
 
-              <div className="flex items-center gap-2">
+          {mode === "tour" ? (
+            <div className="flex items-center gap-2 ml-auto">
+              {currentStepIndex > 0 ? (
                 <button
                   type="button"
-                  onClick={onClose}
+                  onClick={handlePrev}
+                  className="px-3.5 py-2 rounded-xl text-xs font-medium border border-[var(--line)] text-[var(--fg-dim)] hover:bg-[var(--ink-1)] transition-colors flex items-center gap-1.5"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  Anterior
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleClose}
                   className="px-3 py-2 text-xs text-[var(--fg-faint)] hover:text-[var(--fg)] transition-colors"
                 >
-                  Saltar tour
+                  Saltar tutorial
                 </button>
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-[var(--fg)] text-[var(--ink-0)] hover:opacity-90 transition-opacity flex items-center gap-1.5 shadow-sm cursor-pointer"
-                >
-                  {currentStepIndex === GUIDE_STEPS.length - 1 ? (
-                    <>
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      Finalizar y Explorar
-                    </>
-                  ) : (
-                    <>
-                      Siguiente paso
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </>
-                  )}
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="w-full flex justify-end">
+              )}
+
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleNext}
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-[var(--fg)] text-[var(--ink-0)] hover:opacity-90 transition-opacity flex items-center gap-1.5 shadow-sm cursor-pointer"
+              >
+                {currentStepIndex === 0 ? (
+                  <>
+                    <Play className="w-3.5 h-3.5 fill-current" />
+                    Iniciar paseo guiado
+                  </>
+                ) : currentStepIndex === GUIDE_STEPS.length - 1 ? (
+                  <>
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    Finalizar y Explorar
+                  </>
+                ) : (
+                  <>
+                    Siguiente paso
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </>
+                )}
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 ml-auto">
+              <button
+                type="button"
+                onClick={() => {
+                  setCurrentStepIndex(0);
+                  setMode("tour");
+                  if (onNavigateToView) onNavigateToView("mapa");
+                }}
+                className="px-3.5 py-2 rounded-xl text-xs font-medium border border-[var(--line)] text-[var(--fg-dim)] hover:bg-[var(--ink-1)] flex items-center gap-1.5 transition-colors"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Reiniciar paseo
+              </button>
+              <button
+                type="button"
+                onClick={handleClose}
                 className="px-5 py-2 rounded-xl text-xs font-semibold bg-[var(--fg)] text-[var(--ink-0)] hover:opacity-90 transition-opacity"
               >
-                Entendido
+                Cerrar
               </button>
             </div>
           )}

@@ -2683,4 +2683,611 @@ select{width:100%;background:var(--ink-2);color:var(--fg);border:1px solid var(-
   width: 18px;
 }
 
+/* ==========================================================================
+   MODO ESTUDIO FLASHCARD (Active Recall & Concealment)
+   ========================================================================== */
+.fc-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  font-family: var(--f-body);
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  color: var(--fg-dim);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-left: auto;
+  margin-right: 4px;
+  user-select: none;
+}
+.fc-toggle-btn:hover {
+  background: var(--ink-3);
+  color: var(--fg);
+  border-color: var(--accent);
+}
+.fc-toggle-btn.active {
+  background: color-mix(in srgb, var(--accent) 14%, var(--ink-2));
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 10px -2px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.fc-toggle-btn.active .fc-ico {
+  transform: scale(1.12);
+  display: inline-block;
+}
+
+/* Banner de estudio al inicio del panel */
+.flashcard-study-banner {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, var(--ink-2)), var(--ink-2));
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  border-radius: var(--r-m);
+  padding: 12px 14px;
+  display: grid;
+  gap: 8px;
+  margin-bottom: 2px;
+  box-shadow: 0 4px 16px -4px var(--shadow);
+  animation: fcFadeIn 0.25s ease-out;
+}
+.fc-banner-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.fc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  font-family: var(--f-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.fc-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  animation: fcPulse 2s infinite ease-in-out;
+}
+.fc-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.fc-action-btn {
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--ink-1);
+  color: var(--fg);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.fc-action-btn:hover {
+  background: var(--ink-3);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.fc-banner-desc {
+  font-size: 12px;
+  color: var(--fg-dim);
+  margin: 0;
+  line-height: 1.45;
+}
+
+/* Bloque interactivo de Flashcard para Título o Secreto principal */
+.flashcard-card-block {
+  border-radius: var(--r-m);
+  border: 1.5px dashed color-mix(in srgb, var(--accent) 55%, var(--line));
+  background: color-mix(in srgb, var(--accent) 4%, var(--ink-2));
+  padding: 12px 14px;
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  user-select: none;
+}
+.flashcard-card-block:hover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 9%, var(--ink-2));
+  transform: translateY(-1px);
+}
+.flashcard-card-block.compact {
+  padding: 8px 12px;
+}
+.flashcard-card-block.revealed {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--ok) 40%, var(--line));
+  background: var(--ink-1);
+  cursor: default;
+  transform: none;
+}
+.fc-card-label {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-faint);
+  margin-bottom: 6px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.flashcard-card-block.revealed .fc-card-label {
+  color: var(--ok);
+}
+.fc-card-trigger {
+  position: relative;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+}
+.fc-card-cover {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 16%, var(--ink-3));
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
+  color: var(--fg);
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--f-body);
+  box-shadow: 0 2px 8px -2px var(--shadow);
+  transition: all 0.2s ease;
+}
+.flashcard-card-block:hover .fc-card-cover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 24%, var(--ink-3));
+}
+.flashcard-card-block.revealed .fc-card-cover {
+  display: none !important;
+}
+.fc-card-secret {
+  display: none;
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 24px;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+  animation: fcFadeIn 0.25s ease-out;
+}
+.flashcard-card-block.compact .fc-card-secret {
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--f-body);
+}
+.flashcard-card-block.revealed .fc-card-secret {
+  display: block !important;
+}
+
+/* Ecuación en Modo Flashcard */
+.fc-eq {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.fc-eq-item {
+  border: 1.5px dashed color-mix(in srgb, var(--accent) 50%, var(--line));
+  border-radius: 8px;
+  padding: 6px 10px;
+  background: var(--ink-1);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+.fc-eq-item:hover {
+  border-color: var(--accent);
+  background: var(--ink-3);
+}
+.fc-eq-item.revealed {
+  border-style: solid;
+  border-color: var(--line);
+  background: var(--ink-2);
+}
+.fc-eq-label {
+  font-size: 9px;
+  font-family: var(--f-mono);
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  font-weight: 600;
+}
+.fc-eq-cover {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.fc-eq-item.revealed .fc-eq-cover {
+  display: none !important;
+}
+.fc-eq-secret {
+  display: none;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--fg);
+  text-decoration: underline dotted;
+  animation: fcFadeIn 0.2s ease-out;
+}
+.fc-eq-item.revealed .fc-eq-secret {
+  display: inline-block !important;
+}
+
+/* Lista de conexiones en Modo Flashcard */
+.fc-rx-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+  width: 100%;
+}
+.fc-rx-button:hover {
+  border-color: var(--hover-line);
+}
+.fc-rx-button small {
+  margin-left: auto;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  color: var(--fg-faint);
+}
+.fc-rx-cover {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--accent) 40%, transparent);
+  transition: all 0.15s ease;
+}
+.fc-rx-button:hover .fc-rx-cover {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  border-color: var(--accent);
+}
+.fc-rx-button.revealed .fc-rx-cover {
+  display: none !important;
+}
+.fc-rx-secret {
+  display: none;
+  animation: fcFadeIn 0.2s ease-out;
+}
+.fc-rx-button.revealed .fc-rx-secret {
+  display: inline !important;
+}
+
+@keyframes fcFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fcPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.85);
+  }
+}
+
+/* ==========================================================================
+   ESTADÍSTICAS DE APRENDIZAJE (Lateral Rail Widget)
+   ========================================================================== */
+.stats-badge-pill {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  text-transform: none;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--accent) 14%, var(--ink-2));
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  font-weight: 700;
+}
+
+.learning-stats-widget {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 10px;
+}
+
+.stats-tabs-pill {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  background: var(--ink-1);
+  padding: 3px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+}
+
+.stats-tab {
+  padding: 5px 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--fg-dim);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+  user-select: none;
+}
+.stats-tab:hover {
+  color: var(--fg);
+}
+.stats-tab.active {
+  background: var(--ink-3);
+  color: var(--fg);
+  font-weight: 700;
+  box-shadow: 0 1px 4px var(--shadow);
+}
+
+.stats-bars-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stats-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+  padding: 5px 6px;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+}
+.stats-row:hover {
+  background: var(--ink-3);
+  border-color: var(--line);
+}
+.stats-row.active {
+  background: color-mix(in srgb, var(--accent) 12%, var(--ink-2));
+  border-color: var(--accent);
+}
+
+.stats-row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+}
+
+.stats-pw-name-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--fg);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.stats-pw-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.stats-pw-val {
+  font-size: 10px;
+  color: var(--fg-dim);
+  font-family: var(--f-mono);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stats-track {
+  height: 6px;
+  border-radius: 6px;
+  background: var(--ink-3);
+  overflow: hidden;
+  width: 100%;
+  position: relative;
+}
+
+.stats-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.stats-fill.ok {
+  background: var(--ok);
+}
+.stats-fill.warn {
+  background: var(--warn);
+}
+.stats-fill.danger {
+  background: var(--danger);
+}
+
+.stats-acc-chip {
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 9.5px;
+  font-weight: 700;
+}
+.stats-acc-chip.ok {
+  background: color-mix(in srgb, var(--ok) 18%, transparent);
+  color: var(--ok);
+}
+.stats-acc-chip.warn {
+  background: color-mix(in srgb, var(--warn) 18%, transparent);
+  color: var(--warn);
+}
+.stats-acc-chip.danger {
+  background: color-mix(in srgb, var(--danger) 18%, transparent);
+  color: var(--danger);
+}
+
+.stats-acc-badge {
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+}
+.stats-acc-badge.ok {
+  background: color-mix(in srgb, var(--ok) 20%, transparent);
+  color: var(--ok);
+}
+.stats-acc-badge.warn {
+  background: color-mix(in srgb, var(--warn) 20%, transparent);
+  color: var(--warn);
+}
+.stats-acc-badge.danger {
+  background: color-mix(in srgb, var(--danger) 20%, transparent);
+  color: var(--danger);
+}
+
+/* ==========================================================================
+   AUTOEVALUACIÓN FLASHCARD EN PANEL DE DETALLE
+   ========================================================================== */
+.fc-self-eval-box {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, var(--ink-2)), var(--ink-2));
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+  animation: fcFadeIn 0.25s ease-out;
+}
+
+.fc-eval-prompt {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fc-eval-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  font-family: var(--f-mono);
+  letter-spacing: 0.05em;
+}
+
+.fc-eval-sub {
+  font-size: 11.5px;
+  color: var(--fg-dim);
+  line-height: 1.4;
+}
+
+.fc-eval-btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.fc-eval-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid var(--line);
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.fc-eval-btn.ok {
+  background: color-mix(in srgb, var(--ok) 14%, var(--ink-1));
+  color: var(--ok);
+  border-color: color-mix(in srgb, var(--ok) 40%, var(--line));
+}
+.fc-eval-btn.ok:hover:not(:disabled) {
+  background: var(--ok);
+  color: var(--ink-0);
+  border-color: var(--ok);
+  box-shadow: 0 2px 8px -2px var(--ok);
+}
+.fc-eval-btn.ko {
+  background: color-mix(in srgb, var(--warn) 14%, var(--ink-1));
+  color: var(--warn);
+  border-color: color-mix(in srgb, var(--warn) 40%, var(--line));
+}
+.fc-eval-btn.ko:hover:not(:disabled) {
+  background: var(--warn);
+  color: var(--ink-0);
+  border-color: var(--warn);
+  box-shadow: 0 2px 8px -2px var(--warn);
+}
+.fc-eval-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.fc-eval-btn.selected {
+  opacity: 1 !important;
+  box-shadow: 0 0 0 2px currentColor inset;
+}
+
+.fc-eval-feedback {
+  font-size: 11.5px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  animation: fcFadeIn 0.2s ease-out;
+  line-height: 1.4;
+}
+.fc-eval-feedback.ok {
+  background: color-mix(in srgb, var(--ok) 14%, transparent);
+  color: var(--ok);
+  border-color: color-mix(in srgb, var(--ok) 30%, transparent);
+}
+.fc-eval-feedback.ko {
+  background: color-mix(in srgb, var(--warn) 14%, transparent);
+  color: var(--warn);
+  border-color: color-mix(in srgb, var(--warn) 30%, transparent);
+}
+
 

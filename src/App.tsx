@@ -21,6 +21,7 @@ import { PlatformGuideAssistant } from './components/PlatformGuideAssistant';
 export default function App() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [isAutoTriggeredTour, setIsAutoTriggeredTour] = useState(false);
   const [isSurveyOpen, setIsSurveyOpen] = useState(false);
   const [isSurveyMandatory, setIsSurveyMandatory] = useState(false);
   const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
@@ -67,9 +68,22 @@ export default function App() {
       setIsSurveyOpen(true);
     };
 
+    // Automatic onboarding tutorial on entry if not completed/dismissed yet
+    let tourTimer: any = null;
+    const hasSeenTour = localStorage.getItem('metabolix_onboarding_tour_seen');
+    if (!hasSeenTour) {
+      tourTimer = setTimeout(() => {
+        setIsAutoTriggeredTour(true);
+        setIsGuideOpen(true);
+      }, 650);
+    }
+
     // Wire up header buttons
     const btnGuide = document.getElementById('btn-guide');
-    const handleGuideClick = () => setIsGuideOpen(true);
+    const handleGuideClick = () => {
+      setIsAutoTriggeredTour(false);
+      setIsGuideOpen(true);
+    };
     if (btnGuide) btnGuide.addEventListener('click', handleGuideClick);
 
     const btnSurvey = document.getElementById('btn-survey');
@@ -118,6 +132,7 @@ export default function App() {
     window.addEventListener('metabolix:quiz_answered', handleQuizAnswered);
 
     return () => {
+      if (tourTimer) clearTimeout(tourTimer);
       if (btnGuide) btnGuide.removeEventListener('click', handleGuideClick);
       if (btnSurvey) btnSurvey.removeEventListener('click', handleSurveyClick);
       if (btnStudent) btnStudent.removeEventListener('click', handleStudentClick);
@@ -162,8 +177,12 @@ export default function App() {
 
       <PlatformGuideAssistant
         isOpen={isGuideOpen}
-        onClose={() => setIsGuideOpen(false)}
+        onClose={() => {
+          setIsGuideOpen(false);
+          setIsAutoTriggeredTour(false);
+        }}
         onNavigateToView={handleNavigateView}
+        isAutoTriggered={isAutoTriggeredTour}
       />
     </div>
   );
