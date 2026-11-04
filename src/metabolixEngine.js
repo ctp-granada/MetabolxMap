@@ -909,6 +909,11 @@ const BIOCHEM_QUESTIONS = [
 ];
 
 function newQuiz(){
+  if(window.metabolixIsSurveyBlocked && window.metabolixIsSurveyBlocked()){
+    renderQuiz();
+    if(window.metabolixOpenSurvey) window.metabolixOpenSurvey(true);
+    return;
+  }
   const nodeQs = shuffle(BIOCHEM_QUESTIONS.filter(q => q.kind === "node"));
   const rxQs = shuffle(BIOCHEM_QUESTIONS.filter(q => q.kind === "rx"));
   const selected = shuffle(nodeQs.slice(0, 4).concat(rxQs.slice(0, 4)));
@@ -917,6 +922,27 @@ function newQuiz(){
 }
 function renderQuiz(){
   const Q=$("#quiz"); if(!quiz){ Q.hidden=true; return; } Q.hidden=false;
+  if(window.metabolixIsSurveyBlocked && window.metabolixIsSurveyBlocked()){
+    Q.innerHTML=`<div class="quiz-top">
+      <span class="eyebrow" style="color:var(--warn);font-weight:700">🔒 Encuesta Requerida</span>
+      <span class="score" style="color:var(--warn);font-weight:700">3 Retos completados</span>
+    </div>
+    <div style="margin:14px 0 16px">
+      <h3 style="font-family:var(--f-display);font-size:18px;font-weight:800;color:var(--fg);margin:0 0 6px">
+        ¡Has completado tus primeros 3 retos!
+      </h3>
+      <p style="margin:0;font-size:13.5px;color:var(--fg-dim);line-height:1.5;max-width:48ch">
+        Para poder continuar realizando más retos y acceder a nuevas preguntas de autoevaluación, es <b>obligatorio cumplimentar la Encuesta de Satisfacción (1 al 5)</b>.
+      </p>
+    </div>
+    <div class="row" style="gap:10px;flex-wrap:wrap">
+      <button class="btn pri" id="qz-open-survey" style="background:var(--accent);color:#fff">⭐ Rellenar Encuesta de Satisfacción (Obligatorio)</button>
+      <button class="btn" id="qz-exit">Volver al mapa</button>
+    </div>`;
+    const btnSurv=$("#qz-open-survey"); if(btnSurv) btnSurv.onclick=()=>{ if(window.metabolixOpenSurvey) window.metabolixOpenSurvey(true); };
+    const btnExit=$("#qz-exit"); if(btnExit) btnExit.onclick=()=>go("mapa");
+    return;
+  }
   if(quiz.done){ const pct=Math.round(quiz.score/quiz.qs.length*100);
     Q.innerHTML=`<div class="quiz-top"><span class="eyebrow">Reto de Bioquímica General</span></div>
     <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap">
@@ -926,7 +952,17 @@ function renderQuiz(){
       </p>
     </div>
     <div class="row" style="margin-top:12px"><button class="btn pri" id="qz-again">Nuevo reto</button><button class="btn" id="qz-exit">Volver al mapa</button></div>`;
-    $("#qz-again").onclick=newQuiz; $("#qz-exit").onclick=()=>go("mapa"); return; }
+    $("#qz-again").onclick=()=>{
+      if(window.metabolixIsSurveyBlocked && window.metabolixIsSurveyBlocked()){
+        renderQuiz();
+        if(window.metabolixOpenSurvey) window.metabolixOpenSurvey(true);
+        return;
+      }
+      newQuiz();
+    };
+    $("#qz-exit").onclick=()=>go("mapa");
+    return;
+  }
   const q=quiz.qs[quiz.i];
   const prog=quiz.qs.map((_,i)=>`<i class="${i<quiz.res.length?(quiz.res[i]?"ok":"ko"):i===quiz.i?"cur":""}"></i>`).join("");
   let fb=`<div class="fb" style="color:var(--fg-dim);font-size:12.5px">${esc(q.hint)}</div>`;
@@ -943,7 +979,17 @@ function renderQuiz(){
   </div>
   <q style="display:block;margin:6px 0 8px;font-size:16.5px;line-height:1.35;font-weight:700">${esc(q.prompt)}</q>
   ${fb}`;
-  const n=$("#qz-next"); if(n) n.onclick=()=>{ quiz.reveal=false; quiz.i++; if(quiz.i>=quiz.qs.length) quiz.done=true; closePanel(); animVB(fitBox()); drawFx(); renderQuiz(); };
+  const n=$("#qz-next"); if(n) n.onclick=()=>{
+    quiz.reveal=false;
+    quiz.i++;
+    if(quiz.i>=quiz.qs.length) quiz.done=true;
+    if(window.metabolixIsSurveyBlocked && window.metabolixIsSurveyBlocked()){
+      renderQuiz();
+      if(window.metabolixOpenSurvey) window.metabolixOpenSurvey(true);
+      return;
+    }
+    closePanel(); animVB(fitBox()); drawFx(); renderQuiz();
+  };
 }
 function answer(kind,id){
   const q=quiz.qs[quiz.i]; const ok = kind===q.kind && id===q.id;
@@ -951,6 +997,21 @@ function answer(kind,id){
   if(q.kind==="rx"){ openRx(q.id); const E=EDGES.find(e=>e.r.id===q.id); if(E){ const pt=pointAt(E.g,E.g.len/2); focusXY(pt[0],pt[1],900); } }
   else { openNode(q.id); if(L[q.id]){ const [x,y]=L[q.id]; focusXY(x,y,900); } }
   drawFx(); renderQuiz(); toast(ok?"¡Acierto!":"Fallo: mira dónde estaba");
+  try {
+    const selName = kind==="rx"? (RXM[id]?.enzymeName || id) : (MET[id]?.name || id);
+    const tgtName = q.kind==="rx"? (RXM[q.id]?.enzymeName || q.id) : (MET[q.id]?.name || q.id);
+    window.dispatchEvent(new CustomEvent("metabolix:quiz_answered", {
+      detail: {
+        questionId: q.id,
+        concept: q.concept || "Bioquímica General",
+        prompt: q.prompt,
+        selectedName: selName,
+        targetName: tgtName,
+        isCorrect: ok,
+        explanation: q.explanation || q.hint || ""
+      }
+    }));
+  } catch(e){}
 }
 
 /* ======================= Balances ======================= */
@@ -2182,6 +2243,9 @@ function go(v){
 }
 document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>go(b.dataset.view));
 window.addEventListener("hashchange",()=>go(location.hash.slice(1)));
+window.metabolixGo = (v) => go(v);
+window.metabolixRefreshQuiz = () => { if(currentView === "reto") renderQuiz(); };
+window.metabolixNewQuiz = () => { newQuiz(); };
 
 let tt; function toast(m){ const t=$("#toast"); t.textContent=m; t.classList.add("show"); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove("show"),1800); }
 

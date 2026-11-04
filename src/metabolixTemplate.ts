@@ -11,6 +11,21 @@ export const METABOLIX_TEMPLATE = `<div class="app">
       <button role="tab" data-view="balances" aria-selected="false">Balances<span class="lx"> de ATP</span></button>
       <button role="tab" data-view="reto" aria-selected="false">Reto</button>
     </nav>
+    <div class="header-actions" style="display:flex;align-items:center;gap:6px">
+      <button type="button" class="hdr-btn" id="btn-guide" title="Guía de uso y asistente virtual de la plataforma" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600;background:var(--ink-2);border:1px solid var(--line);color:var(--fg);cursor:pointer">
+        <span style="font-size:13px">🧭</span>
+        <span>Guía<span class="lx"> de uso</span></span>
+      </button>
+      <button type="button" class="hdr-btn" id="btn-survey" title="Encuesta de satisfacción (Escala Likert)" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600;background:var(--ink-2);border:1px solid var(--line);color:var(--fg);cursor:pointer">
+        <span style="font-size:13px">⭐</span>
+        <span>Encuesta<span class="lx"> Likert</span></span>
+      </button>
+      <button type="button" class="hdr-btn" id="btn-student" title="Acceso y registro del alumno" style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:12px;font-weight:600;background:var(--ink-2);border:1px solid var(--line);color:var(--fg);cursor:pointer">
+        <span style="font-size:13px">👤</span>
+        <span id="hdr-student-name">Alumno</span>
+        <span id="hdr-visits-badge" style="background:var(--ink-3);padding:1px 6px;border-radius:999px;font-family:var(--f-mono);font-size:10.5px;color:var(--accent);font-weight:700">128</span>
+      </button>
+    </div>
     <button class="modebtn" id="mode" aria-label="Cambiar a modo oscuro"></button>
     <div class="search">
       <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M11 11l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
