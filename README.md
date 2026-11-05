@@ -1,5 +1,7 @@
 # Metabolix
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23990015.svg)](https://doi.org/10.5281/zenodo.23990015)
+
 **Conduce por el metabolismo humano**
 
 Mapa interactivo del metabolismo humano para enseñar Bioquímica en los grados de Ciencias de la Salud. El metabolismo se lee como un mapa de carreteras: cada ruta es una carretera, las enzimas son las señales y el tráfico cambia según el estado fisiológico.
@@ -108,7 +110,7 @@ Todo se guarda primero en el navegador (`localStorage`): retos, encuestas, visit
 
 Si usas, adaptas o difundes Metabolix, cita su origen:
 
-> Torres de Pinedo, Jesus M; Martinez, Sergio; Ortuno, Francisco M; Torres, Carolina (2026). *Metabolix: conduce por el metabolismo humano*. Proyecto de Innovación Docente PID 26-15. Departamento de Bioquímica y Biología Molecular III e Inmunología, Facultad de Medicina, Universidad de Granada. https://github.com/ctp-granada/MetabolxMap
+> Torres de Pinedo, Jesus M; Martinez, Sergio; Ortuno, Francisco M; Torres, Carolina (2026). *Metabolix: conduce por el metabolismo humano*. Proyecto de Innovación Docente PID 26-15. Departamento de Bioquímica y Biología Molecular III e Inmunología, Facultad de Medicina, Universidad de Granada. https://doi.org/10.5281/zenodo.23990015
 
 GitHub también ofrece la cita con el botón «Cite this repository», a partir de `CITATION.cff`.
 
