@@ -489,7 +489,15 @@ const TISSUE_COLORS = {
 function buildRail(){
   const sb=$("#states");
   STATES.forEach(s=>{ const b=document.createElement("button"); b.className="state"; b.style.setProperty("--sc",s.c); b.setAttribute("aria-pressed",s===ST);
+    b.setAttribute("role","radio"); b.setAttribute("aria-checked",String(s===ST)); b.title=`${s.name} · ${s.tissue}`;
     b.innerHTML=`<b>${esc(s.name)}</b><small>${esc(s.tissue)}</small>`; b.onclick=()=>setState(s.id); sb.appendChild(b); });
+  const tsel=$("#tissue-select");
+  if(tsel){
+    const opts=[["all","Organismo completo"],["universal","Rutas universales"]].concat(Object.values(TISSUES_DATA).map(t=>[t.id,t.name]));
+    tsel.innerHTML=opts.map(([v,l])=>`<option value="${v}">${esc(l)}</option>`).join("");
+    tsel.value=tissueFilter||"all";
+    tsel.onchange=()=>{ tissueFilter = tsel.value==="all" ? null : tsel.value; syncTissueChips(); apply(); };
+  }
   const pc=$("#pw-chips");
   Object.entries(PW).filter(([k])=>MAP_PW.includes(k)).forEach(([k,v])=>{ const b=document.createElement("button"); b.className="chip"; b.style.color=v.c; b.dataset.pw=k; b.setAttribute("aria-pressed","false");
     b.innerHTML=`<span class="dot"></span><span style="color:var(--fg)">${esc(v.name)}</span>`; b.onclick=()=>{ focusPw = focusPw===k? null : k; syncChips(); apply(); }; pc.appendChild(b); });
@@ -662,6 +670,7 @@ function syncChips(){
   document.querySelectorAll("#stats-bars-list .stats-row").forEach(r=>r.classList.toggle("active", r.dataset.statPw===focusPw));
 }
 function syncTissueChips(){
+  const tsel=document.getElementById("tissue-select"); if(tsel){ tsel.value=tissueFilter||"all"; tsel.parentElement.classList.toggle("on",!!tissueFilter); }
   document.querySelectorAll("#tissue-chips .tissue-chip").forEach(b => {
     const isAll = b.dataset.tissue === "all";
     if (isAll) {
@@ -671,23 +680,23 @@ function syncTissueChips(){
     }
   });
 }
-function setState(id){ ST=STATES.find(s=>s.id===id); document.querySelectorAll(".state").forEach((b,i)=>b.setAttribute("aria-pressed",String(STATES[i]===ST))); renderStateInfo(); apply(); }
+function setState(id){ ST=STATES.find(s=>s.id===id); document.querySelectorAll(".state").forEach((b,i)=>{ b.setAttribute("aria-pressed",String(STATES[i]===ST)); b.setAttribute("aria-checked",String(STATES[i]===ST)); }); renderStateInfo(); apply(); }
 function renderStateInfo(){
   $("#meters").innerHTML = Object.entries(ST.sig).map(([k,v])=>`<div class="meter" style="--mc:${k==="Insulina"?"var(--pw-glycolysis)":k==="Glucagón"?"var(--pw-gluconeogenesis)":k==="Adrenalina"?"var(--pw-glycogen)":k==="AMP/ATP"?"var(--pw-krebs)":"var(--pw-pentose)"}"><span>${k}</span><i><u style="width:${Math.round(v*100)}%"></u></i><em>${Math.round(v*100)}</em></div>`).join("");
   $("#st-title").textContent = `${ST.name} · ${ST.tissue}`;
   const n=$("#st-notes"); n.style.setProperty("--sc",ST.c); n.innerHTML=ST.notes.map(t=>`<li>${esc(t)}</li>`).join("");
 }
 function drawHud(){
-  $("#hud").hidden = currentView==="reto"; gEnz.style.display = currentView==="reto" ? "none" : "";
-  const tName = tissueFilter === "universal" ? "Rutas Universales" : (TISSUES_DATA[tissueFilter]?.name || tissueFilter);
+  $("#hud").hidden = currentView==="reto"; { const mc=document.getElementById("map-controls"); if(mc) mc.hidden = currentView==="reto"; } gEnz.style.display = currentView==="reto" ? "none" : "";
+  const tName = tissueFilter === "universal" ? "Rutas universales" : (TISSUES_DATA[tissueFilter]?.name || tissueFilter);
   const tColor = TISSUE_COLORS[tissueFilter] || "var(--accent)";
   const tBadge = tissueFilter ? `<button class="pill" id="hud-tf" style="border-color:${tColor};background:color-mix(in srgb,${tColor} 12%,var(--ink-1))"><span class="dot" style="color:${tColor}"></span><b>Filtro:</b> ${esc(tName)} <span style="color:var(--fg-faint);margin-left:4px">✕</span></button>` : "";
   const fcBadge = flashcardMode
     ? `<button class="pill active" id="hud-fc" style="border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 15%,var(--ink-1));pointer-events:auto" title="Modo Flashcard activo: clic para desactivar"><span class="dot" style="background:var(--accent)"></span><b>Flashcards: Activo</b> <span style="margin-left:4px">✓</span></button>`
     : `<button class="pill" id="hud-fc" style="border-color:var(--line);background:var(--ink-1);color:var(--fg-dim);pointer-events:auto" title="Activar Modo Estudio Flashcard (oculta nombres para memorizar)"><span class="dot" style="background:var(--fg-faint)"></span><b>Modo Flashcards</b> <span style="font-size:10px;opacity:0.8;margin-left:4px">Iniciar</span></button>`;
 
-  $("#hud").innerHTML = `<span class="pill"><span class="dot" style="color:${ST.c}"></span><b>${esc(ST.name)}</b><span style="color:var(--fg-dim)">${esc(ST.tissue)}</span></span>` +
-   tBadge +
+  $("#hud").innerHTML = "" +
+   "" +
    fcBadge +
    (focusPw? `<button class="pill" id="hud-pw"><span class="dot" style="color:${PW[focusPw].c}"></span>${esc(PW[focusPw].name)} <span style="color:var(--fg-faint)">✕</span></button>`:"");
   $("#hud").insertAdjacentHTML("beforeend",`<span class="pill seg-mini" role="group" aria-label="Etiquetas de enzimas"><button data-enz="key" aria-pressed="${enzMode==="key"}"><span class="star">★</span> Reguladoras</button><button data-enz="all" aria-pressed="${enzMode==="all"}">Todas las enzimas</button></span>`);
