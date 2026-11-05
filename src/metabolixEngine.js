@@ -521,7 +521,7 @@ function buildRail(){
       const col = TISSUE_COLORS[t.id] || "var(--accent)";
       b.style.setProperty("--tc", col);
       b.setAttribute("aria-pressed", String(tissueFilter === t.id));
-      b.innerHTML = `<span class="tissue-chip-icon"></span><span>${esc(t.name.split(" ")[0])}</span>`;
+      b.innerHTML = `<span class="tissue-chip-icon">${t.icon}</span><span>${esc(t.name.split(" ")[0])}</span>`;
       b.onclick = () => {
         tissueFilter = tissueFilter === t.id ? null : t.id;
         syncTissueChips();
@@ -544,6 +544,25 @@ function buildRail(){
     };
   }
 
+  const railToggle = document.getElementById("rail-fc-toggle");
+  if(railToggle) {
+    railToggle.onclick = () => {
+      toggleFlashcardMode();
+    };
+  }
+
+  const rfcPwBtns = document.querySelectorAll("#rail-fc-pws [data-fc-pw]");
+  rfcPwBtns.forEach(btn => {
+    btn.onclick = () => {
+      rfcPwBtns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      railFcFilter = btn.getAttribute("data-fc-pw") || "all";
+      currentRailFcIndex = 0;
+      renderRailFlashcardDeck();
+    };
+  });
+
+  renderRailFlashcardDeck();
   renderLearningStatsRail();
 }
 
@@ -685,27 +704,428 @@ let flashcardMode = (function() {
 })();
 let currentPanelItem = null; // { kind: 'rx' | 'node', id: string, fromDisease?: boolean }
 
-const FLASHCARD_DECK = [
-  "rx_pfk1", "rx_hk", "rx_pk", "rx_pdh", "rx_g6pdh", "rx_cs", "rx_idh",
-  "rx_akgdh", "rx_pyruvate_carboxylase", "rx_pepck", "rx_fbpase1", "rx_g6pase",
-  "rx_gp", "rx_gs", "rx_acc", "rx_cpt1", "rx_ketogenesis", "rx_aldose_reductase_gal",
-  "rx_gapdh", "rx_pgk", "rx_scs", "rx_sdh", "rx_mdh", "rx_acly", "rx_fas"
+const FLASHCARD_ITEMS = [
+  {
+    id: "fc_pfk1",
+    rxId: "rx_pfk1",
+    pwId: "glycolysis",
+    category: "glycolysis",
+    routeLabel: "Glucólisis · Marcapasos",
+    prompt: "¿Cuál es la enzima principal limitante y alostérica de la glucólisis, activada por F-2,6-BP y AMP, e inhibida por ATP y citrato?",
+    termEnzyme: "Fosfofructocinasa-1 (PFK-1 · EC 2.7.1.11)",
+    termReaction: "Fructosa-6-Fosfato + ATP ⟶ Fructosa-1,6-Bisfosfato + ADP",
+    termRegulation: "Activadores: Fructosa-2,6-BP (alostérico maestro), AMP, ADP · Inhibidores: ATP, Citrato, H⁺ (acidosis)",
+    termClinical: "Enfermedad de Tarui (GSD VII): déficit de isoenzima M muscular, dolor y calambres de esfuerzo con hemólisis",
+    coords: { x: 340, y: 390 }
+  },
+  {
+    id: "fc_hk",
+    rxId: "rx_hk",
+    pwId: "glycolysis",
+    category: "glycolysis",
+    routeLabel: "Glucólisis · Atrapamiento de Glucosa",
+    prompt: "¿Qué enzima atrapa la glucosa intracelular fosforilándola en C6, con alta afinidad (baja Km) e inhibida por su producto G6P?",
+    termEnzyme: "Hexocinasa I-III (EC 2.7.1.1) vs Glucocinasa (HK IV)",
+    termReaction: "D-Glucosa + ATP ⟶ D-Glucosa-6-Fosfato + ADP",
+    termRegulation: "HK I-III: fuertemente inhibida por G6P. Glucocinasa (hepática/pancreática): baja afinidad (alta Km ~10 mM), no inhibida por G6P, regulada por GKRP",
+    termClinical: "Diabetes MODY-2 (mutación en gen GCK/Glucocinasa) y anemia hemolítica no esferocítica por déficit de HK eritrocitaria",
+    coords: { x: 230, y: 390 }
+  },
+  {
+    id: "fc_pk",
+    rxId: "rx_pk",
+    pwId: "glycolysis",
+    category: "glycolysis",
+    routeLabel: "Glucólisis · Tercer Punto Irreversible",
+    prompt: "¿Qué cinasa produce ATP por fosforilación a nivel de sustrato a partir de PEP, activada por feed-forward de F1,6BP?",
+    termEnzyme: "Piruvato Cinasa (PK · EC 2.7.1.40)",
+    termReaction: "Fosfoenolpiruvato (PEP) + ADP ⟶ Piruvato + ATP",
+    termRegulation: "Feed-forward positivo por F-1,6-BP. Inhibidores: ATP, Acetil-CoA, Alanina. Glucagón fosforila e inhibe la isoforma L hepática (PKA)",
+    termClinical: "Déficit eritrocitario de Piruvato Cinasa: segunda causa enzimática más común de anemia hemolítica congénita no esferocítica",
+    coords: { x: 670, y: 390 }
+  },
+  {
+    id: "fc_pdh",
+    rxId: "rx_pdh",
+    pwId: "mitochondrial_fate",
+    category: "krebs",
+    routeLabel: "Destino Mitocondrial · Enlace Glucólisis-Krebs",
+    prompt: "¿Qué complejo multienzimático mitocondrial de 3 enzimas y 5 coenzimas oxida irreversiblemente el piruvato a acetil-CoA?",
+    termEnzyme: "Complejo Piruvato Deshidrogenasa (PDH · E1, E2, E3)",
+    termReaction: "Piruvato + CoA-SH + NAD⁺ ⟶ Acetil-CoA + CO₂ + NADH + H⁺",
+    termRegulation: "Covalente: PDH-cinasa (inactiva fosforilando por ATP, NADH, Acetil-CoA) y PDH-fosfatasa (activa por Ca²⁺ e insulina). 5 coenzimas: TPP, Lipoato, FAD, NAD⁺, CoA",
+    termClinical: "Acidosis láctica congénita por déficit de E1-alfa ligada al X; encefalopatía de Wernicke por deficiencia de tiamina (TPP)",
+    coords: { x: 740, y: 520 }
+  },
+  {
+    id: "fc_cs",
+    rxId: "rx_cs",
+    pwId: "krebs_cycle",
+    category: "krebs",
+    routeLabel: "Ciclo de Krebs · Entrada de Carbonos",
+    prompt: "¿Qué enzima condensante mitocondrial une oxalacetato y acetil-CoA para formar la molécula tricarboxílica de 6 carbonos?",
+    termEnzyme: "Citrato Sintasa (CS · EC 2.3.3.1)",
+    termReaction: "Oxalacetato + Acetil-CoA + H₂O ⟶ Citrato + CoA-SH + H⁺",
+    termRegulation: "Disponibilidad de oxalacetato y acetil-CoA; inhibición por ATP, NADH, Succinil-CoA y citrato (retroalimentación)",
+    termClinical: "Biomarcador enzimático estándar de densidad y volumen mitocondrial en biopsias de músculo esquelético",
+    coords: { x: 790, y: 640 }
+  },
+  {
+    id: "fc_idh",
+    rxId: "rx_idh",
+    pwId: "krebs_cycle",
+    category: "krebs",
+    routeLabel: "Ciclo de Krebs · Paso Limitante",
+    prompt: "¿Cuál es el paso limitante de velocidad del ciclo de Krebs que descarboxila oxidativamente el isocitrato liberando el primer CO₂?",
+    termEnzyme: "Isocitrato Deshidrogenasa mitocondrial (IDH3 · EC 1.1.1.41)",
+    termReaction: "Isocitrato + NAD⁺ ⟶ α-Cetoglutarato + CO₂ + NADH + H⁺",
+    termRegulation: "Activador alostérico maestro: ADP (disminuye Km) y Ca²⁺. Inhibidores potentes: ATP y NADH (reflejo de alto estado energético celular)",
+    termClinical: "Mutaciones neomórficas en IDH1/IDH2 producen el oncometabolito 2-hidroxiglutarato (2-HG) en gliomas y leucemia mieloide aguda (LMA)",
+    coords: { x: 880, y: 700 }
+  },
+  {
+    id: "fc_fbpase1",
+    rxId: "rx_fbpase1",
+    pwId: "gluconeogenesis",
+    category: "gluconeogenesis",
+    routeLabel: "Gluconeogénesis · Marcapasos Recíproco",
+    prompt: "¿Qué fosfatasa hidroliza el F-1,6-BP en gluconeogénesis y es fuertemente inhibida por F-2,6-BP y AMP?",
+    termEnzyme: "Fructosa-1,6-Bisfosfatasa-1 (FBPasa-1 · EC 3.1.3.11)",
+    termReaction: "Fructosa-1,6-Bisfosfato + H₂O ⟶ Fructosa-6-Fosfato + Pi",
+    termRegulation: "Inhibición alostérica sinérgica por Fructosa-2,6-Bisfosfato y AMP. Activación por Citrato (garantiza regulación recíproca con PFK-1)",
+    termClinical: "Deficiencia hereditaria de FBPasa-1: hipoglucemia de ayuno grave con acidosis láctica y hepatomegalia, sin disfunción muscular",
+    coords: { x: 380, y: 320 }
+  },
+  {
+    id: "fc_pyruvate_carboxylase",
+    rxId: "rx_pyruvate_carboxylase",
+    pwId: "gluconeogenesis",
+    category: "gluconeogenesis",
+    routeLabel: "Gluconeogénesis · Desvío Mitocondrial 1",
+    prompt: "¿Qué enzima mitocondrial dependiente de biotina y ATP convierte piruvato en oxalacetato, activada obligatoriamente por acetil-CoA?",
+    termEnzyme: "Piruvato Carboxilasa (PC · EC 6.4.1.1)",
+    termReaction: "Piruvato + HCO₃⁻ + ATP ⟶ Oxalacetato + ADP + Pi",
+    termRegulation: "Activador alostérico obligado absoluto: Acetil-CoA (sin acetil-CoA la enzima carece de actividad catalítica). Coenzima: Biotina (vitamina B7)",
+    termClinical: "Deficiencia congénita de Piruvato Carboxilasa: acidosis láctica neonatal, cetosis, hiperamonemia y retraso psicomotor severo",
+    coords: { x: 670, y: 470 }
+  },
+  {
+    id: "fc_pepck",
+    rxId: "rx_pepck",
+    pwId: "gluconeogenesis",
+    category: "gluconeogenesis",
+    routeLabel: "Gluconeogénesis · Desvío Mitocondrial 2",
+    prompt: "¿Qué enzima inducible por glucagón y cortisol convierte oxalacetato en PEP consumiendo GTP y liberando CO₂?",
+    termEnzyme: "Fosfoenolpiruvato Carboxicinasa (PEPCK / PCK1 · EC 4.1.1.32)",
+    termReaction: "Oxalacetato + GTP ⟶ Fosfoenolpiruvato (PEP) + GDP + CO₂",
+    termRegulation: "Regulación transcripcional: inducida por Glucagón (vía AMPc-PKA-CREB) y Glucocorticoides; reprimida por Insulina",
+    termClinical: "Sobreexpresión de PEPCK en parénquima hepático contribuye a la hiperglucemia de ayuno refractaria en diabetes mellitus tipo 2",
+    coords: { x: 570, y: 360 }
+  },
+  {
+    id: "fc_g6pase",
+    rxId: "rx_g6pase",
+    pwId: "gluconeogenesis",
+    category: "gluconeogenesis",
+    routeLabel: "Hígado / Riñón · Liberación a Sangre",
+    prompt: "¿Qué enzima luminal del retículo endoplásmico hepático y renal permite liberar glucosa libre a la circulación sistémica?",
+    termEnzyme: "Glucosa-6-Fosfatasa (G6Pasa / G6PC · EC 3.1.3.9)",
+    termReaction: "Glucosa-6-Fosfato + H₂O ⟶ D-Glucosa libre + Pi",
+    termRegulation: "Expresión confinada a hepatocitos, corteza renal y enterocitos (ausente en músculo). Regulada por sustrato y transporte al RE",
+    termClinical: "Enfermedad de Von Gierke (GSD Ia): hipoglucemia de ayuno severa extrema, hepatomegalia masiva, acidosis láctica e hiperuricemia",
+    coords: { x: 190, y: 320 }
+  },
+  {
+    id: "fc_g6pdh",
+    rxId: "rx_g6pdh",
+    pwId: "pentose_phosphate",
+    category: "pentose",
+    routeLabel: "Vía de las Pentosas Fosfato · Fase Oxidativa",
+    prompt: "¿Qué enzima genera el NADPH citosólico necesario para mantener el glutatión reducido y proteger contra el estrés oxidativo?",
+    termEnzyme: "Glucosa-6-Fosfato Deshidrogenasa (G6PD · EC 1.1.1.49)",
+    termReaction: "Glucosa-6-Fosfato + NADP⁺ ⟶ 6-Fosfoglucono-δ-lactona + NADPH + H⁺",
+    termRegulation: "Controlada estrictamente por la relación citosólica [NADP⁺]/[NADPH]. El NADPH es un inhibidor competitivo muy potente",
+    termClinical: "Favismo / Déficit de G6PD (ligado al X): enzimopatía humana más frecuente (>400M personas); crisis hemolítica ante habas, sulfamidas o infecciones",
+    coords: { x: 230, y: 220 }
+  },
+  {
+    id: "fc_gp",
+    rxId: "rx_gp",
+    pwId: "glycogen_metabolism",
+    category: "glycogen",
+    routeLabel: "Glucogenólisis · Movilización de Reservas",
+    prompt: "¿Qué fosforilasa degrada glucógeno rompiendo enlaces α(1→4) mediante fosforolisis para producir G1P, activada por fosforilación?",
+    termEnzyme: "Glucógeno Fosforilasa (GP · EC 2.4.1.1)",
+    termReaction: "(Glucógeno)ₙ + Pi ⟶ (Glucógeno)ₙ₋₁ + Glucosa-1-Fosfato",
+    termRegulation: "Fosforilasa b (inactiva) ⟶ Fosforilasa a (activa) mediante Fosforilasa Cinasa (activada por Glucagón/Adrenalina vía PKA y Ca²⁺ en músculo). Inhibida por Glucosa libre en hígado",
+    termClinical: "Enfermedad de McArdle (GSD V muscular): intolerancia al ejercicio, calambres, mioglobinuria y ausencia de lactato post-esfuerzo. Enf. de Hers (GSD VI hepática)",
+    coords: { x: 180, y: 150 }
+  },
+  {
+    id: "fc_gs",
+    rxId: "rx_gs",
+    pwId: "glycogen_metabolism",
+    category: "glycogen",
+    routeLabel: "Glucogenogénesis · Síntesis de Reservas",
+    prompt: "¿Qué enzima transfiere glucosa desde UDP-glucosa a una cadena de glucógeno formando enlaces α(1→4), activa en estado desfosforilado?",
+    termEnzyme: "Glucógeno Sintasa (GS · EC 2.4.1.11)",
+    termReaction: "UDP-Glucosa + (Glucógeno)ₙ ⟶ UDP + (Glucógeno)ₙ₊₁",
+    termRegulation: "Insulina desfosforila y activa GS (vía PP1 e inhibición de GSK3). Glucagón/Adrenalina (PKA, GSK3, AMPK) fosforilan e inactivan GS. Activador alostérico: G6P",
+    termClinical: "Glucogenosis tipo 0 (déficit de GS hepática): hipoglucemia matutina de ayuno con hipercetonemia e hiperglucemia postprandial",
+    coords: { x: 260, y: 150 }
+  },
+  {
+    id: "fc_acc",
+    rxId: "rx_acc",
+    pwId: "lipid_metabolism",
+    category: "lipid",
+    routeLabel: "Lipogénesis de Novo · Paso Comprometido",
+    prompt: "¿Qué carboxilasa dependiente de biotina convierte acetil-CoA en malonil-CoA, activada por citrato y polimerización, e inhibida por AMPK?",
+    termEnzyme: "Acetil-CoA Carboxilasa (ACC1 / ACACA · EC 6.4.1.2)",
+    termReaction: "Acetil-CoA + HCO₃⁻ + ATP ⟶ Malonil-CoA + ADP + Pi",
+    termRegulation: "Activador alostérico maestro: Citrato (promueve polimerización activa). Inhibidor: Palmitoil-CoA. Covalente: AMPK y Glucagón fosforilan e inactivan; Insulina activa",
+    termClinical: "El producto Malonil-CoA inhibe alostéricamente a CPT-1, bloqueando la β-oxidación durante la síntesis activa de ácidos grasos (regulación recíproca)",
+    coords: { x: 1350, y: 550 }
+  },
+  {
+    id: "fc_cpt1",
+    rxId: "rx_cpt1",
+    pwId: "lipid_metabolism",
+    category: "lipid",
+    routeLabel: "β-Oxidación · Lanzadera de Carnitina",
+    prompt: "¿Qué enzima de la membrana mitocondrial externa transfiere acilos a la carnitina y es inhibida alostéricamente por malonil-CoA?",
+    termEnzyme: "Carnitina Palmitoiltransferasa 1 (CPT-1 · EC 2.3.1.21)",
+    termReaction: "Acil-CoA graso + L-Carnitina ⟶ Acilcarnitina + CoA-SH",
+    termRegulation: "Inhibidor alostérico fisiológico crucial: Malonil-CoA (evita ciclo fútil de oxidación lipídica durante síntesis de grasas). Insulina disminuye actividad indirectamente",
+    termClinical: "Deficiencia congénita de CPT-1 o de Carnitina: crisis de hipoglucemia hipocetósica severa desencadenada por ayuno prolongado o fiebre",
+    coords: { x: 1420, y: 640 }
+  },
+  {
+    id: "fc_ketogenesis",
+    rxId: "rx_ketogenesis",
+    pwId: "lipid_metabolism",
+    category: "lipid",
+    routeLabel: "Cetogénesis Hepática · Combustible Cerebral de Ayuno",
+    prompt: "¿Cuál es la enzima mitocondrial hepática limitante en la síntesis de acetoacetato y β-hidroxibutirato a partir de acetil-CoA?",
+    termEnzyme: "HMG-CoA Sintasa Mitocondrial (HMGCS2 · EC 2.3.3.10)",
+    termReaction: "Acetoacetil-CoA + Acetil-CoA + H₂O ⟶ HMG-CoA + CoA-SH",
+    termRegulation: "Expresión inducida fuertemente en ayuno prolongado y diabetes por Glucagón y PPARα; desacetilada y activada por SIRT3 mitocondrial",
+    termClinical: "Cetoacidosis diabética (CAD) por lipólisis y cetogénesis masiva desregulada por deficiencia absoluta de insulina; déficit de HMGCS2 causa hipoglucemia hipocetósica",
+    coords: { x: 1480, y: 720 }
+  },
+  {
+    id: "fc_aldose_reductase_gal",
+    rxId: "rx_aldose_reductase_gal",
+    pwId: "monosaccharide_entry",
+    category: "monosaccharide",
+    routeLabel: "Entrada de Monosacáridos · Vía del Poliol",
+    prompt: "¿Qué enzima dependiente de NADPH reduce la galactosa acumulada a galactitol, causando cataratas congénitas en recién nacidos?",
+    termEnzyme: "Aldosa Reductasa (AKR1B1 · EC 1.1.1.21)",
+    termReaction: "D-Galactosa + NADPH + H⁺ ⟶ Galactitol + NADP⁺",
+    termRegulation: "Baja afinidad por monosacáridos a concentraciones normales; se satura e hiperactiva masivamente en hipergalactosemia o hiperglucemia",
+    termClinical: "Galactosemia clásica (déficit de GALT) y déficit de Galactocinasa (GALK): acumulación de galactitol no metabolizable en cristalino causa cataratas osmóticas",
+    coords: { x: 140, y: 238 }
+  }
 ];
+
+const FLASHCARD_DECK = FLASHCARD_ITEMS.map(it => it.rxId);
 let deckIndex = 0;
+let currentRailFcIndex = 0;
+let railFcFilter = "all";
+
+function getFilteredFlashcards() {
+  if (railFcFilter === "all") return FLASHCARD_ITEMS;
+  return FLASHCARD_ITEMS.filter(it => {
+    if (railFcFilter === "glycolysis") return it.category === "glycolysis" || it.pwId === "glycolysis";
+    if (railFcFilter === "krebs") return it.category === "krebs" || it.pwId === "krebs_cycle" || it.pwId === "mitochondrial_fate";
+    if (railFcFilter === "gluconeogenesis") return it.category === "gluconeogenesis" || it.pwId === "gluconeogenesis";
+    if (railFcFilter === "lipid") return it.category === "lipid" || it.pwId === "lipid_metabolism";
+    if (railFcFilter === "glycogen") return it.category === "glycogen" || it.pwId === "glycogen_metabolism";
+    return it.pwId === railFcFilter || it.category === railFcFilter;
+  });
+}
 
 function openNextFlashcard() {
   if (currentView !== "mapa") {
     go("mapa");
   }
-  const nextRxId = FLASHCARD_DECK[deckIndex % FLASHCARD_DECK.length];
+  const deck = getFilteredFlashcards();
+  if (!deck.length) return;
+  const item = deck[deckIndex % deck.length];
   deckIndex++;
-  openRx(nextRxId);
-  const E = EDGES.find(e => e.r.id === nextRxId);
-  if (E) {
-    const pt = pointAt(E.g, E.g.len / 2);
-    focusXY(pt[0], pt[1], 820);
+  openRx(item.rxId);
+  if (item.coords) {
+    focusXY(item.coords.x, item.coords.y, 820);
+  } else {
+    const E = EDGES.find(e => e.r.id === item.rxId);
+    if (E) {
+      const pt = pointAt(E.g, E.g.len / 2);
+      focusXY(pt[0], pt[1], 820);
+    }
   }
-  toast(`Ficha ${deckIndex} de ${FLASHCARD_DECK.length}: Deduce la enzima y autoevalúate`);
+  toast(`Ficha ${deckIndex} de ${deck.length}: deduce la enzima y autoevalúate`);
+}
+
+function renderRailFlashcardDeck() {
+  const container = document.getElementById("rail-fc-card");
+  if (!container) return;
+
+  const deck = getFilteredFlashcards();
+  if (deck.length === 0) {
+    container.innerHTML = `<div style="padding:16px;text-align:center;color:var(--fg-dim);font-size:12px">No hay flashcards para este filtro.</div>`;
+    return;
+  }
+
+  if (currentRailFcIndex >= deck.length) currentRailFcIndex = 0;
+  if (currentRailFcIndex < 0) currentRailFcIndex = deck.length - 1;
+
+  const item = deck[currentRailFcIndex];
+  const pwData = PW[item.pwId] || { name: item.routeLabel, c: "var(--accent)" };
+
+  if (!flashcardMode) {
+    container.innerHTML = `
+      <div class="rfc-card-top">
+        <span class="rfc-route-pill" style="color:${pwData.c}">${esc(item.routeLabel)}</span>
+        <span class="rfc-counter">${currentRailFcIndex + 1} / ${deck.length}</span>
+      </div>
+      <div class="rfc-card-prompt">${esc(item.prompt)}</div>
+      <div style="background:var(--ink-2);border:1px dashed var(--line);border-radius:8px;padding:12px;margin:10px 0;text-align:center">
+        <div style="font-size:11.5px;font-weight:600;color:var(--fg-dim);margin-bottom:6px">Modo de ocultamiento inactivo</div>
+        <button type="button" class="btn primary" id="btn-rfc-activate" style="width:100%;font-size:11.5px;padding:6px 12px">
+          Activar Ocultamiento de Términos
+        </button>
+      </div>
+      <div class="rfc-nav-bar">
+        <button type="button" class="btn-rfc-nav" id="btn-rfc-prev" title="Tarjeta anterior">Anterior</button>
+        <button type="button" class="btn-rfc-nav" id="btn-rfc-open-full" title="Ver detalle completo en panel derecho">Ver detalle ↗</button>
+        <button type="button" class="btn-rfc-nav" id="btn-rfc-next" title="Siguiente tarjeta">Siguiente</button>
+      </div>
+    `;
+
+    const btnAct = container.querySelector("#btn-rfc-activate");
+    if (btnAct) btnAct.onclick = () => toggleFlashcardMode(true);
+    const btnPrev = container.querySelector("#btn-rfc-prev");
+    if (btnPrev) btnPrev.onclick = () => { currentRailFcIndex--; renderRailFlashcardDeck(); };
+    const btnNext = container.querySelector("#btn-rfc-next");
+    if (btnNext) btnNext.onclick = () => { currentRailFcIndex++; renderRailFlashcardDeck(); };
+    const btnFull = container.querySelector("#btn-rfc-open-full");
+    if (btnFull) btnFull.onclick = () => {
+      openRx(item.rxId);
+      if (item.coords) focusXY(item.coords.x, item.coords.y, 820);
+    };
+    return;
+  }
+
+  // Flashcard mode is ACTIVE
+  container.innerHTML = `
+    <div class="rfc-card-top">
+      <span class="rfc-route-pill" style="color:${pwData.c}">${esc(item.routeLabel)}</span>
+      <span class="rfc-counter">${currentRailFcIndex + 1} / ${deck.length}</span>
+    </div>
+    <div class="rfc-card-prompt">${esc(item.prompt)}</div>
+
+    <div class="rfc-terms-deck" id="rfc-terms-deck">
+      <div class="rfc-term-box masked" data-rfc-box="enzyme">
+        <div class="rfc-tb-header">
+          <span class="rfc-tb-title">Enzima clave</span>
+          <span class="rfc-tb-tag">Toca para ver</span>
+        </div>
+        <div class="rfc-tb-reveal"><span class="rfc-tb-reveal-txt">Revelar enzima</span></div>
+        <div class="rfc-tb-secret">${esc(item.termEnzyme)}</div>
+      </div>
+
+      <div class="rfc-term-box masked" data-rfc-box="reaction">
+        <div class="rfc-tb-header">
+          <span class="rfc-tb-title">Reacción química / EC</span>
+          <span class="rfc-tb-tag">Toca para ver</span>
+        </div>
+        <div class="rfc-tb-reveal"><span class="rfc-tb-reveal-txt">Revelar reacción / EC</span></div>
+        <div class="rfc-tb-secret">${esc(item.termReaction)}</div>
+      </div>
+
+      <div class="rfc-term-box masked" data-rfc-box="reg">
+        <div class="rfc-tb-header">
+          <span class="rfc-tb-title">Regulación alostérica / covalente</span>
+          <span class="rfc-tb-tag">Toca para ver</span>
+        </div>
+        <div class="rfc-tb-reveal"><span class="rfc-tb-reveal-txt">Revelar regulación</span></div>
+        <div class="rfc-tb-secret">${esc(item.termRegulation)}</div>
+      </div>
+
+      <div class="rfc-term-box masked" data-rfc-box="clin">
+        <div class="rfc-tb-header">
+          <span class="rfc-tb-title">Correlación clínica</span>
+          <span class="rfc-tb-tag">Toca para ver</span>
+        </div>
+        <div class="rfc-tb-reveal"><span class="rfc-tb-reveal-txt">Revelar patología</span></div>
+        <div class="rfc-tb-secret">${esc(item.termClinical)}</div>
+      </div>
+    </div>
+
+    <div class="rfc-self-rate-row">
+      <span class="rfc-rate-label">Autoevaluación:</span>
+      <button type="button" class="rfc-rate-btn ok" id="btn-rfc-rate-ok" title="Registrar acierto en tus estadísticas">
+        <span>✓</span> <span>Me la sabía</span>
+      </button>
+      <button type="button" class="rfc-rate-btn ko" id="btn-rfc-rate-ko" title="Registrar para repasar en tus estadísticas">
+        <span>✕</span> <span>A repasar</span>
+      </button>
+    </div>
+    <div id="rfc-rate-feedback" style="display:none;font-size:11px;padding:4px 8px;border-radius:6px;margin-bottom:8px"></div>
+
+    <div class="rfc-nav-bar">
+      <button type="button" class="btn-rfc-nav" id="btn-rfc-prev" title="Tarjeta anterior">Anterior</button>
+      <button type="button" class="btn-rfc-nav" id="btn-rfc-reveal-all" title="Revelar todos los términos de esta ficha">Revelar todo</button>
+      <button type="button" class="btn-rfc-nav" id="btn-rfc-open-full" title="Ver detalle completo en panel derecho">Abrir ficha</button>
+      <button type="button" class="btn-rfc-nav" id="btn-rfc-next" title="Siguiente tarjeta">Siguiente</button>
+    </div>
+  `;
+
+  // Attach click-to-reveal handlers
+  container.querySelectorAll(".rfc-term-box").forEach(box => {
+    box.onclick = () => {
+      box.classList.toggle("unveiled");
+    };
+  });
+
+  const btnRevealAll = container.querySelector("#btn-rfc-reveal-all");
+  if (btnRevealAll) {
+    btnRevealAll.onclick = () => {
+      container.querySelectorAll(".rfc-term-box").forEach(box => box.classList.add("unveiled"));
+    };
+  }
+
+  // Self rating buttons
+  const btnRateOk = container.querySelector("#btn-rfc-rate-ok");
+  const btnRateKo = container.querySelector("#btn-rfc-rate-ko");
+  const rateFeedback = container.querySelector("#rfc-rate-feedback");
+
+  const handleSelfRate = (isCorrect) => {
+    const updated = recordFlashcardPractice(item.pwId, isCorrect);
+    renderLearningStatsRail();
+    if (btnRateOk) { btnRateOk.disabled = true; if (isCorrect) btnRateOk.classList.add("selected"); }
+    if (btnRateKo) { btnRateKo.disabled = true; if (!isCorrect) btnRateKo.classList.add("selected"); }
+    if (rateFeedback) {
+      rateFeedback.style.display = "block";
+      rateFeedback.style.background = isCorrect ? "color-mix(in srgb,var(--accent) 15%,transparent)" : "color-mix(in srgb,var(--warn) 15%,transparent)";
+      rateFeedback.style.color = isCorrect ? "var(--accent)" : "var(--warn)";
+      rateFeedback.innerHTML = isCorrect ? `✓ <b>¡Correcto!</b> Guardado en estadísticas.` : `<b>Anotado</b> para reforzar repaso.`;
+    }
+    toast(isCorrect ? "¡Acierto registrado en tus estadísticas!" : "Guardado para repaso.");
+  };
+
+  if (btnRateOk) btnRateOk.onclick = () => handleSelfRate(true);
+  if (btnRateKo) btnRateKo.onclick = () => handleSelfRate(false);
+
+  const btnPrev = container.querySelector("#btn-rfc-prev");
+  if (btnPrev) btnPrev.onclick = () => { currentRailFcIndex--; renderRailFlashcardDeck(); };
+  const btnNext = container.querySelector("#btn-rfc-next");
+  if (btnNext) btnNext.onclick = () => { currentRailFcIndex++; renderRailFlashcardDeck(); };
+  const btnFull = container.querySelector("#btn-rfc-open-full");
+  if (btnFull) btnFull.onclick = () => {
+    openRx(item.rxId);
+    if (item.coords) focusXY(item.coords.x, item.coords.y, 820);
+  };
 }
 
 function syncFlashcardBtn() {
@@ -736,6 +1156,20 @@ function syncFlashcardBtn() {
       badge.textContent = flashcardMode ? "Sesión activa ✓" : "Abrir tarjeta →";
     }
   }
+
+  const railToggle = document.getElementById("rail-fc-toggle");
+  if (railToggle) {
+    railToggle.classList.toggle("active", flashcardMode);
+    railToggle.setAttribute("aria-checked", String(flashcardMode));
+  }
+
+  const railBadge = document.getElementById("rail-fc-state-badge");
+  if (railBadge) {
+    railBadge.classList.toggle("active", flashcardMode);
+    railBadge.textContent = flashcardMode ? "Activado" : "Desactivado";
+  }
+
+  renderRailFlashcardDeck();
 }
 
 function toggleFlashcardMode(forceState) {
@@ -987,13 +1421,71 @@ function openRx(id, fromDisease){
   if(PORTAL[r.id]) h+=`<button class="btn" data-portal="${PORTAL[r.id]}">Ver en detalle: ${esc(MODM[PORTAL[r.id]].title)} →</button>`;
   const f=r.module?0:flux(r); if(!r.module) h+=`<div class="blk"><h4>En el estado actual</h4><p><b style="color:${ST.c}">${esc(ST.name)}</b> · ${Math.abs(f)<.03?"prácticamente apagada":Math.abs(f)<.35?"flujo bajo":Math.abs(f)<.75?"flujo moderado":"flujo alto"}${f<-.02?" y <b>en sentido inverso</b> (gluconeogénico)":""}.</p></div>`;
   if(reg){
-    if(reg.allostericEffectors?.length) h+=`<div class="blk"><h4>Regulación alostérica</h4><div class="eff">${reg.allostericEffectors.map(e=>`<div class="${e.effect==="activator"?"act":"inh"}"><span class="sym">${e.effect==="activator"?"+":"−"}</span><div><b>${esc(e.molecule)}</b><p>${esc(e.physiologicalRole)}</p>${e.affinityNote?`<small>${esc(e.affinityNote)}</small>`:""}</div></div>`).join("")}</div></div>`;
-    const cv=reg.covalent; if(cv&&cv.hasCovalentRegulation) h+=`<div class="blk"><h4>Control hormonal y covalente</h4><div class="cov"><div class="on"><b>Activa · ${esc(cv.activeForm)}</b>${esc(cv.activatingHormone)}</div><div class="off"><b>Inactiva · ${esc(cv.inactiveForm)}</b>${esc(cv.inactivatingHormone)}</div></div><p style="margin-top:8px">${esc(cv.mechanism)}${cv.targetResidue?` <span class="mono" style="color:var(--fg-faint)">· ${esc(cv.targetResidue)}</span>`:""}</p></div>`;
+    if(reg.allostericEffectors?.length) {
+      if(flashcardMode) {
+        h+=`<div class="blk"><h4>Regulación alostérica</h4><div class="eff">${reg.allostericEffectors.map((e, idx)=>`
+          <div class="${e.effect==="activator"?"act":"inh"} flashcard-card-block compact" data-fc-block="eff_${idx}">
+            <span class="sym">${e.effect==="activator"?"+":"−"}</span>
+            <div>
+              <div class="fc-card-trigger">
+                <span class="fc-card-cover" style="font-size:11px;padding:2px 8px">¿Efector alostérico? </span>
+                <b class="fc-card-secret">${esc(e.molecule)}</b>
+              </div>
+              <p>${esc(e.physiologicalRole)}</p>
+              ${e.affinityNote?`<small>${esc(e.affinityNote)}</small>`:""}
+            </div>
+          </div>`).join("")}</div></div>`;
+      } else {
+        h+=`<div class="blk"><h4>Regulación alostérica</h4><div class="eff">${reg.allostericEffectors.map(e=>`<div class="${e.effect==="activator"?"act":"inh"}"><span class="sym">${e.effect==="activator"?"+":"−"}</span><div><b>${esc(e.molecule)}</b><p>${esc(e.physiologicalRole)}</p>${e.affinityNote?`<small>${esc(e.affinityNote)}</small>`:""}</div></div>`).join("")}</div></div>`;
+      }
+    }
+    const cv=reg.covalent;
+    if(cv&&cv.hasCovalentRegulation) {
+      if(flashcardMode) {
+        h+=`
+          <div class="blk">
+            <h4>Control hormonal y covalente</h4>
+            <div class="flashcard-card-block compact" data-fc-block="covalent">
+              <div class="fc-card-label"><span>¿Qué hormonas activan e inactivan esta enzima?</span><span style="font-size:10px;opacity:0.8">Toca para revelar </span></div>
+              <div class="fc-card-trigger">
+                <div class="fc-card-cover" style="font-size:11.5px;padding:4px 10px"><span class="fc-eye"><svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></span><span>Revelar control hormonal</span></div>
+                <div class="fc-card-secret">
+                  <div class="cov"><div class="on"><b>Activa · ${esc(cv.activeForm)}</b>${esc(cv.activatingHormone)}</div><div class="off"><b>Inactiva · ${esc(cv.inactiveForm)}</b>${esc(cv.inactivatingHormone)}</div></div>
+                  <p style="margin-top:8px">${esc(cv.mechanism)}${cv.targetResidue?` <span class="mono" style="color:var(--fg-faint)">· ${esc(cv.targetResidue)}</span>`:""}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      } else {
+        h+=`<div class="blk"><h4>Control hormonal y covalente</h4><div class="cov"><div class="on"><b>Activa · ${esc(cv.activeForm)}</b>${esc(cv.activatingHormone)}</div><div class="off"><b>Inactiva · ${esc(cv.inactiveForm)}</b>${esc(cv.inactivatingHormone)}</div></div><p style="margin-top:8px">${esc(cv.mechanism)}${cv.targetResidue?` <span class="mono" style="color:var(--fg-faint)">· ${esc(cv.targetResidue)}</span>`:""}</p></div>`;
+      }
+    }
     if(reg.kinetics) h+=`<div class="blk kin" id="kin"><h4>Cinética ${reg.kinetics.modelType==="hill"?"sigmoide (Hill)":"de Michaelis-Menten"}</h4><div id="kin-plot"></div><label for="kin-s">[${esc(reg.kinetics.substrateName)}]<input type="range" id="kin-s" min="0" max="1000" value="250"><span class="mono" id="kin-sv"></span></label><div class="ctrl" id="kin-ctrl"></div><p id="kin-desc" style="margin-top:8px"></p></div>`;
-    const cl=reg.clinical; if(cl) h+=`<div class="clin"><span class="lab">Correlación clínica${cl.inheritance?` · ${esc(cl.inheritance)}`:""}</span><h5>${esc(cl.diseaseName)}</h5><p style="margin:0;color:var(--fg-dim);font-size:12.5px">${esc(cl.mechanism)}</p>
-      ${cl.symptoms?.length?`<span class="lab">Clínica</span><ul>${cl.symptoms.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>`:""}
-      ${cl.diagnosticBiomarkers?.length?`<span class="lab">Diagnóstico</span><ul>${cl.diagnosticBiomarkers.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>`:""}
-      ${cl.treatmentKeys?.length?`<span class="lab">Tratamiento</span><ul>${cl.treatmentKeys.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>`:""}</div>`;
+    const cl=reg.clinical;
+    if(cl) {
+      if(flashcardMode) {
+        h+=`<div class="clin">
+          <span class="lab">Correlación clínica${cl.inheritance?` · ${esc(cl.inheritance)}`:""}</span>
+          <div class="flashcard-card-block compact" data-fc-block="clin_disease" style="margin:4px 0 8px">
+            <div class="fc-card-label"><span>¿Qué patología clínica causa su alteración?</span><span style="font-size:10px;opacity:0.8">Toca para revelar </span></div>
+            <div class="fc-card-trigger">
+              <div class="fc-card-cover" style="font-size:11.5px;padding:4px 10px"><span class="fc-eye"><svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></span><span>Revelar patología asociada</span></div>
+              <h5 class="fc-card-secret" style="margin:0">${esc(cl.diseaseName)}</h5>
+            </div>
+          </div>
+          <p style="margin:0;color:var(--fg-dim);font-size:12.5px">${esc(cl.mechanism)}</p>
+          ${cl.symptoms?.length?`<span class="lab">Clínica</span><ul>${cl.symptoms.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>`:""}
+          ${cl.diagnosticBiomarkers?.length?`<span class="lab">Diagnóstico</span><ul>${cl.diagnosticBiomarkers.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>`:""}
+          ${cl.treatmentKeys?.length?`<span class="lab">Tratamiento</span><ul>${cl.treatmentKeys.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>`:""}
+        </div>`;
+      } else {
+        h+=`<div class="clin"><span class="lab">Correlación clínica${cl.inheritance?` · ${esc(cl.inheritance)}`:""}</span><h5>${esc(cl.diseaseName)}</h5><p style="margin:0;color:var(--fg-dim);font-size:12.5px">${esc(cl.mechanism)}</p>
+          ${cl.symptoms?.length?`<span class="lab">Clínica</span><ul>${cl.symptoms.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>`:""}
+          ${cl.diagnosticBiomarkers?.length?`<span class="lab">Diagnóstico</span><ul>${cl.diagnosticBiomarkers.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>`:""}
+          ${cl.treatmentKeys?.length?`<span class="lab">Tratamiento</span><ul>${cl.treatmentKeys.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>`:""}</div>`;
+      }
+    }
   }
   if(isGalactoseEntity(id)) h += renderGalactoseClinicalSuite(id);
   if(isLipidEntity(id)) h += renderLipidClinicalSuite(id);

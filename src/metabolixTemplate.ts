@@ -55,6 +55,38 @@ export const METABOLIX_TEMPLATE = `<div class="app">
         <div class="eyebrow">Especialización tisular · Mapa</div>
         <div class="tissue-chips" id="tissue-chips"></div>
       </div>
+      <div class="sec" id="sec-flashcard-study">
+        <div class="eyebrow" style="display:flex;align-items:center;justify-content:space-between">
+          <span>Flashcards</span>
+          <span class="fc-state-badge" id="rail-fc-state-badge">Desactivado</span>
+        </div>
+        <div class="rail-fc-container">
+          <div class="rail-fc-switch-card">
+            <div class="rfc-switch-label">
+              <span class="rfc-switch-icon"><svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/></svg></span>
+              <div class="rfc-switch-texts">
+                <b>Ocultar términos clave</b>
+                <small>Memoria activa para deducir enzimas y sustratos</small>
+              </div>
+            </div>
+            <button type="button" class="fc-ios-toggle" id="rail-fc-toggle" role="switch" aria-checked="false" title="Activar o desactivar ocultamiento de términos metabólicos clave">
+              <span class="fc-ios-thumb"></span>
+            </button>
+          </div>
+
+          <div class="rail-fc-pws" id="rail-fc-pws">
+            <button type="button" class="rfc-pw-btn active" data-fc-pw="all">Todas</button>
+            <button type="button" class="rfc-pw-btn" data-fc-pw="glycolysis" style="--pc:var(--pw-glycolysis)">Glucólisis</button>
+            <button type="button" class="rfc-pw-btn" data-fc-pw="krebs_cycle" style="--pc:var(--pw-krebs)">Krebs</button>
+            <button type="button" class="rfc-pw-btn" data-fc-pw="gluconeogenesis" style="--pc:var(--pw-gluconeogenesis)">Gluconeogénesis</button>
+            <button type="button" class="rfc-pw-btn" data-fc-pw="lipid_metabolism" style="--pc:var(--pw-lipid)">Lípidos</button>
+            <button type="button" class="rfc-pw-btn" data-fc-pw="glycogen_metabolism" style="--pc:var(--pw-glycogen)">Glucógeno</button>
+          </div>
+
+          <div class="rail-fc-card" id="rail-fc-card"></div>
+        </div>
+      </div>
+
       <div class="sec" id="sec-learning-stats">
         <div class="eyebrow" style="display:flex;align-items:center;justify-content:space-between">
           <span>Estadísticas de aprendizaje</span>
