@@ -129,16 +129,15 @@ Permite alternar entre cuatro condiciones fisiológicas cardinales con actualiza
 
 ---
 
-## 🎨 Diseño y Estética
+## 🎨 Diseño
 
-La aplicación sigue el paradigma **Dashboard Clínico Moderno (Limpio y Profesional)**:
-- **Atmósfera**: Software médico de alta gama y Apple Health.
-- **Paleta de Colores**:
-  - Fondo blanco puro y gris titanio (`--ink-0`, `--ink-1`, `--ink-2`).
-  - Azul marino profundo para tipografía de alto contraste (`--fg`).
-  - Acentos sutiles en **verde esmeralda** (`--accent`, `--ok`).
-  - Código cromático estandarizado para cada ruta metabólica (glucólisis en azul cian, gluconeogénesis en ámbar, ciclo de Krebs en índigo, mitocondria en violeta, lípidos en fucsia, etc.).
-- **Accesibilidad**: Soporte para Modo Claro y Modo Oscuro conmutables con un solo clic.
+Metabolix se lee como un **mapa de carreteras del metabolismo**:
+- **Carreteras**: cada ruta es una carretera con su color; la anchura indica el flujo y las rutas apagadas se dibujan como caminos punteados. La lanzadera malato-aspartato se dibuja como una vía férrea.
+- **Señales**: las enzimas son placas de carretera, y las reguladoras llevan ★.
+- **Cuadrícula de atlas**: columnas A–L y filas 1–9 en los bordes del mapa; la ficha y el buscador indican la casilla de cada enzima y metabolito.
+- **Paleta**: papel blanco frío, tinta casi negra y el azul de las señales de autovía (`--accent`). Los colores de las rutas (`--pw-*`) son información y no decoración.
+- **Tipografía**: Barlow y Barlow Semi Condensed, una familia inspirada en la señalización vial.
+- **Modo oscuro**: carreteras luminosas sobre fondo oscuro, conmutable con un clic.
 
 ---
 

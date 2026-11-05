@@ -5,7 +5,6 @@
 
 import React, { useState, useEffect } from "react";
 import {
-  Compass,
   ArrowRight,
   ArrowLeft,
   CheckCircle2,
@@ -17,7 +16,7 @@ import {
   Award,
   Zap,
   HelpCircle,
-  Sparkles,
+  Map as MapIcon,
   Play,
   RotateCcw,
 } from "lucide-react";
@@ -43,28 +42,28 @@ const GUIDE_STEPS: GuideStep[] = [
   {
     step: 0,
     viewId: "mapa",
-    kicker: "Bienvenida · Ciencias de la Salud",
-    title: "Paseo Interactivo por Metabolix",
-    icon: <Sparkles className="w-5 h-5 text-[var(--accent)]" />,
+    kicker: "Primeros pasos",
+    title: "Cómo funciona Metabolix",
+    icon: <MapIcon className="w-5 h-5 text-[var(--accent)]" />,
     content:
-      "Te damos la bienvenida al mapa dinámico de Bioquímica Humana y Metabolismo para Ciencias de la Salud. Este paseo interactivo te guiará por los flujos celulares en tiempo real, la regulación hormonal, la compartimentación tisular, el rendimiento energético y los retos de autoevaluación formativa.",
-    tips: "Puedes repetir este paseo en cualquier momento pulsando el botón '🧭 Paseo / Tutorial' en la barra superior.",
+      "Metabolix dibuja el metabolismo de una célula como un mapa de carreteras: cada ruta es una carretera, su anchura es el flujo y las enzimas reguladoras son las señales. En este recorrido verás cómo cambiar el estado fisiológico, comparar tejidos, calcular el ATP y ponerte a prueba con los retos.",
+    tips: "Puedes volver a esta guía cuando quieras con el botón «Guía» de la barra superior.",
   },
   {
     step: 1,
     viewId: "mapa",
     kicker: "Paso 1 · Exploración visual",
-    title: "El Mapa Celular Interactivo y Flujos Metabólicos",
+    title: "El mapa celular interactivo y flujos metabólicos",
     icon: <Layers className="w-5 h-5 text-[var(--pw-glycolysis)]" />,
     content:
       "Metabolix representa una célula eucariota humana en un lienzo interactivo en vivo. El grosor y la luminosidad de las líneas indican la tasa de flujo metabólico en tiempo real, y las partículas vectoriales muestran la dirección del sustrato. Las estrellas (★) identifican las enzimas marcapasos clave sometidas a control alostérico y covalente (como PFK-1, ACC1, CPT-1 o Citrato sintasa).",
-    tips: "Toca cualquier enzima o metabolito para ver su ficha. Puedes activar el 'Modo Flashcard (🎴)' en el panel para ocultar nombres y memorizarlos activamente antes de revelarlos.",
+    tips: "Toca cualquier enzima o metabolito para ver su ficha. Puedes activar el 'Modo Flashcard ()' en el panel para ocultar nombres y memorizarlos activamente antes de revelarlos.",
   },
   {
     step: 2,
     viewId: "mapa",
     kicker: "Paso 2 · Dinámica hormonal",
-    title: "Estados Fisiológicos y Reprogramación Celular",
+    title: "Estados fisiológicos y reprogramación celular",
     icon: <Flame className="w-5 h-5 text-[var(--pw-gluconeogenesis)]" />,
     content:
       "En el raíl lateral puedes alternar entre cuatro condiciones fisiológicas cardinales: estado posprandial (alta insulina y lipogénesis activa), ayuno temprano (glucagón elevado y gluconeogénesis hepática), ayuno prolongado o cetogénico (máxima lipólisis y exportación de cuerpos cetónicos) y ejercicio vigoroso (glucólisis anaerobia). Los medidores hormonales y de carga energética se adaptan instantáneamente a cada situación.",
@@ -74,7 +73,7 @@ const GUIDE_STEPS: GuideStep[] = [
     step: 3,
     viewId: "tejidos",
     kicker: "Paso 3 · Compartimentación tisular",
-    title: "Especialización Tisular y Rutas Universales",
+    title: "Especialización tisular y rutas universales",
     icon: <Activity className="w-5 h-5 text-[var(--pw-mito)]" />,
     content:
       "La pestaña 'Tejidos y rutas' permite discriminar entre las rutas metabólicas universales (glucólisis, ciclo de Krebs, cadena respiratoria y vía de las pentosas) y las especializaciones de cada órgano: la dotación enzimática completa del hepatocito (gluconeogénesis por G6Pasa, cetogénesis y ciclo de la urea), el eritrocito (dependiente al 100% de la vía anaerobia y pentosas fosfato para NADPH), o el músculo esquelético y miocardio de alta tasa oxidativa.",
@@ -84,7 +83,7 @@ const GUIDE_STEPS: GuideStep[] = [
     step: 4,
     viewId: "balances",
     kicker: "Paso 4 · Rendimiento bioenergético",
-    title: "Lanzaderas de NADH y Balance de ATP",
+    title: "Lanzaderas de NADH y balance de ATP",
     icon: <Zap className="w-5 h-5 text-[var(--accent)]" />,
     content:
       "La membrana mitocondrial interna es impermeable al NADH citosólico. En la pestaña 'Balances de ATP' puedes comparar cómo la lanzadera Malato-Aspartato (predominante en hígado, corazón y riñón) transfiere electrones al Complejo I rindiendo ~32 ATP netos por glucosa, mientras que la lanzadera Glicerol-3-Fosfato (típica de músculo rápido y cerebro) los entrega al Complejo III rindiendo ~30 ATP netos.",
@@ -104,7 +103,7 @@ const GUIDE_STEPS: GuideStep[] = [
     step: 6,
     viewId: "mapa",
     kicker: "Paso 6 · Genética y cataratas",
-    title: "Patología Molecular: Galactosemias y Galactitol",
+    title: "Patología molecular: Galactosemias y galactitol",
     icon: <HelpCircle className="w-5 h-5 text-[var(--pw-mono)]" />,
     content:
       "Al pulsar sobre la vía de la galactosa o la enzima GALT, se analizan las implicaciones del déficit enzimático congénito: la acumulación de galactosa-1-P lesiona órganos diana y desvía el sustrato hacia la aldosa reductasa, sintetizando galactitol. Al ser impermeable y quedar atrapado en el cristalino, el galactitol retiene agua por ósmosis y precipita cataratas precoces.",
@@ -113,12 +112,12 @@ const GUIDE_STEPS: GuideStep[] = [
   {
     step: 7,
     viewId: "reto",
-    kicker: "Paso 7 · Autoevaluación y Feedback",
-    title: "Modo Reto de Bioquímica General y Encuesta",
+    kicker: "Paso 7 · autoevaluación y feedback",
+    title: "Modo reto de bioquímica general y encuesta",
     icon: <Award className="w-5 h-5 text-[var(--ok)]" />,
     content:
       "Pon a prueba tu razonamiento metabólico resolviendo preguntas sobre consecuencias celulares ante fallos enzimáticos. Puedes realizar hasta 3 retos formativos iniciales; tras el 3.º, cumplimentarás una breve encuesta de satisfacción (escala Likert del 1 al 5) para continuar desbloqueando retos ilimitados y registrar tu progreso académico en Ciencias de la Salud.",
-    tips: "Al finalizar el reto, puedes pulsar en '⭐ Encuesta' en la barra superior para registrar tu evaluación y comentarios.",
+    tips: "Al finalizar el reto, puedes pulsar en 'Encuesta' en la barra superior para registrar tu evaluación y comentarios.",
   },
 ];
 
@@ -189,66 +188,60 @@ export const PlatformGuideAssistant: React.FC<PlatformGuideAssistantProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/60 animate-in fade-in duration-200"
       role="dialog"
       aria-modal="true"
       aria-labelledby="guide-modal-title"
     >
       <div
-        className="w-full max-w-2xl rounded-2xl border border-[var(--line)] bg-[var(--ink-1)] text-[var(--fg)] shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+        className="w-full max-w-2xl rounded-[4px] border border-[var(--line)] bg-[var(--ink-1)] text-[var(--fg)] shadow-[0_24px_60px_-12px_var(--shadow)] overflow-hidden flex flex-col max-h-[92vh]"
         style={{ fontFamily: "var(--f-body)" }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--line)] bg-[var(--ink-2)] flex-shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-[var(--accent)]/15 text-[var(--accent)] flex items-center justify-center font-bold">
-              <Compass className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-[3px] bg-[var(--accent)] text-white flex items-center justify-center">
+              <MapIcon className="w-5 h-5" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-[var(--accent)]/15 text-[var(--accent)] font-semibold">
-                  {currentStepIndex === 0 ? "Bienvenida" : "Paseo interactivo guiado"}
-                </span>
-                <span className="text-xs text-[var(--fg-faint)]">Bioquímica Humana</span>
-              </div>
               <h2
                 id="guide-modal-title"
-                className="text-lg font-bold leading-tight font-[var(--f-display)] text-[var(--fg)] mt-0.5"
+                className="text-[22px] font-bold leading-tight font-[family-name:var(--f-display)] text-[var(--fg)]"
               >
-                {currentStepIndex === 0 ? "Tutorial de Inicio en Metabolix" : "Paseo por la Aplicación"}
+                {currentStepIndex === 0 ? "Bienvenida a Metabolix" : "Guía de Metabolix"}
               </h2>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="flex bg-[var(--ink-3)] p-1 rounded-xl border border-[var(--line)] text-xs">
+            <div className="flex bg-[var(--ink-3)] p-1 rounded-[4px] border border-[var(--line)] text-xs">
               <button
                 type="button"
                 onClick={() => setMode("tour")}
-                className={`px-3 py-1 rounded-lg font-medium transition-all ${
+                className={`px-3 py-1 rounded-[4px] font-medium transition-all ${
                   mode === "tour"
-                    ? "bg-[var(--ink-1)] text-[var(--fg)] shadow-sm"
+                    ? "bg-[var(--ink-1)] text-[var(--fg)] shadow-none"
                     : "text-[var(--fg-dim)] hover:text-[var(--fg)]"
                 }`}
               >
-                Paseo Guiado
+                Recorrido
               </button>
               <button
                 type="button"
                 onClick={() => setMode("reference")}
-                className={`px-3 py-1 rounded-lg font-medium transition-all flex items-center gap-1 ${
+                className={`px-3 py-1 rounded-[4px] font-medium transition-all flex items-center gap-1 ${
                   mode === "reference"
-                    ? "bg-[var(--ink-1)] text-[var(--fg)] shadow-sm"
+                    ? "bg-[var(--ink-1)] text-[var(--fg)] shadow-none"
                     : "text-[var(--fg-dim)] hover:text-[var(--fg)]"
                 }`}
               >
                 <BookOpen className="w-3.5 h-3.5" />
-                Índice de Módulos
+                Índice
               </button>
             </div>
             <button
               onClick={handleClose}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--fg-faint)] hover:text-[var(--fg)] hover:bg-[var(--ink-3)] transition-colors ml-1"
+              className="w-8 h-8 rounded-[4px] flex items-center justify-center text-[var(--fg-faint)] hover:text-[var(--fg)] hover:bg-[var(--ink-3)] transition-colors ml-1"
               aria-label="Cerrar tutorial"
             >
               <X className="w-5 h-5" />
@@ -262,7 +255,7 @@ export const PlatformGuideAssistant: React.FC<PlatformGuideAssistantProps> = ({
             <>
               {/* Step indicator */}
               <div className="flex items-center justify-between gap-1 text-xs">
-                <span className="font-mono text-[var(--accent)] font-bold">
+                <span className="font-[family-name:var(--f-display)] text-[var(--accent)] font-bold">
                   {currentStep.step === 0 ? "Introducción" : `Paso ${currentStep.step} de ${GUIDE_STEPS.length - 1}`}
                 </span>
                 <div className="flex gap-1.5 flex-1 max-w-xs mx-4">
@@ -282,19 +275,19 @@ export const PlatformGuideAssistant: React.FC<PlatformGuideAssistantProps> = ({
                     />
                   ))}
                 </div>
-                <span className="text-[11px] font-mono text-[var(--fg-faint)]">
+                <span className="text-[11px] font-[family-name:var(--f-display)] text-[var(--fg-faint)]">
                   {Math.round(((currentStepIndex) / (GUIDE_STEPS.length - 1)) * 100)}%
                 </span>
               </div>
 
               {/* Step Card */}
-              <div className="p-5 rounded-2xl border border-[var(--line)] bg-[var(--ink-2)]/60 space-y-4">
+              <div className="p-5 rounded-[4px] border border-[var(--line)] bg-[var(--ink-2)]/60 space-y-4">
                 <div className="flex items-start gap-3.5">
-                  <div className="w-11 h-11 rounded-xl bg-[var(--ink-1)] border border-[var(--line)] flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <div className="w-11 h-11 rounded-[4px] bg-[var(--ink-1)] border border-[var(--line)] flex items-center justify-center flex-shrink-0 shadow-none">
                     {currentStep.icon}
                   </div>
                   <div>
-                    <span className="text-xs font-mono uppercase tracking-wider text-[var(--fg-faint)] font-semibold">
+                    <span className="text-xs font-[family-name:var(--f-display)] text-[var(--fg-faint)] font-semibold">
                       {currentStep.kicker}
                     </span>
                     <h3 className="text-lg font-bold text-[var(--fg)] font-[var(--f-display)] mt-0.5">
@@ -307,10 +300,10 @@ export const PlatformGuideAssistant: React.FC<PlatformGuideAssistantProps> = ({
                   {currentStep.content}
                 </p>
 
-                <div className="p-3.5 rounded-xl bg-[var(--ink-1)] border border-[var(--line)] text-xs text-[var(--fg-dim)] flex items-start gap-2.5">
-                  <span className="text-base flex-shrink-0">💡</span>
+                <div className="p-3.5 rounded-[4px] bg-[var(--ink-1)] border border-[var(--line)] text-xs text-[var(--fg-dim)] flex items-start gap-2.5">
+                  <span className="text-base flex-shrink-0"></span>
                   <span className="leading-relaxed">
-                    <b>Consejo práctico:</b> {currentStep.tips}
+                    {currentStep.tips}
                   </span>
                 </div>
               </div>
@@ -318,8 +311,8 @@ export const PlatformGuideAssistant: React.FC<PlatformGuideAssistantProps> = ({
           ) : (
             /* Reference Mode */
             <div className="space-y-3">
-              <h3 className="text-xs font-mono uppercase tracking-wider text-[var(--fg-faint)]">
-                Todos los Módulos de la Plataforma
+              <h3 className="text-xs font-[family-name:var(--f-display)] text-[var(--fg-faint)]">
+                Todos los módulos de la plataforma
               </h3>
               {GUIDE_STEPS.map((s, idx) => (
                 <div
@@ -329,14 +322,14 @@ export const PlatformGuideAssistant: React.FC<PlatformGuideAssistantProps> = ({
                     setMode("tour");
                     if (onNavigateToView && s.viewId) onNavigateToView(s.viewId);
                   }}
-                  className="p-3.5 rounded-xl border border-[var(--line)] bg-[var(--ink-2)]/60 hover:border-[var(--accent)] transition-all cursor-pointer flex items-center justify-between gap-3 group"
+                  className="p-3.5 rounded-[4px] border border-[var(--line)] bg-[var(--ink-2)]/60 hover:border-[var(--accent)] transition-all cursor-pointer flex items-center justify-between gap-3 group"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-[var(--ink-1)] border border-[var(--line)] flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 rounded-[4px] bg-[var(--ink-1)] border border-[var(--line)] flex items-center justify-center flex-shrink-0">
                       {s.icon}
                     </div>
                     <div>
-                      <div className="text-[11px] font-mono text-[var(--fg-faint)]">{s.kicker}</div>
+                      <div className="text-[11px] font-[family-name:var(--f-display)] text-[var(--fg-faint)]">{s.kicker}</div>
                       <div className="text-sm font-semibold text-[var(--fg)] group-hover:text-[var(--accent)] transition-colors">
                         {s.title}
                       </div>
@@ -358,7 +351,7 @@ export const PlatformGuideAssistant: React.FC<PlatformGuideAssistantProps> = ({
               onChange={(e) => setDontShowAgain(e.target.checked)}
               className="rounded border-[var(--line)] text-[var(--accent)] focus:ring-0 cursor-pointer"
             />
-            <span>No volver a mostrar automáticamente al entrar</span>
+            <span>No mostrar al entrar</span>
           </label>
 
           {mode === "tour" ? (
@@ -367,7 +360,7 @@ export const PlatformGuideAssistant: React.FC<PlatformGuideAssistantProps> = ({
                 <button
                   type="button"
                   onClick={handlePrev}
-                  className="px-3.5 py-2 rounded-xl text-xs font-medium border border-[var(--line)] text-[var(--fg-dim)] hover:bg-[var(--ink-1)] transition-colors flex items-center gap-1.5"
+                  className="px-3.5 py-2 rounded-[4px] text-xs font-medium border border-[var(--line)] text-[var(--fg-dim)] hover:bg-[var(--ink-1)] transition-colors flex items-center gap-1.5"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   Anterior
@@ -378,24 +371,24 @@ export const PlatformGuideAssistant: React.FC<PlatformGuideAssistantProps> = ({
                   onClick={handleClose}
                   className="px-3 py-2 text-xs text-[var(--fg-faint)] hover:text-[var(--fg)] transition-colors"
                 >
-                  Saltar tutorial
+                  Saltar guía
                 </button>
               )}
 
               <button
                 type="button"
                 onClick={handleNext}
-                className="px-4 py-2 rounded-xl text-xs font-semibold bg-[var(--fg)] text-[var(--ink-0)] hover:opacity-90 transition-opacity flex items-center gap-1.5 shadow-sm cursor-pointer"
+                className="px-4 py-2 rounded-[4px] text-xs font-semibold bg-[var(--fg)] text-[var(--ink-0)] hover:opacity-90 transition-opacity flex items-center gap-1.5 shadow-none cursor-pointer"
               >
                 {currentStepIndex === 0 ? (
                   <>
                     <Play className="w-3.5 h-3.5 fill-current" />
-                    Iniciar paseo guiado
+                    Empezar recorrido
                   </>
                 ) : currentStepIndex === GUIDE_STEPS.length - 1 ? (
                   <>
                     <CheckCircle2 className="w-3.5 h-3.5" />
-                    Finalizar y Explorar
+                    Finalizar y explorar
                   </>
                 ) : (
                   <>
@@ -414,7 +407,7 @@ export const PlatformGuideAssistant: React.FC<PlatformGuideAssistantProps> = ({
                   setMode("tour");
                   if (onNavigateToView) onNavigateToView("mapa");
                 }}
-                className="px-3.5 py-2 rounded-xl text-xs font-medium border border-[var(--line)] text-[var(--fg-dim)] hover:bg-[var(--ink-1)] flex items-center gap-1.5 transition-colors"
+                className="px-3.5 py-2 rounded-[4px] text-xs font-medium border border-[var(--line)] text-[var(--fg-dim)] hover:bg-[var(--ink-1)] flex items-center gap-1.5 transition-colors"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 Reiniciar paseo
@@ -422,7 +415,7 @@ export const PlatformGuideAssistant: React.FC<PlatformGuideAssistantProps> = ({
               <button
                 type="button"
                 onClick={handleClose}
-                className="px-5 py-2 rounded-xl text-xs font-semibold bg-[var(--fg)] text-[var(--ink-0)] hover:opacity-90 transition-opacity"
+                className="px-5 py-2 rounded-[4px] text-xs font-semibold bg-[var(--fg)] text-[var(--ink-0)] hover:opacity-90 transition-opacity"
               >
                 Cerrar
               </button>

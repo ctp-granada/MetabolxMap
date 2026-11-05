@@ -2,7 +2,7 @@ export const METABOLIX_TEMPLATE = `<div class="app">
   <header class="top">
     <div class="brand">
       <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="13" fill="none" stroke="var(--pw-mito)" stroke-width="2"/><circle cx="15" cy="15" r="6.5" fill="none" stroke="var(--pw-krebs)" stroke-width="2" stroke-dasharray="3 2.4"/><circle cx="15" cy="2" r="2.6" fill="var(--pw-glycolysis)"/><circle cx="26" cy="21" r="2.2" fill="var(--pw-lipid)"/><circle cx="5" cy="22" r="2" fill="var(--pw-pentose)"/></svg>
-      <b>Metabolix</b><span>Metabolismo humano, en vivo</span>
+      <b>Metabolix</b><span>Mapa de carreteras del metabolismo</span>
     </div>
     <nav class="tabs" role="tablist" aria-label="Vistas">
       <button role="tab" data-view="mapa" aria-selected="true">Mapa<span class="lx"> celular</span></button>
@@ -11,30 +11,24 @@ export const METABOLIX_TEMPLATE = `<div class="app">
       <button role="tab" data-view="balances" aria-selected="false">Balances<span class="lx"> de ATP</span></button>
       <button role="tab" data-view="reto" aria-selected="false">Reto</button>
     </nav>
-    <div class="header-actions" style="display:flex;align-items:center;gap:6px">
-      <button type="button" class="hdr-btn fc-hdr-btn" id="btn-hdr-flashcard" title="Modo Estudio Flashcard: Oculta nombres de enzimas y metabolitos para memorizar y autoevaluarte">
-        <span style="font-size:13px">🎴</span>
-        <span>Flashcards</span>
-        <span class="fc-state-pill" id="hdr-fc-state">OFF</span>
+    <div class="header-actions">
+      <button type="button" class="hdr-btn fc-hdr-btn" id="btn-hdr-flashcard" title="Oculta los nombres de enzimas y metabolitos para repasar de memoria">
+        <svg class="ic" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/></svg><span>Flashcards</span><span class="fc-state-pill" id="hdr-fc-state">OFF</span>
       </button>
-      <button type="button" class="hdr-btn" id="btn-guide" title="Paseo interactivo y tutorial guiado por Metabolix" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600;background:var(--ink-2);border:1px solid var(--line);color:var(--fg);cursor:pointer">
-        <span style="font-size:13px">🧭</span>
-        <span>Paseo<span class="lx"> / Tutorial</span></span>
+      <button type="button" class="hdr-btn" id="btn-guide" title="Recorrido guiado por Metabolix">
+        <svg class="ic" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3 3 5.5v15.5l6-2.5 6 2.5 6-2.5V3l-6 2.5L9 3Z"/><path d="M9 3v15.5M15 5.5V21"/></svg><span>Guía</span>
       </button>
-      <button type="button" class="hdr-btn" id="btn-survey" title="Encuesta de satisfacción (Escala Likert)" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600;background:var(--ink-2);border:1px solid var(--line);color:var(--fg);cursor:pointer">
-        <span style="font-size:13px">⭐</span>
-        <span>Encuesta<span class="lx"> Likert</span></span>
+      <button type="button" class="hdr-btn" id="btn-survey" title="Encuesta de satisfacción">
+        <svg class="ic" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h6"/></svg><span>Encuesta</span>
       </button>
-      <button type="button" class="hdr-btn" id="btn-student" title="Acceso y registro del alumno" style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:12px;font-weight:600;background:var(--ink-2);border:1px solid var(--line);color:var(--fg);cursor:pointer">
-        <span style="font-size:13px">👤</span>
-        <span id="hdr-student-name">Alumno</span>
-        <span id="hdr-visits-badge" style="background:var(--ink-3);padding:1px 6px;border-radius:999px;font-family:var(--f-mono);font-size:10.5px;color:var(--accent);font-weight:700">128</span>
+      <button type="button" class="hdr-btn hdr-student" id="btn-student" title="Identificación del estudiante">
+        <svg class="ic" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span id="hdr-student-name">Acceso alumno</span><span id="hdr-visits-badge" class="hdr-visits">0</span>
       </button>
     </div>
     <button class="modebtn" id="mode" aria-label="Cambiar a modo oscuro"></button>
     <div class="search">
       <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M11 11l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-      <input id="q" type="search" placeholder="Buscar enzima, metabolito o ruta   /" autocomplete="off" aria-label="Buscar">
+      <input id="q" type="search" placeholder="Buscar enzima, metabolito o ruta" autocomplete="off" aria-label="Buscar">
       <div class="results" id="results" hidden></div>
     </div>
   </header>
@@ -63,13 +57,13 @@ export const METABOLIX_TEMPLATE = `<div class="app">
       </div>
       <div class="sec" id="sec-flashcard-study">
         <div class="eyebrow" style="display:flex;align-items:center;justify-content:space-between">
-          <span>Estudio Flashcards · Ocultamiento</span>
-          <span class="fc-state-badge" id="rail-fc-state-badge">DESACTIVADO</span>
+          <span>Flashcards</span>
+          <span class="fc-state-badge" id="rail-fc-state-badge">Desactivado</span>
         </div>
         <div class="rail-fc-container">
           <div class="rail-fc-switch-card">
             <div class="rfc-switch-label">
-              <span class="rfc-switch-icon">🎴</span>
+              <span class="rfc-switch-icon"><svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/></svg></span>
               <div class="rfc-switch-texts">
                 <b>Ocultar términos clave</b>
                 <small>Memoria activa para deducir enzimas y sustratos</small>
@@ -95,31 +89,33 @@ export const METABOLIX_TEMPLATE = `<div class="app">
 
       <div class="sec" id="sec-learning-stats">
         <div class="eyebrow" style="display:flex;align-items:center;justify-content:space-between">
-          <span>Estadísticas de Aprendizaje</span>
+          <span>Estadísticas de aprendizaje</span>
           <span class="stats-badge-pill" id="stats-summary-pill">0 repasos</span>
         </div>
         <div class="learning-stats-widget" id="learning-stats-widget">
           <button type="button" class="rail-flashcard-cta" id="btn-rail-flashcard" title="Comenzar sesión de estudio con tarjetas Flashcards interactivas">
             <span class="rfc-cta-left">
-              <span class="rfc-icon">🎴</span>
+              <span class="rfc-icon"><svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/></svg></span>
               <span class="rfc-title">Estudiar con Flashcards</span>
             </span>
             <span class="rfc-badge" id="rail-fc-badge">Abrir tarjeta →</span>
           </button>
           <div class="stats-tabs-pill">
-            <button type="button" class="stats-tab active" data-stat-tab="practiced" id="tab-stat-practiced">📊 Más practicadas</button>
-            <button type="button" class="stats-tab" data-stat-tab="accuracy" id="tab-stat-accuracy">🎯 % Aciertos</button>
+            <button type="button" class="stats-tab active" data-stat-tab="practiced" id="tab-stat-practiced">Más practicadas</button>
+            <button type="button" class="stats-tab" data-stat-tab="accuracy" id="tab-stat-accuracy">% Aciertos</button>
           </div>
           <div class="stats-bars-list" id="stats-bars-list"></div>
         </div>
       </div>
       <div class="sec">
-        <div class="eyebrow">Cómo leer el mapa</div>
+        <div class="eyebrow">Leyenda</div>
         <div class="legend">
-          <div><svg width="44" height="12"><line x1="2" y1="6" x2="42" y2="6" stroke="var(--pw-glycolysis)" stroke-width="6" stroke-linecap="round"/></svg>Grosor y brillo = flujo de la ruta</div>
-          <div><svg width="44" height="12"><line x1="2" y1="6" x2="42" y2="6" stroke="var(--pw-glycolysis)" stroke-width="1.5" stroke-dasharray="3 5" opacity=".5"/></svg>Línea tenue = ruta casi apagada</div>
-          <div><svg width="44" height="12"><circle cx="12" cy="6" r="3" fill="var(--pw-krebs)"/><circle cx="26" cy="6" r="3" fill="var(--pw-krebs)" opacity=".6"/></svg>Partículas = sentido del flujo neto</div>
-          <div><svg width="44" height="18"><rect x="2" y="3" width="38" height="14" rx="7" fill="var(--pw-glycolysis)"/><text x="8" y="14" font-size="10" fill="var(--pill-ink)">★</text></svg>★ enzima reguladora clave</div>
+          <div><svg width="44" height="14"><line x1="3" y1="7" x2="41" y2="7" stroke="var(--road-casing)" stroke-width="9" stroke-linecap="round"/><line x1="3" y1="7" x2="41" y2="7" stroke="var(--pw-glycolysis)" stroke-width="6" stroke-linecap="round"/></svg>Carretera ancha: ruta con mucho flujo</div>
+          <div><svg width="44" height="14"><line x1="3" y1="7" x2="41" y2="7" stroke="var(--road-casing)" stroke-width="4.5" stroke-linecap="round"/><line x1="3" y1="7" x2="41" y2="7" stroke="var(--pw-glycolysis)" stroke-width="2" stroke-linecap="round"/></svg>Carretera estrecha: poco flujo</div>
+          <div><svg width="44" height="14"><line x1="3" y1="7" x2="41" y2="7" stroke="var(--pw-glycolysis)" stroke-width="1.4" stroke-dasharray="3 5"/></svg>Camino punteado: ruta casi apagada</div>
+          <div><svg width="44" height="14"><circle cx="13" cy="7" r="3" fill="var(--pw-krebs)"/><circle cx="27" cy="7" r="3" fill="var(--pw-krebs)" opacity=".6"/></svg>Puntos: sentido de la circulación</div>
+          <div><svg width="44" height="20"><rect x="2" y="2" width="40" height="16" rx="3" fill="var(--pw-glycolysis)"/><rect x="4" y="4" width="36" height="12" rx="1.6" fill="none" stroke="var(--pill-ink)" stroke-width="1"/><text x="9" y="14" font-size="10" fill="var(--pill-ink)">★</text></svg>Señal con ★: enzima reguladora</div>
+          <div><svg width="44" height="20"><rect x="8" y="2" width="28" height="16" rx="3" fill="none" stroke="var(--accent)"/><text x="22" y="14.5" font-size="11" font-weight="700" text-anchor="middle" fill="var(--accent)" font-family="Barlow Semi Condensed">D5</text></svg>Casilla: búscala en los bordes del mapa</div>
         </div>
       </div>
     </aside>
@@ -134,7 +130,7 @@ export const METABOLIX_TEMPLATE = `<div class="app">
           <button id="z-fit" aria-label="Encuadrar todo"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4" fill="none" stroke="currentColor" stroke-width="1.7"/></svg></button>
           <button id="z-play" aria-label="Pausar animación"><svg width="14" height="14" viewBox="0 0 14 14"><rect x="2" y="2" width="3.4" height="10" rx="1" fill="currentColor"/><rect x="8.6" y="2" width="3.4" height="10" rx="1" fill="currentColor"/></svg></button>
         </div>
-        <div class="hint">Arrastra para mover · rueda o pellizco para zoom · toca una flecha o un nodo</div>
+        <div class="hint">Arrastra para moverte, usa la rueda o pellizca para acercar, y toca una carretera o un cruce para ver su ficha</div>
         <div class="quiz" id="quiz" hidden></div>
       </section>
       <section class="view" id="view-tejidos" hidden></section>
@@ -149,7 +145,7 @@ export const METABOLIX_TEMPLATE = `<div class="app">
       <div class="panel-head">
         <span class="eyebrow" id="panel-kind">Detalle</span>
         <button type="button" class="fc-toggle-btn" id="panel-flashcard-btn" title="Modo Estudio Flashcard: oculta nombres de enzimas y metabolitos para memorizar y autoevaluarte">
-          <span class="fc-ico">🎴</span>
+          <span class="fc-ico"><svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/></svg></span>
           <span class="fc-txt">Flashcard</span>
         </button>
         <button class="close" id="panel-close" aria-label="Cerrar">✕</button>

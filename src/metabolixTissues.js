@@ -11,27 +11,27 @@
 export const UNIVERSAL_PATHWAYS = [
   {
     id: "glycolysis",
-    name: "Glucólisis Citosólica (Vía de Embden-Meyerhof)",
+    name: "Glucólisis citosólica (vía de Embden-Meyerhof)",
     badge: "Ubicua al 100% en todas las células humanas",
     badgeType: "universal",
     organelles: "Citosol",
     keyEnzymes: "Hexoquinasa (HK I-III / IV), PFK-1, Piruvato Quinasa (PK)",
     whyUniversal: "Es la vía catabólica ancestral por excelencia. Todas las células del organismo (incluso los eritrocitos maduros que carecen de núcleo y mitocondrias) poseen la maquinaria enzimática glucolítica completa en el citosol. Permite generar ATP de forma rápida tanto en condiciones aerobias como anaerobias mediante fosforilación a nivel de sustrato, además de proveer intermediarios clave (G-6-P, DHAP, 3-PG, PEP, piruvato) para biosíntesis.",
-    tissueSpecificNuance: "La especialización reside en las ISOENZIMAS y su regulación: el hígado y las células β pancreáticas expresan Glucoquinasa (HK IV, Km alta ≈ 10 mM, no inhibida por G-6-P, sensor de glucemia), mientras que el músculo y cerebro expresan HK I-III (Km baja < 0.1 mM, saturada a glucemia basal, inhibida alostéricamente por G-6-P)."
+    tissueSpecificNuance: "La especialización reside en las isoenzimas y su regulación: el hígado y las células β pancreáticas expresan Glucoquinasa (HK IV, Km alta ≈ 10 mM, no inhibida por G-6-P, sensor de glucemia), mientras que el músculo y cerebro expresan HK I-III (Km baja < 0.1 mM, saturada a glucemia basal, inhibida alostéricamente por G-6-P)."
   },
   {
     id: "krebs_etc",
-    name: "Ciclo de Krebs & Cadena Respiratoria / Fosforilación Oxidativa",
+    name: "Ciclo de Krebs & cadena respiratoria / fosforilación oxidativa",
     badge: "Universal en todas las células con mitocondrias",
     badgeType: "universal",
     organelles: "Matriz y Membrana Mitocondrial Interna",
     keyEnzymes: "Citrato Sintasa, Isocitrato DH (IDH), α-Cetoglutarato DH, Complejos I–IV, ATP Sintasa",
     whyUniversal: "Constituye el nudo metabólico central de convergencia para la oxidación completa de carbohidratos, lípidos y esqueletos carbonados de aminoácidos a CO₂ y H₂O. Alimenta la fuerza protón-motriz y produce la inmensa mayoría del ATP corporal (~90% en reposo). Se encuentra en toda célula humana nucleada que posea mitocondrias.",
-    tissueSpecificNuance: "La ÚNICA excepción celular relevante en el cuerpo humano es el ERITROCITO maduro, que pierde sus mitocondrias durante la diferenciación eritroide para maximizar el transporte de O₂ sin consumirlo, dependiendo 100% de la glucólisis anaerobia."
+    tissueSpecificNuance: "La única excepción celular relevante en el cuerpo humano es el eritrocito maduro, que pierde sus mitocondrias durante la diferenciación eritroide para maximizar el transporte de O₂ sin consumirlo, dependiendo 100% de la glucólisis anaerobia."
   },
   {
     id: "pentose_phosphate",
-    name: "Vía de las Pentosas Fosfato (Fase Oxidativa y No Oxidativa)",
+    name: "Vía de las pentosas fosfato (fase oxidativa y no oxidativa)",
     badge: "Universal en prácticamente todos los tejidos",
     badgeType: "universal",
     organelles: "Citosol",
@@ -41,13 +41,13 @@ export const UNIVERSAL_PATHWAYS = [
   },
   {
     id: "protein_turnover",
-    name: "Recambio Proteico Basal & Transaminaciones Citosólicas/Mitocondriales",
+    name: "Recambio proteico basal & transaminaciones Citosólicas/Mitocondriales",
     badge: "Universal en todas las células nucleadas",
     badgeType: "universal",
     organelles: "Citosol, Ribosomas y Matriz Mitocondrial",
     keyEnzymes: "Aminotransferasas (ALT, AST), Complejo Proteasoma-Ubiquitina",
     whyUniversal: "Toda célula viva mantiene un recambio continuo de sus proteínas estructurales, enzimáticas y reguladoras. Las transaminasas (dependientes de fosfato de piridoxal / vit. B6) canalizan reversiblemente los grupos amino de los 20 aminoácidos hacia el glutamato y oxalacetato/piruvato, permitiendo la interconversión y el equilibrio de aminoácidos no esenciales.",
-    tissueSpecificNuance: "Aunque las transaminaciones son universales, el DESTINO FINAL del nitrógeno sobrante (amonio NH₄⁺) es estrictamente tisular: solo el HÍGADO posee el ciclo completo de la urea para eliminarlo de forma inocua; los tejidos periféricos deben exportarlo como glutamina o alanina."
+    tissueSpecificNuance: "Aunque las transaminaciones son universales, el destino final del nitrógeno sobrante (amonio NH₄⁺) es estrictamente tisular: solo el hígado posee el ciclo completo de la urea para eliminarlo de forma inocua; los tejidos periféricos deben exportarlo como glutamina o alanina."
   }
 ];
 
@@ -55,8 +55,8 @@ export const TISSUES_DATA = {
   liver: {
     id: "liver",
     name: "Hígado (Hepatocito)",
-    icon: "🫀",
-    title: "El Centro de Mando Metabólico del Organismo",
+    icon: "Hí",
+    title: "El centro de mando metabólico del organismo",
     subtitle: "Flexibilidad metabólica total, mantenimiento de la glucemia y detoxificación",
     fuelFed: "Glucosa, Fructosa, Galactosa, Aminoácidos de la dieta",
     fuelFasting: "Ácidos grasos libres (β-oxidación), Lactato, Glicerol, Alanina",
@@ -66,7 +66,7 @@ export const TISSUES_DATA = {
       {
         pathway: "Gluconeogénesis completa a sangre",
         status: "exclusive",
-        text: "Expresa GLUCOSA-6-FOSFATASA (G6Pasa). Es el único órgano junto con la corteza renal capaz de desfosforilar la G-6-P para liberar glucosa libre a la circulación sanguínea a través de GLUT2 y evitar la hipoglucemia."
+        text: "Expresa glucosa-6-fosfatasa (G6Pasa). Es el único órgano junto con la corteza renal capaz de desfosforilar la G-6-P para liberar glucosa libre a la circulación sanguínea a través de GLUT2 y evitar la hipoglucemia."
       },
       {
         pathway: "Cetogénesis (Síntesis de cuerpos cetónicos)",
@@ -93,7 +93,7 @@ export const TISSUES_DATA = {
       {
         pathway: "Cetólisis (Consumo de cuerpos cetónicos)",
         status: "absent",
-        reason: "CARENCIA DE TIOFORASA (β-cetoacil-CoA transferasa / SCOT). El hepatocito fabrica cuerpos cetónicos para los demás tejidos, pero NO puede consumirlos. Esto previene un ciclo fútil de síntesis y degradación simultánea en la matriz mitocondrial."
+        reason: "Carencia de tioforasa (β-cetoacil-CoA transferasa / SCOT). El hepatocito fabrica cuerpos cetónicos para los demás tejidos, pero no puede consumirlos. Esto previene un ciclo fútil de síntesis y degradación simultánea en la matriz mitocondrial."
       }
     ],
     examTip: "En exámenes de Bioquímica suele preguntarse: ¿Por qué el hígado no puede usar los cuerpos cetónicos que él mismo sintetiza? Respuesta: Por ausencia de la enzima tioforasa (SCOT)."
@@ -102,8 +102,8 @@ export const TISSUES_DATA = {
   muscle: {
     id: "muscle",
     name: "Músculo Esquelético (Miocito)",
-    icon: "💪",
-    title: "Gran Consumidor y Generador de Trabajo Mecánico",
+    icon: "Mú",
+    title: "Gran consumidor y generador de trabajo mecánico",
     subtitle: "Almacén de glucógeno para autoconsumo, glucólisis anaerobia rápida y oxidación aeróbica",
     fuelFed: "Glucosa (vía transportador GLUT4 sensible a insulina)",
     fuelFasting: "Ácidos grasos libres (en reposo), Cuerpos cetónicos",
@@ -135,7 +135,7 @@ export const TISSUES_DATA = {
       {
         pathway: "Gluconeogénesis y liberación de glucosa libre a sangre",
         status: "absent",
-        reason: "CARENCIA DE GLUCOSA-6-FOSFATASA. El músculo no expresa G6Pasa; la glucosa fosforilada queda atrapada para su propia glucólisis. El músculo jamás exporta glucosa a la sangre para aliviar la hipoglucemia."
+        reason: "Carencia de glucosa-6-fosfatasa. El músculo no expresa G6Pasa; la glucosa fosforilada queda atrapada para su propia glucólisis. El músculo jamás exporta glucosa a la sangre para aliviar la hipoglucemia."
       },
       {
         pathway: "Ciclo de la Urea",
@@ -153,9 +153,9 @@ export const TISSUES_DATA = {
 
   brain: {
     id: "brain",
-    name: "Cerebro y Sistema Nervioso Central",
-    icon: "🧠",
-    title: "Consumo Continuo de Alta Prioridad Vital",
+    name: "Cerebro y sistema nervioso central",
+    icon: "Ce",
+    title: "Consumo continuo de alta prioridad vital",
     subtitle: "Dependencia estricta de glucosa en condiciones normales y adaptación a cuerpos cetónicos",
     fuelFed: "D-Glucosa exclusivamente (≈ 120 g/día, 20% del O₂ corporal en reposo)",
     fuelFasting: "D-Glucosa; en ayuno prolongado (> 3 días) cubre hasta el 60–70% de su energía con Cuerpos Cetónicos",
@@ -182,7 +182,7 @@ export const TISSUES_DATA = {
       {
         pathway: "β-Oxidación de Ácidos Grasos de cadena larga",
         status: "absent",
-        reason: "Los ácidos grasos unidos a albúmina no cruzan eficientemente la barrera hematoencefálica. Además, la β-oxidación en neuronas requiere mayores niveles de O₂ y genera un alto estrés oxidativo (ROS) y daño celular letal. El cerebro NO quema ácidos grasos."
+        reason: "Los ácidos grasos unidos a albúmina no cruzan eficientemente la barrera hematoencefálica. Además, la β-oxidación en neuronas requiere mayores niveles de O₂ y genera un alto estrés oxidativo (ROS) y daño celular letal. El cerebro no quema ácidos grasos."
       },
       {
         pathway: "Gluconeogénesis",
@@ -190,14 +190,14 @@ export const TISSUES_DATA = {
         reason: "No expresa PEPCK ni G6Pasa; es enteramente dependiente del aporte exógeno de glucosa hepática o cuerpos cetónicos."
       }
     ],
-    examTip: "El cerebro NUNCA utiliza ácidos grasos como combustible debido a la BHE y al riesgo de estrés oxidativo por ROS; en ayuno prolongado su único combustible alternativo son los cuerpos cetónicos."
+    examTip: "El cerebro nunca utiliza ácidos grasos como combustible debido a la BHE y al riesgo de estrés oxidativo por ROS; en ayuno prolongado su único combustible alternativo son los cuerpos cetónicos."
   },
 
   adipose: {
     id: "adipose",
-    name: "Tejido Adiposo Blanco (Adipocito)",
-    icon: "🧈",
-    title: "El Mayor Depósito Energético de Larga Duración",
+    name: "Tejido adiposo blanco (adipocito)",
+    icon: "Ad",
+    title: "El mayor depósito energético de larga duración",
     subtitle: "Esterificación de triacilgliceroles postprandial y lipólisis endocrina en ayuno",
     fuelFed: "Glucosa (vía GLUT4 sensible a insulina), Ácidos grasos de quilomicrones y VLDL (vía LPL)",
     fuelFasting: "Ácidos grasos libres (autoconsumo basal moderado)",
@@ -219,7 +219,7 @@ export const TISSUES_DATA = {
       {
         pathway: "Fosforilación de glicerol libre (Glicerol Quinasa)",
         status: "absent",
-        reason: "CARENCIA DE GLICEROL QUINASA. El adipocito carece de esta enzima; por lo tanto, no puede reciclar el glicerol que libera durante la lipólisis. Para formar el esqueleto de Glicerol-3-P necesario para sintetizar TAG, depende OBLIGATORIAMENTE de la glucólisis (reducción de DHAP citosólica por GPD1)."
+        reason: "Carencia de glicerol quinasa. El adipocito carece de esta enzima; por lo tanto, no puede reciclar el glicerol que libera durante la lipólisis. Para formar el esqueleto de Glicerol-3-P necesario para sintetizar TAG, depende obligatoriamente de la glucólisis (reducción de DHAP citosólica por GPD1)."
       },
       {
         pathway: "Gluconeogénesis y Cetogénesis",
@@ -233,8 +233,8 @@ export const TISSUES_DATA = {
   rbc: {
     id: "rbc",
     name: "Eritrocito (Glóbulo Rojo)",
-    icon: "🩸",
-    title: "Célula Anucleada Sin Mitocondrias",
+    icon: "Er",
+    title: "Célula anucleada sin mitocondrias",
     subtitle: "100% de dependencia glucolítica anaerobia y defensa antioxidante estricta",
     fuelFed: "D-Glucosa exclusivamente",
     fuelFasting: "D-Glucosa exclusivamente",
@@ -254,14 +254,14 @@ export const TISSUES_DATA = {
       {
         pathway: "Vía de las Pentosas Fosfato como defensa vital única",
         status: "exclusive",
-        text: "La G6PDH eritrocitaria es la ÚNICA fuente de NADPH. Sin él, la glutatión reductasa no puede mantener reducido el glutatión (GSH) para desintoxicar peróxidos mediante glutatión peroxidasa, provocando hemólisis aguda en favismo."
+        text: "La G6PDH eritrocitaria es la única fuente de NADPH. Sin él, la glutatión reductasa no puede mantener reducido el glutatión (GSH) para desintoxicar peróxidos mediante glutatión peroxidasa, provocando hemólisis aguda en favismo."
       }
     ],
     absentOrSuppressed: [
       {
         pathway: "Ciclo de Krebs, Cadena de e⁻ y β-Oxidación",
         status: "absent",
-        reason: "CARENCIA TOTAL DE MITOCONDRIAS. El eritrocito las expulsa en su maduración reticulocitaria. No puede consumir oxígeno ni oxidar ácidos grasos."
+        reason: "Carencia total de mitocondrias. El eritrocito las expulsa en su maduración reticulocitaria. No puede consumir oxígeno ni oxidar ácidos grasos."
       },
       {
         pathway: "Gluconeogénesis y Síntesis de Glucógeno",
@@ -269,14 +269,14 @@ export const TISSUES_DATA = {
         reason: "Célula puramente consumidora catabólica terminal; carece de núcleo y ribosomas para síntesis proteica de novo."
       }
     ],
-    examTip: "El glóbulo rojo transporta oxígeno pero NO consume ni una sola molécula de oxígeno para su propio metabolismo: carece de mitocondrias y vive exclusivamente de glucólisis anaerobia a lactato."
+    examTip: "El glóbulo rojo transporta oxígeno pero no consume ni una sola molécula de oxígeno para su propio metabolismo: carece de mitocondrias y vive exclusivamente de glucólisis anaerobia a lactato."
   },
 
   heart: {
     id: "heart",
     name: "Miocardio (Músculo Cardíaco)",
-    icon: "❤️",
-    title: "La Bomba Aeróbica Perpetua e Incansable",
+    icon: "Co",
+    title: "La bomba aeróbica perpetua e incansable",
     subtitle: "Máxima densidad mitocondrial, avidez por ácidos grasos y reutilización de lactato",
     fuelFed: "Ácidos grasos libres (60–70%), Lactato circulante (15–20%), Glucosa (15–20%)",
     fuelFasting: "Ácidos grasos libres (80%), Cuerpos cetónicos (15–20%)",
@@ -317,8 +317,8 @@ export const TISSUES_DATA = {
   kidney: {
     id: "kidney",
     name: "Corteza Renal (Riñón)",
-    icon: "🫘",
-    title: "Filtración Activa y Reserva Gluconeogénica Secundaria",
+    icon: "Ri",
+    title: "Filtración activa y reserva gluconeogénica secundaria",
     subtitle: "Gluconeogénesis en ayuno prolongado y amoniogénesis para el control ácido-base",
     fuelFed: "Glucosa, Ácidos grasos, Lactato",
     fuelFasting: "Ácidos grasos libres, Cuerpos cetónicos, Glutamina",
@@ -364,25 +364,25 @@ export const TISSUE_MATRIX_DATA = [
     pathway: "Gluconeogénesis completa a sangre",
     category: "Carbohidratos",
     universal: false,
-    liver: { status: "exclusive", note: "⭐ PRINCIPAL ÓRGANO. Expresa Glucosa-6-Fosfatasa y libera glucosa." },
-    muscle: { status: "absent", note: "❌ AUSENTE. Carece de G6Pasa; el glucógeno es para autoconsumo." },
-    heart: { status: "absent", note: "❌ AUSENTE. No expresa G6Pasa; consumidor aeróbico estricto." },
-    adipose: { status: "absent", note: "❌ AUSENTE. Carece de la batería de enzimas gluconeogénicas." },
-    brain: { status: "absent", note: "❌ AUSENTE. Depende del suministro de glucosa hepática o sangre." },
-    rbc: { status: "absent", note: "❌ AUSENTE. Sin enzimas ni energía para anabolismo de glucosa." },
-    kidney: { status: "active", note: "⭐ ÓRGANO SECUNDARIO. Aporta hasta 30-40% en ayuno prolongado." }
+    liver: { status: "exclusive", note: "Principal órgano. Expresa Glucosa-6-Fosfatasa y libera glucosa." },
+    muscle: { status: "absent", note: "Carece de G6Pasa; el glucógeno es para autoconsumo." },
+    heart: { status: "absent", note: "No expresa G6Pasa; consumidor aeróbico estricto." },
+    adipose: { status: "absent", note: "Carece de la batería de enzimas gluconeogénicas." },
+    brain: { status: "absent", note: "Depende del suministro de glucosa hepática o sangre." },
+    rbc: { status: "absent", note: "Sin enzimas ni energía para anabolismo de glucosa." },
+    kidney: { status: "active", note: "Órgano secundario. Aporta hasta 30-40% en ayuno prolongado." }
   },
   {
     pathway: "Glucogenogénesis & Glucogenólisis",
     category: "Carbohidratos",
     universal: false,
-    liver: { status: "exclusive", note: "⭐ RESERVA SISTÉMICA. Aporta glucosa a la sangre durante 24 h." },
-    muscle: { status: "exclusive", note: "⭐ RESERVA LOCAL (350 g). Estrictamente para trabajo muscular." },
+    liver: { status: "exclusive", note: "Reserva sistémica. Aporta glucosa a la sangre durante 24 h." },
+    muscle: { status: "exclusive", note: "Reserva. Local (350 g). Estrictamente para trabajo muscular." },
     heart: { status: "active", note: "Mínima reserva de emergencia para episodios de isquemia breve." },
-    adipose: { status: "absent", note: "❌ Prácticamente nula; almacena energía en forma de triacilgliceroles." },
-    brain: { status: "absent", note: "❌ Mínimo transitorio en astrocitos, nulo en neuronas." },
-    rbc: { status: "absent", note: "❌ AUSENTE. Carece de gránulos y enzimas de glucógeno." },
-    kidney: { status: "absent", note: "❌ Despreciable; no almacena reservas significativas." }
+    adipose: { status: "absent", note: "Prácticamente nula; almacena energía en forma de triacilgliceroles." },
+    brain: { status: "absent", note: "Mínimo transitorio en astrocitos, nulo en neuronas." },
+    rbc: { status: "absent", note: "Carece de gránulos y enzimas de glucógeno." },
+    kidney: { status: "absent", note: "Despreciable; no almacena reservas significativas." }
   },
   {
     pathway: "Vía de las Pentosas Fosfato",
@@ -393,7 +393,7 @@ export const TISSUE_MATRIX_DATA = [
     heart: { status: "active", note: "Mantenimiento de glutatión reducido frente a estrés oxidativo." },
     adipose: { status: "active", note: "Alta para generar NADPH necesario para síntesis de novo de TAG." },
     brain: { status: "active", note: "Vital para regenerar glutatión (GSH) en neuronas y mielinización." },
-    rbc: { status: "exclusive", note: "⭐ DEFENSA VITAL ÚNICA. Única fuente de NADPH contra favismo." },
+    rbc: { status: "exclusive", note: "Defensa. Vital única. Única fuente de NADPH contra favismo." },
     kidney: { status: "active", note: "Defensa antioxidante tubular y biosíntesis." }
   },
   {
@@ -402,10 +402,10 @@ export const TISSUE_MATRIX_DATA = [
     universal: true,
     liver: { status: "active", note: "Alta tasa oxidativa e interconversión anaplerótica de metabolitos." },
     muscle: { status: "active", note: "Muy activa en reposo y ejercicio submáximo aeróbico." },
-    heart: { status: "exclusive", note: "⭐ MÁXIMA DENSIDAD. Mitocondrias ocupan el 40% del citoplasma." },
+    heart: { status: "exclusive", note: "Máxima densidad. Mitocondrias ocupan el 40% del citoplasma." },
     adipose: { status: "active", note: "Tasa basal moderada para mantener funciones celulares." },
     brain: { status: "active", note: "Continua y masiva; consume el 20% del O₂ corporal en reposo." },
-    rbc: { status: "absent", note: "❌ AUSENTE AL 100%. Carece de mitocondrias; no consume oxígeno." },
+    rbc: { status: "absent", note: "AL 100%. Carece de mitocondrias; no consume oxígeno." },
     kidney: { status: "active", note: "Muy alta para bombear iones en los túbulos renales." }
   },
   {
@@ -414,59 +414,59 @@ export const TISSUE_MATRIX_DATA = [
     universal: false,
     liver: { status: "active", note: "Muy activa en ayuno; aporta el ATP y NADH para la gluconeogénesis." },
     muscle: { status: "active", note: "Combustible principal en reposo y ejercicio aeróbico prolongado." },
-    heart: { status: "exclusive", note: "⭐ COMBUSTIBLE PREFERENTE (60-70% del ATP total del miocardio)." },
+    heart: { status: "exclusive", note: "Combustible. Preferente (60-70% del ATP total del miocardio)." },
     adipose: { status: "active", note: "Activa para autoconsumo basal en ayuno." },
-    brain: { status: "absent", note: "❌ AUSENTE. Los AG no cruzan bien la BHE y generan ROS letal." },
-    rbc: { status: "absent", note: "❌ AUSENTE. Sin mitocondrias ni enzimas oxidativas." },
+    brain: { status: "absent", note: "Los AG no cruzan bien la BHE y generan ROS letal." },
+    rbc: { status: "absent", note: "Sin mitocondrias ni enzimas oxidativas." },
     kidney: { status: "active", note: "Combustible mayoritario de la corteza renal aeróbica." }
   },
   {
     pathway: "Cetogénesis (Síntesis de Cuerpos Cetónicos)",
     category: "Lípidos",
     universal: false,
-    liver: { status: "exclusive", note: "⭐ EXCLUSIVA HEPÁTICA (HMGCS2 mitocondrial). Fabrica cetonas." },
-    muscle: { status: "absent", note: "❌ AUSENTE. No expresa HMGCS2; no produce cetonas." },
-    heart: { status: "absent", note: "❌ AUSENTE. No produce cetonas; solo las consume." },
-    adipose: { status: "absent", note: "❌ AUSENTE. Libera ácidos grasos, no cetonas." },
-    brain: { status: "absent", note: "❌ AUSENTE. Consume cetonas pero no las sintetiza." },
-    rbc: { status: "absent", note: "❌ AUSENTE. Sin capacidad cetogénica." },
-    kidney: { status: "absent", note: "❌ AUSENTE en condiciones fisiológicas." }
+    liver: { status: "exclusive", note: "Exclusiva. Hepática (HMGCS2 mitocondrial). Fabrica cetonas." },
+    muscle: { status: "absent", note: "No expresa HMGCS2; no produce cetonas." },
+    heart: { status: "absent", note: "No produce cetonas; solo las consume." },
+    adipose: { status: "absent", note: "Libera ácidos grasos, no cetonas." },
+    brain: { status: "absent", note: "Consume cetonas pero no las sintetiza." },
+    rbc: { status: "absent", note: "Sin capacidad cetogénica." },
+    kidney: { status: "absent", note: "en condiciones fisiológicas." }
   },
   {
     pathway: "Cetólisis (Utilización de Cuerpos Cetónicos)",
     category: "Lípidos",
     universal: false,
-    liver: { status: "absent", note: "❌ AUSENTE. Carece de Tioforasa (SCOT); evita ciclo fútil." },
+    liver: { status: "absent", note: "Carece de Tioforasa (SCOT); evita ciclo fútil." },
     muscle: { status: "active", note: "Quema acetoacetato en ayuno temprano para ahorrar glucosa." },
     heart: { status: "active", note: "Combustible oxidativo rápido que se quema ávidamente." },
     adipose: { status: "active", note: "Actividad secundaria baja." },
-    brain: { status: "exclusive", note: "⭐ ADAPTACIÓN SALVADORA. Cubre 60-70% del ATP cerebral en ayuno." },
-    rbc: { status: "absent", note: "❌ AUSENTE. Sin mitocondrias no puede oxidar cetonas." },
+    brain: { status: "exclusive", note: "Adaptación salvadora. Cubre 60-70% del ATP cerebral en ayuno." },
+    rbc: { status: "absent", note: "Sin mitocondrias no puede oxidar cetonas." },
     kidney: { status: "active", note: "Oxidación activa en corteza y médula." }
   },
   {
     pathway: "Ciclo de la Urea Completo",
     category: "Nitrógeno",
     universal: false,
-    liver: { status: "exclusive", note: "⭐ EXCLUSIVO HEPÁTICO. CPS1, OTC, ASS1, ASL y Arginasa 1." },
-    muscle: { status: "absent", note: "❌ AUSENTE. Exporta nitrógeno hacia el hígado como alanina." },
-    heart: { status: "absent", note: "❌ AUSENTE. No desintoxica amonio en forma de urea." },
-    adipose: { status: "absent", note: "❌ AUSENTE." },
-    brain: { status: "absent", note: "❌ AUSENTE. El amonio en cerebro es extremadamente tóxico." },
-    rbc: { status: "absent", note: "❌ AUSENTE." },
-    kidney: { status: "absent", note: "❌ Incompleto (expresa ASS/ASL para arginina, pero no Arginasa 1)." }
+    liver: { status: "exclusive", note: "Exclusivo hepático. CPS1, OTC, ASS1, ASL y Arginasa 1." },
+    muscle: { status: "absent", note: "Exporta nitrógeno hacia el hígado como alanina." },
+    heart: { status: "absent", note: "No desintoxica amonio en forma de urea." },
+    adipose: { status: "absent", note: "Ausente." },
+    brain: { status: "absent", note: "El amonio en cerebro es extremadamente tóxico." },
+    rbc: { status: "absent", note: "Ausente." },
+    kidney: { status: "absent", note: "Incompleto (expresa ASS/ASL para arginina, pero no Arginasa 1)." }
   },
   {
     pathway: "Lipogénesis de novo (Palmitato / TAG)",
     category: "Lípidos",
     universal: false,
     liver: { status: "active", note: "Muy activa postprandial (ACC1/FASN); exporta TAG en VLDL." },
-    muscle: { status: "absent", note: "❌ Mínima; el músculo capta ácidos grasos pero no sintetiza de novo." },
-    heart: { status: "absent", note: "❌ Nula; el miocardio no sintetiza ácidos grasos." },
-    adipose: { status: "active", note: "⭐ ALMACÉN. Sintetiza TAG a partir de AG circulantes y glucólisis." },
-    brain: { status: "absent", note: "❌ Despreciable para almacenamiento de energía." },
-    rbc: { status: "absent", note: "❌ Nula." },
-    kidney: { status: "absent", note: "❌ Nula." }
+    muscle: { status: "absent", note: "Mínima; el músculo capta ácidos grasos pero no sintetiza de novo." },
+    heart: { status: "absent", note: "Nula; el miocardio no sintetiza ácidos grasos." },
+    adipose: { status: "active", note: "Almacén. Sintetiza TAG a partir de AG circulantes y glucólisis." },
+    brain: { status: "absent", note: "Despreciable para almacenamiento de energía." },
+    rbc: { status: "absent", note: "Nula." },
+    kidney: { status: "absent", note: "Nula." }
   },
   {
     pathway: "Lipólisis de Triacilgliceroles a Sangre",
@@ -475,10 +475,10 @@ export const TISSUE_MATRIX_DATA = [
     liver: { status: "absent", note: "Degrada TAG internamente pero no libera AGL libres a sangre." },
     muscle: { status: "active", note: "Degrada TAG intramiocelulares para su propio consumo contráctil." },
     heart: { status: "active", note: "Degrada mínimas reservas internas para autoconsumo." },
-    adipose: { status: "exclusive", note: "⭐ FUNCIÓN MAESTRA ENDOCRINA. ATGL y HSL liberan AGL a la sangre." },
-    brain: { status: "absent", note: "❌ Nula." },
-    rbc: { status: "absent", note: "❌ Nula." },
-    kidney: { status: "absent", note: "❌ Nula." }
+    adipose: { status: "exclusive", note: "Función. Maestra endocrina. ATGL y HSL liberan AGL a la sangre." },
+    brain: { status: "absent", note: "Nula." },
+    rbc: { status: "absent", note: "Nula." },
+    kidney: { status: "absent", note: "Nula." }
   },
   {
     pathway: "Lanzadera Redox Predominante",
@@ -489,16 +489,16 @@ export const TISSUE_MATRIX_DATA = [
     heart: { status: "active", note: "Malato-Aspartato (MAS) para máxima eficiencia energética (32 ATP)." },
     adipose: { status: "active", note: "G3P y MAS moderadas." },
     brain: { status: "active", note: "G3P y MAS en distintas poblaciones neuronales/gliales." },
-    rbc: { status: "absent", note: "❌ NINGUNA. Sin mitocondrias, LDH oxida NADH en el citosol." },
+    rbc: { status: "absent", note: "Ninguna. Sin mitocondrias, LDH oxida NADH en el citosol." },
     kidney: { status: "active", note: "Malato-Aspartato (MAS) predominante." }
   }
 ];
 
 export function renderTissueSuite(activeSubTab = "matrix", selectedTissueId = "liver") {
   const tabs = [
-    { id: "matrix", label: "📊 Matriz Comparativa Tisular (7 Tejidos × 12 Rutas)" },
-    { id: "universal", label: "🌐 Rutas Universales (Comunes a Todas las Células)" },
-    { id: "explorer", label: "🏛️ Explorador por Tejido (Ficha Bioquímica Detallada)" }
+    { id: "matrix", label: "Tabla de rutas por tejido" },
+    { id: "universal", label: "Rutas universales" },
+    { id: "explorer", label: "Ficha de cada tejido" }
   ];
 
   const navHtml = `
@@ -525,12 +525,10 @@ export function renderTissueSuite(activeSubTab = "matrix", selectedTissueId = "l
     <div class="tissue-suite-root" id="tissue-suite-root">
       <div class="tissue-header-hero">
         <div class="tissue-badge-ribbon">
-          <span class="tissue-badge-pill">Bioquímica General · Especialización Tisular</span>
-          <span class="tissue-badge-dot">● Enfoque de Examen y Razonamiento Fisiológico</span>
         </div>
-        <h2 class="tissue-main-title">Especialización Tisular del Metabolismo Humano</h2>
+        <h2 class="tissue-main-title">Qué rutas tiene cada tejido</h2>
         <p class="tissue-main-p">
-          Explora qué rutas metabólicas son <b>universales</b> (presentes en todas las células humanas para sostener la vida celular) y cuáles están <b>estrictamente especializadas</b> o ausentes en órganos clave (hígado, músculo, cerebro, tejido adiposo, eritrocito, corazón y riñón).
+          Unas rutas son <b>universales</b> y están en todas las células; otras solo existen en ciertos órganos o faltan en ellos. La tabla compara siete tejidos ruta por ruta.
         </p>
       </div>
 
@@ -545,13 +543,13 @@ export function renderTissueSuite(activeSubTab = "matrix", selectedTissueId = "l
 
 function renderMatrixView() {
   const tissues = [
-    { id: "liver", name: "Hígado", icon: "🫀" },
-    { id: "muscle", name: "Músculo", icon: "💪" },
-    { id: "heart", name: "Corazón", icon: "❤️" },
-    { id: "adipose", name: "Adiposo", icon: "🧈" },
-    { id: "brain", name: "Cerebro", icon: "🧠" },
-    { id: "rbc", name: "Eritrocito", icon: "🩸" },
-    { id: "kidney", name: "Riñón", icon: "🫘" }
+    { id: "liver", name: "Hígado", icon: "Hí" },
+    { id: "muscle", name: "Músculo", icon: "Mú" },
+    { id: "heart", name: "Corazón", icon: "Co" },
+    { id: "adipose", name: "Adiposo", icon: "Ad" },
+    { id: "brain", name: "Cerebro", icon: "Ce" },
+    { id: "rbc", name: "Eritrocito", icon: "Er" },
+    { id: "kidney", name: "Riñón", icon: "Ri" }
   ];
 
   const getBadgeClass = (status) => {
@@ -566,10 +564,10 @@ function renderMatrixView() {
 
   const getBadgeLabel = (status) => {
     switch (status) {
-      case "exclusive": return "⭐ Distintiva / Exclusiva";
+      case "exclusive": return "Exclusiva";
       case "active": return "✓ Activa";
-      case "absent": return "✕ Ausente / Nula";
-      case "specialized": return "⚡ Especializada";
+      case "absent": return "Ausente";
+      case "specialized": return "Especializada";
       default: return status;
     }
   };
@@ -577,18 +575,18 @@ function renderMatrixView() {
   return `
     <div class="tissue-matrix-card">
       <div class="tissue-matrix-legend">
-        <span class="tm-legend-title">Guía de lectura:</span>
-        <span class="tm-badge-sample cell-badge-exclusive">⭐ Distintiva / Exclusiva</span>
+        <span class="tm-legend-title">Leyenda</span>
+        <span class="tm-badge-sample cell-badge-exclusive">Exclusiva</span>
         <span class="tm-badge-sample cell-badge-active">✓ Activa</span>
-        <span class="tm-badge-sample cell-badge-absent">✕ Ausente / Nula</span>
-        <span class="tm-badge-sample cell-badge-universal">🌐 Universal en Células con Mitocondrias</span>
+        <span class="tm-badge-sample cell-badge-absent">✕ Ausente</span>
+        <span class="tm-badge-sample cell-badge-universal">Universal (células con mitocondrias)</span>
       </div>
 
       <div class="tissue-table-scroll">
         <table class="tissue-matrix-table">
           <thead>
             <tr>
-              <th class="th-pathway">Ruta Metabólica</th>
+              <th class="th-pathway">Ruta metabólica</th>
               ${tissues.map(t => `
                 <th class="th-tissue" data-matrix-tissue="${t.id}">
                   <span class="th-icon">${t.icon}</span>
@@ -603,7 +601,7 @@ function renderMatrixView() {
                 <td class="td-pathway">
                   <div class="td-pathway-title">
                     <b>${row.pathway}</b>
-                    ${row.universal ? `<span class="badge-tag-uni" title="Presente en todas las células vivas nucleadas">🌐 Universal</span>` : ''}
+                    ${row.universal ? `<span class="badge-tag-uni" title="Presente en todas las células vivas nucleadas">Universal</span>` : ''}
                   </div>
                   <small class="td-pathway-cat">${row.category}</small>
                 </td>
@@ -627,7 +625,7 @@ function renderMatrixView() {
 
       <div class="tissue-matrix-footer">
         <div class="tmf-tip">
-          <b>💡 Regla mnemotécnica para Bioquímica:</b> El <i>Hígado</i> es el productor altruista (fabrica glucosa y cuerpos cetónicos para los demás, pero no puede consumir cuerpos cetónicos); el <i>Músculo</i> es el consumidor egoísta (su glucógeno es para autoconsumo y carece de G6Pasa); y el <i>Eritrocito</i> es el minimalista estricto (carece de mitocondrias y vive 100% de glucólisis anaerobia).
+          <b>Regla mnemotécnica para Bioquímica:</b> El <i>Hígado</i> es el productor altruista (fabrica glucosa y cuerpos cetónicos para los demás, pero no puede consumir cuerpos cetónicos); el <i>Músculo</i> es el consumidor egoísta (su glucógeno es para autoconsumo y carece de G6Pasa); y el <i>Eritrocito</i> es el minimalista estricto (carece de mitocondrias y vive 100% de glucólisis anaerobia).
         </div>
       </div>
     </div>
@@ -638,7 +636,7 @@ function renderUniversalView() {
   return `
     <div class="universal-view-grid">
       <div class="universal-intro-card">
-        <div class="uic-badge">FUNDAMENTO DE BIOQUÍMICA GENERAL</div>
+        <div class="uic-badge">Fundamento de bioquímica general</div>
         <h3>¿Qué hace que una ruta metabólica sea «Universal»?</h3>
         <p>
           En los seres humanos, una ruta metabólica se considera <b>universal</b> (o ubicua) cuando sus enzimas se expresan en el <b>citosol</b> o las <b>mitocondrias</b> de prácticamente cualquier célula nucleada viva, independientemente de su linaje histológico o diferenciación.
@@ -656,7 +654,7 @@ function renderUniversalView() {
               <div class="uci-head-text">
                 <span class="uci-badge-tag">${p.badge}</span>
                 <h4>${p.name}</h4>
-                <div class="uci-organelle">📍 Localización: <b>${p.organelles}</b></div>
+                <div class="uci-organelle">Localización: <b>${p.organelles}</b></div>
               </div>
             </div>
 
@@ -707,7 +705,7 @@ function renderExplorerView(selectedTissueId) {
         </div>
 
         <div class="explorer-map-link-box">
-          <div class="eml-title">🗺️ Ver en el Mapa Celular</div>
+          <div class="eml-title">Ver en el mapa celular</div>
           <p class="eml-desc">Filtra el mapa celular animado para visualizar las rutas activas de este tejido.</p>
           <button class="explorer-btn-map" data-go-map-tissue="${current.id}">
             Aplicar ${current.name} en el Mapa →
@@ -721,7 +719,7 @@ function renderExplorerView(selectedTissueId) {
           <div class="tph-badge-row">
             <span class="tph-icon-big">${current.icon}</span>
             <div>
-              <span class="tph-eyebrow">ESPECIALIZACIÓN BIOQUÍMICA TISULAR</span>
+              <span class="tph-eyebrow">Especialización bioquímica tisular</span>
               <h3 class="tph-title">${current.name}</h3>
               <p class="tph-subtitle">${current.subtitle}</p>
             </div>
@@ -731,19 +729,19 @@ function renderExplorerView(selectedTissueId) {
         <!-- Dashboard de Combustibles y Reservas (Apple Health Clean Deck) -->
         <div class="tissue-fuel-deck">
           <div class="tfd-card">
-            <div class="tfd-label">🍽️ Combustibles en Estado Alimentado (Fed)</div>
+            <div class="tfd-label">Combustibles en estado alimentado (fed)</div>
             <div class="tfd-val">${current.fuelFed}</div>
           </div>
           <div class="tfd-card">
-            <div class="tfd-label">⏳ Combustibles en Ayuno (Fasting)</div>
+            <div class="tfd-label">⏳ Combustibles en ayuno (fasting)</div>
             <div class="tfd-val">${current.fuelFasting}</div>
           </div>
           <div class="tfd-card highlight-export">
-            <div class="tfd-label">📤 Combustibles / Metabolitos Exportados</div>
+            <div class="tfd-label">Combustibles / metabolitos exportados</div>
             <div class="tfd-val">${current.fuelExported}</div>
           </div>
           <div class="tfd-card">
-            <div class="tfd-label">📦 Reserva Energética Principal</div>
+            <div class="tfd-label">Reserva energética principal</div>
             <div class="tfd-val">${current.storedFuel}</div>
           </div>
         </div>
@@ -751,8 +749,8 @@ function renderExplorerView(selectedTissueId) {
         <!-- Rutas Distintivas / Especializadas -->
         <div class="tissue-sec-block">
           <div class="tsb-title">
-            <span class="tsb-icon-green">⭐</span>
-            <h4>Rutas Metabólicas Propias, Altamente Expresadas o Distintivas</h4>
+            
+            <h4>Rutas metabólicas propias, altamente expresadas o distintivas</h4>
           </div>
           <div class="tsb-cards-grid">
             ${current.specificHallmarks.map(h => `
@@ -770,7 +768,7 @@ function renderExplorerView(selectedTissueId) {
         <!-- Rutas Ausentes o Reprimidas (Preguntas Clásicas de Bioquímica) -->
         <div class="tissue-sec-block danger-block">
           <div class="tsb-title">
-            <span class="tsb-icon-red">❌</span>
+            <span class="tsb-icon-red"></span>
             <h4>Rutas Metabólicas Ausentes o Reprimidas y su Causa Bioquímica</h4>
           </div>
           <div class="tsb-cards-grid">
@@ -789,8 +787,8 @@ function renderExplorerView(selectedTissueId) {
         <!-- Tarjeta de Tip para el Estudiante / Examen -->
         <div class="tissue-exam-tip-card">
           <div class="tetc-head">
-            <span class="tetc-icon">🎓</span>
-            <b>Pregunta Típica de Examen (Bioquímica General):</b>
+            <span class="tetc-icon"></span>
+            <b>Pregunta típica de examen (bioquímica general):</b>
           </div>
           <p>${current.examTip}</p>
         </div>
