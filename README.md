@@ -1,6 +1,6 @@
 # Metabolix
 
-**Un mapa de carreteras interactivo del metabolismo humano para la docencia de la Bioquímica en Ciencias de la Salud**
+**El metabolismo humano como un mapa de carreteras**
 
 Mapa interactivo del metabolismo humano para enseñar Bioquímica en los grados de Ciencias de la Salud. El metabolismo se lee como un mapa de carreteras: cada ruta es una carretera, las enzimas son las señales y el tráfico cambia según el estado fisiológico.
 
@@ -108,7 +108,7 @@ Todo se guarda primero en el navegador (`localStorage`): retos, encuestas, visit
 
 Si usas, adaptas o difundes Metabolix, cita su origen:
 
-> Torres de Pinedo, Jesus M; Martinez, Sergio; Ortuno, Francisco M; Torres, Carolina (2026). *Metabolix: un mapa de carreteras interactivo del metabolismo humano para la docencia de la Bioquímica en Ciencias de la Salud*. Proyecto de Innovación Docente PID 26-15. Departamento de Bioquímica y Biología Molecular III e Inmunología, Facultad de Medicina, Universidad de Granada. https://github.com/ctp-granada/MetabolxMap
+> Torres de Pinedo, Jesus M; Martinez, Sergio; Ortuno, Francisco M; Torres, Carolina (2026). *Metabolix: el metabolismo humano como un mapa de carreteras*. Proyecto de Innovación Docente PID 26-15. Departamento de Bioquímica y Biología Molecular III e Inmunología, Facultad de Medicina, Universidad de Granada. https://github.com/ctp-granada/MetabolxMap
 
 GitHub también ofrece la cita con el botón «Cite this repository», a partir de `CITATION.cff`.
 
