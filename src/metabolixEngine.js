@@ -228,6 +228,16 @@ defs.innerHTML = `
  <filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14"/></filter>
  <radialGradient id="mitoFill" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="var(--mito-fill-a)" stop-opacity=".55"/><stop offset="1" stop-color="var(--mito-fill-b)" stop-opacity=".35"/></radialGradient>
  <radialGradient id="cellFill" cx="40%" cy="35%" r="75%"><stop offset="0" stop-color="var(--cell-a)" stop-opacity=".7"/><stop offset="1" stop-color="var(--cell-b)" stop-opacity=".2"/></radialGradient>
+ <radialGradient id="cytoGrad" cx="44%" cy="40%" r="68%"><stop offset="0" stop-color="var(--cyto-1)"/><stop offset=".72" stop-color="var(--cyto-2)"/><stop offset="1" stop-color="var(--cyto-3)"/></radialGradient>
+ <radialGradient id="mitoGrad" cx="40%" cy="32%" r="78%"><stop offset="0" stop-color="var(--mito-1)"/><stop offset="1" stop-color="var(--mito-2)"/></radialGradient>
+ <radialGradient id="matrixGrad" cx="42%" cy="36%" r="72%"><stop offset="0" stop-color="var(--matrix-1)"/><stop offset="1" stop-color="var(--matrix-2)"/></radialGradient>
+ <radialGradient id="nucGrad" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="var(--nuc-1)"/><stop offset="1" stop-color="var(--nuc-2)"/></radialGradient>
+ <radialGradient id="dropGrad" cx="36%" cy="30%" r="75%"><stop offset="0" stop-color="var(--drop-1)"/><stop offset=".65" stop-color="var(--drop-2)"/><stop offset="1" stop-color="var(--drop-3)"/></radialGradient>
+ <radialGradient id="glyGrad" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="var(--gly-1)"/><stop offset="1" stop-color="var(--gly-2)"/></radialGradient>
+ <radialGradient id="shine" cx="34%" cy="26%" r="42%"><stop offset="0" stop-color="#fff" stop-opacity=".75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+ <filter id="cellShadow" x="-10%" y="-10%" width="120%" height="125%"><feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="var(--cell-shadow)" flood-opacity=".28"/></filter>
+ <filter id="orgShadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="7" stdDeviation="8" flood-color="var(--cell-shadow)" flood-opacity=".3"/></filter>
+ <filter id="edgeBlur" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="22"/></filter>
  <pattern id="chrom" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="9" stroke="var(--nuc)" stroke-width="1.2" opacity=".35"/></pattern>`;
 Object.entries(PW).forEach(([k,v])=>{
   defs.insertAdjacentHTML("beforeend",`<marker id="m-${k}" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${v.c}"/></marker>`);
@@ -259,21 +269,18 @@ const gridRef=(x,y)=>{ const c=Math.min(GRID.cols-1,Math.max(0,Math.floor((x-GRI
 /* compartimentos */
 gComp.innerHTML = `
  <text class="comp-lbl" x="1740" y="70" text-anchor="end">Sangre · espacio extracelular</text>
- <rect x="60" y="112" width="1690" height="1268" rx="96" fill="var(--cell-a)" stroke="var(--cell-stroke)" stroke-width="7" stroke-opacity=".22"/>
- <rect x="60" y="112" width="1690" height="1268" rx="96" fill="none" stroke="var(--cell-line)" stroke-width="1.6"/>
- <rect x="71" y="123" width="1668" height="1246" rx="86" fill="none" stroke="var(--cell-line)" stroke-width="1.1" stroke-dasharray="16 5 2 5" stroke-opacity=".7"/>
+ <g id="cell-3d"></g>
  <text class="comp-lbl comp-region" x="100" y="166">Citosol</text>
  <g opacity=".9"><rect x="540" y="98" width="40" height="28" rx="3" fill="var(--node-fill)" stroke="var(--pw-glycolysis)" stroke-width="1.6"/><text class="lbl-c" x="586" y="117">GLUT</text></g>
  <g><rect x="380" y="98" width="40" height="28" rx="3" fill="var(--node-fill)" stroke="var(--pw-gluconeogenesis)" stroke-width="1.6"/><text class="lbl-c" x="330" y="117">GLUT2</text></g>
- <ellipse cx="210" cy="1250" rx="140" ry="96" fill="url(#chrom)" stroke="var(--nuc)" stroke-opacity=".7" stroke-width="1.6"/>
- <ellipse cx="210" cy="1250" rx="140" ry="96" fill="var(--nuc)" opacity=".06"/>
+ <g id="nuc-3d"></g>
  <text class="comp-lbl comp-region" x="210" y="1256" text-anchor="middle">Núcleo</text>
- <circle cx="198" cy="858" r="74" fill="var(--pw-lipid)" fill-opacity=".09" stroke="var(--pw-lipid)" stroke-opacity=".55" stroke-width="1.4"/>
+ <g id="drop-3d"></g>
  <text class="comp-lbl comp-region" x="118" y="770" style="fill:var(--lipid-lbl)">Gota lipídica</text>
  <g id="granule" opacity=".75"></g>
  <g id="mito">
-  <rect x="770" y="700" width="945" height="645" rx="150" fill="var(--mito-fill-a)" stroke="var(--mito-stroke)" stroke-width="2" stroke-dasharray="1 5" stroke-linecap="round"/>
-  <path id="inner" d="" fill="none" stroke="var(--mito-stroke)" stroke-opacity=".8" stroke-width="1.6"/>
+  <g id="mito-3d"></g>
+  <path id="inner" d="" fill="none" style="display:none"/>
   <text class="comp-lbl comp-region" x="1112" y="760" style="fill:var(--mito-lbl)">Matriz mitocondrial</text>
   <text class="comp-lbl comp-region" x="860" y="1325" style="fill:var(--mito-lbl)">Espacio intermembrana</text>
   <text id="nomito" class="comp-lbl comp-region" x="1242" y="1030" text-anchor="middle" style="fill:var(--pw-pentose);font-size:24px" opacity="0">Sin mitocondrias en el eritrocito</text>
@@ -289,6 +296,93 @@ gComp.innerHTML = `
   </g>
  </g>`;
 cssify(gComp);
+
+/* ===== Célula con volumen: citoplasma, bicapa lipídica y orgánulos ===== */
+const CELL3D = (function(){
+  let seed = 7; const rnd = () => (seed = (seed*16807) % 2147483647) / 2147483647;
+  // recorrido de un rectángulo redondeado con normales hacia fuera
+  function perim(x0,y0,x1,y1,r,step){
+    const pts=[]; const segs=[];
+    const W=x1-x0-2*r, H=y1-y0-2*r, arc=Math.PI*r/2;
+    segs.push(["l",x0+r,y0,1,0,W],["a",x1-r,y0+r,-Math.PI/2,arc],["l",x1,y0+r,0,1,H],["a",x1-r,y1-r,0,arc],
+              ["l",x1-r,y1,-1,0,W],["a",x0+r,y1-r,Math.PI/2,arc],["l",x0,y1-r,0,-1,H],["a",x0+r,y0+r,Math.PI,arc]);
+    const total=2*W+2*H+4*arc; const n=Math.round(total/step);
+    for(let i=0;i<n;i++){
+      let d=i*total/n, k=0; while(k<segs.length-1 && d>segs[k][segs[k][0]==="l"?5:4]){ d-=segs[k][segs[k][0]==="l"?5:4]; k++; }
+      const S=segs[k];
+      if(S[0]==="l"){ const [,sx,sy,dx,dy]=S; pts.push([sx+dx*d, sy+dy*d, dy, -dx, i*total/n]); }
+      else { const [,cx,cy,a0]=S; const a=a0+d/r; pts.push([cx+Math.cos(a)*r, cy+Math.sin(a)*r, Math.cos(a), Math.sin(a), i*total/n]); }
+    }
+    return pts;
+  }
+  const off=(pts,o,wob)=>pts.map(([x,y,nx,ny,t])=>{ const w=wob?wob(t):0; return [x+nx*(o+w), y+ny*(o+w)]; });
+  const path=(P)=>"M"+P.map(p=>p[0].toFixed(1)+" "+p[1].toFixed(1)).join("L")+"Z";
+  // bicapa: cabezas polares (puntos) a ambos lados y colas (rayas) en el centro
+  function bilayer(g,pts,half,head,wob,cls){
+    const mid=path(off(pts,0,wob)), out=path(off(pts,half,wob)), inn=path(off(pts,-half,wob));
+    el("path",{d:mid,class:"bl-tail-band "+cls,"stroke-width":half*2-head*.6},g);
+    el("path",{d:mid,class:"bl-tails "+cls,"stroke-width":half*2-head*1.4,"stroke-dasharray":`1 ${(head*1.05).toFixed(2)}`},g);
+    [out,inn].forEach(d=>el("path",{d,class:"bl-heads "+cls,"stroke-width":head,"stroke-dasharray":`0 ${(head*1.18).toFixed(2)}`},g));
+    return {mid,out,inn};
+  }
+  const wobCell=t=>7*Math.sin(t*.0031)+3.2*Math.sin(t*.0117+1.3);
+
+  /* --- célula --- */
+  const gc=$("#cell-3d");
+  const cp=perim(60,112,1750,1380,96,6.2);
+  const cellD=path(off(cp,0,wobCell));
+  el("path",{d:cellD,fill:"url(#cytoGrad)",filter:"url(#cellShadow)"},gc);
+  defs.insertAdjacentHTML("beforeend",`<clipPath id="cellClip"><path d="${cellD}"/></clipPath>`);
+  const inner=el("g",{"clip-path":"url(#cellClip)"},gc);
+  el("path",{d:cellD,class:"cyto-edge",fill:"none","stroke-width":90,filter:"url(#edgeBlur)"},inner);
+  // citoesqueleto: filamentos tenues que salen del núcleo
+  for(let i=0;i<11;i++){
+    const a=-1.5+i*0.16+rnd()*.12, L1=520+rnd()*900;
+    const x0=230+Math.cos(a)*170, y0=1235+Math.sin(a)*120;
+    const x1=x0+Math.cos(a)*L1, y1=y0+Math.sin(a)*L1*.9;
+    const mx=(x0+x1)/2+(rnd()-.5)*520, my=(y0+y1)/2+(rnd()-.5)*520;
+    el("path",{d:`M${x0.toFixed(0)} ${y0.toFixed(0)} Q${mx.toFixed(0)} ${my.toFixed(0)} ${x1.toFixed(0)} ${y1.toFixed(0)}`,class:"cytoskel"},inner);
+  }
+  // ribosomas libres
+  const avoid=(x,y)=> (x>750&&x<1735&&y>680&&y<1365) || ((x-210)**2/175**2+(y-1250)**2/130**2<1) || ((x-198)**2+(y-858)**2<95**2);
+  let rib="";
+  for(let i=0;i<900;i++){ const x=70+rnd()*1670, y=120+rnd()*1250; if(avoid(x,y)) continue; rib+=`M${x.toFixed(0)} ${y.toFixed(0)}h0.01`; }
+  el("path",{d:rib,class:"ribo"},inner);
+  // retículo endoplásmico rugoso alrededor del núcleo
+  for(let k=1;k<=4;k++){
+    const rx=140+k*24, ry=96+k*19, a0=2.2, a1=4.75-k*.04; let d="";
+    for(let a=a0;a<=a1;a+=0.04){ const w=3*Math.sin(a*9+k); const x=210+Math.cos(a)*(rx+w), y=1250+Math.sin(a)*(ry+w); d+=(d?"L":"M")+x.toFixed(1)+" "+y.toFixed(1); }
+    el("path",{d,class:"er-sheet"},inner); el("path",{d,class:"er-ribo"},inner);
+  }
+  bilayer(gc,cp,8.5,6.2,wobCell,"bl-cell");
+
+  /* --- núcleo --- */
+  const gn=$("#nuc-3d");
+  el("ellipse",{cx:210,cy:1250,rx:146,ry:102,class:"nuc-env",filter:"url(#orgShadow)"},gn);
+  el("ellipse",{cx:210,cy:1250,rx:138,ry:94,fill:"url(#nucGrad)"},gn);
+  el("ellipse",{cx:210,cy:1250,rx:138,ry:94,fill:"url(#chrom)",opacity:.6},gn);
+  el("ellipse",{cx:250,cy:1228,rx:34,ry:26,class:"nucleolus"},gn);
+  el("ellipse",{cx:210,cy:1250,rx:146,ry:102,fill:"none",class:"nuc-mem"},gn);
+  el("ellipse",{cx:210,cy:1250,rx:138,ry:94,fill:"none",class:"nuc-mem"},gn);
+  for(let a=0;a<Math.PI*2;a+=Math.PI/9){ const x=210+Math.cos(a)*142, y=1250+Math.sin(a)*98; el("circle",{cx:x,cy:y,r:4.2,class:"nuc-pore"},gn); }
+  el("ellipse",{cx:210,cy:1250,rx:138,ry:94,fill:"url(#shine)",opacity:.55},gn);
+
+  /* --- gota lipídica --- */
+  const gd=$("#drop-3d");
+  el("circle",{cx:198,cy:858,r:74,fill:"url(#dropGrad)",filter:"url(#orgShadow)"},gd);
+  el("circle",{cx:198,cy:858,r:74,fill:"none",class:"drop-mono"},gd);
+  el("circle",{cx:198,cy:858,r:74,fill:"url(#shine)"},gd);
+
+  /* --- mitocondria: membrana externa (bicapa), espacio intermembrana y matriz --- */
+  const gm=$("#mito-3d");
+  const mp=perim(770,700,1715,1345,150,4.6);
+  const wobM=t=>2.2*Math.sin(t*.011+.4);
+  const mD=path(off(mp,0,wobM));
+  el("path",{d:mD,fill:"url(#mitoGrad)",filter:"url(#orgShadow)"},gm);
+  bilayer(gm,mp,5.5,3.8,wobM,"bl-mito");
+  return {gm};
+})();
+cssify(gComp); cssify(defs);
 /* membrana interna con crestas */
 (function(){
   const x0=796,y0=726,x1=1690,y1=1238,r=126; let d=`M${x0+r} ${y0} H${x1-r} A${r} ${r} 0 0 1 ${x1} ${y0+r}`;
@@ -297,8 +391,19 @@ cssify(gComp);
   for(let k=0;k<4;k++){ d+=` H${x1-62} a10 10 0 0 0 0 20 H${x1}`; y+=20; d+=` V${y+70}`; y+=70; }
   d+=` V${y1-r} A${r} ${r} 0 0 1 ${x1-r} ${y1} H${x0+r} A${r} ${r} 0 0 1 ${x0} ${y1-r} V${y0+r} A${r} ${r} 0 0 1 ${x0+r} ${y0}Z`;
   $("#inner").setAttribute("d",d);
+  const gm=CELL3D.gm;
+  el("path",{d,fill:"url(#matrixGrad)"},gm);
+  // gránulos de la matriz
+  let s2=11; const r2=()=> (s2=(s2*16807)%2147483647)/2147483647; let mg="";
+  for(let i=0;i<160;i++){ const x=830+r2()*820, y=760+r2()*460; mg+=`M${x.toFixed(0)} ${y.toFixed(0)}h0.01`; }
+  el("path",{d:mg,class:"mito-gran"},gm);
+  el("path",{d,class:"im-outer",fill:"none"},gm);
+  el("path",{d,class:"im-core",fill:"none"},gm);
+  el("path",{d,class:"im-tails",fill:"none"},gm);
+  el("rect",{x:830,y:712,width:820,height:230,rx:115,fill:"url(#shine)",opacity:.45},gm);
+  cssify(gm);
   const g=$("#granule"); const [gx,gy]=L.glycogen;
-  for(let i=0;i<34;i++){ const a=i*2.399, rr=8+Math.sqrt(i)*8.6; el("circle",{cx:gx+Math.cos(a)*rr,cy:gy+Math.sin(a)*rr,r:5.5-i*.06,fill:"var(--pw-glycogen)","fill-opacity":.16,stroke:"var(--pw-glycogen)","stroke-opacity":.35},g); }
+  for(let i=0;i<34;i++){ const a=i*2.399, rr=8+Math.sqrt(i)*8.6; el("circle",{cx:gx+Math.cos(a)*rr,cy:gy+Math.sin(a)*rr,r:5.8-i*.06,fill:"url(#glyGrad)",stroke:"var(--gly-2)","stroke-opacity":.6,"stroke-width":.8},g); }
   el("text",{class:"comp-lbl comp-region",x:gx-40,y:gy+80,style:"fill:var(--gly-lbl)"},g).textContent="Gránulo";
 })();
 
@@ -338,6 +443,7 @@ D.METABOLITES.forEach(m=>{
     body=el("circle",{r:R,fill:"var(--node-fill)",stroke:c,"stroke-width":m.isBranchPoint?3:2},g);
     if(m.isBranchPoint) el("circle",{r:R+5,fill:"none",stroke:c,"stroke-opacity":.35,"stroke-dasharray":"2 4"},g);
     el("circle",{r:R*.38,fill:c,opacity:.85},g);
+    el("circle",{r:R-1.5,fill:"url(#shine)",class:"bead-shine"},g);
   }
   const R=nodeR(m.id)+(PROTEIN.has(m.id)?2:0);
   const pos = {b:[0,R+16,"middle"],t:[0,-R-18,"middle"],l:[-R-8,4,"end"],r:[R+8,4,"start"]}[lp||"b"];

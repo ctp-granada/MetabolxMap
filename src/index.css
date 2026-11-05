@@ -3937,3 +3937,50 @@ select{width:100%;background:var(--ink-2);color:var(--fg);border:1px solid var(-
 @media (max-width:860px){ .map-controls{padding:8px 12px} .stage{height:76vh} }
 
 .mc-tissue.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+
+/* =====================================================================
+   Célula con volumen (ilustración de libro de texto)
+   ===================================================================== */
+:root{
+  --cyto-1:#fbfcf5; --cyto-2:#eef2e3; --cyto-3:#d6dfc6; --cyto-edge:#b9c7a6; --cell-shadow:#2d3b28;
+  --lipid-head:#e1a66a; --lipid-head-edge:#a8713c; --lipid-tail:#f6e7c8; --lipid-tail-line:#d8b98a;
+  --mito-1:#e7f1dc; --mito-2:#c6dbb5; --matrix-1:#f4f9ec; --matrix-2:#d3e6c3;
+  --im-edge:#5d8a4c; --im-core:#eaf3d8;
+  --nuc-1:#efeaf8; --nuc-2:#cbc1e3; --nuc-mem:#7a6ea6; --nucleolus:#8d7fbd;
+  --drop-1:#fff3d6; --drop-2:#f7cf86; --drop-3:#dc9a3e;
+  --gly-1:#fff1b8; --gly-2:#c99a12;
+  --ribo:#8a7a5c; --er:#c9a7c9; --er-ribo:#8b5d8b; --skel:#a9b59a;
+}
+:root[data-mode="dark"]{
+  --cyto-1:#1d2924; --cyto-2:#16201c; --cyto-3:#101815; --cyto-edge:#050807; --cell-shadow:#000;
+  --lipid-head:#d7955a; --lipid-head-edge:#8a5a2c; --lipid-tail:#3a3022; --lipid-tail-line:#5d4a30;
+  --mito-1:#1b3322; --mito-2:#13261a; --matrix-1:#1f3a25; --matrix-2:#15291b;
+  --im-edge:#7fcf6e; --im-core:#2a4a2c;
+  --nuc-1:#2a2540; --nuc-2:#1a1729; --nuc-mem:#a99ae0; --nucleolus:#7d6bc4;
+  --drop-1:#ffe2a0; --drop-2:#b8792c; --drop-3:#6b4214;
+  --gly-1:#ffe48a; --gly-2:#8a6a08;
+  --ribo:#c7b48a; --er:#6a4a6a; --er-ribo:#c08ac0; --skel:#3d4a40;
+}
+.bl-tail-band{fill:none;stroke:var(--lipid-tail)}
+.bl-tails{fill:none;stroke:var(--lipid-tail-line);stroke-linecap:butt;opacity:.9}
+.bl-heads{fill:none;stroke:var(--lipid-head);stroke-linecap:round}
+.bl-mito.bl-heads{stroke:var(--im-edge)}
+.bl-mito.bl-tail-band{stroke:var(--im-core)}
+.bl-mito.bl-tails{stroke:var(--im-edge);opacity:.35}
+.cyto-edge{stroke:var(--cyto-edge);opacity:.55}
+.cytoskel{fill:none;stroke:var(--skel);stroke-width:1.4;opacity:.3;stroke-linecap:round}
+.ribo{fill:none;stroke:var(--ribo);stroke-width:3.4;stroke-linecap:round;opacity:.28}
+.er-sheet{fill:none;stroke:var(--er);stroke-width:10;stroke-linecap:round;opacity:.55}
+.er-ribo{fill:none;stroke:var(--er-ribo);stroke-width:3.6;stroke-linecap:round;stroke-dasharray:0 9;opacity:.55}
+.nuc-env{fill:var(--nuc-2)}
+.nuc-mem{stroke:var(--nuc-mem);stroke-width:1.6;opacity:.8}
+.nuc-pore{fill:var(--cyto-2);stroke:var(--nuc-mem);stroke-width:1.2}
+.nucleolus{fill:var(--nucleolus);opacity:.55}
+.drop-mono{stroke:var(--lipid-head);stroke-width:3;stroke-dasharray:0 6;stroke-linecap:round}
+.im-outer{stroke:var(--im-edge);stroke-width:11;stroke-linejoin:round}
+.im-core{stroke:var(--im-core);stroke-width:6;stroke-linejoin:round}
+.im-tails{stroke:var(--im-edge);stroke-width:5;stroke-dasharray:1 2.6;opacity:.35}
+.mito-gran{fill:none;stroke:var(--im-edge);stroke-width:4;stroke-linecap:round;opacity:.22}
+:root[data-mode="dark"] [fill="url(#shine)"],:root[data-mode="dark"] ellipse[fill="url(#shine)"]{opacity:.12!important}
+.bead-shine{pointer-events:none;opacity:.9}
+:root[data-mode="dark"] .bead-shine{opacity:.18}
