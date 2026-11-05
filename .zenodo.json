@@ -2,7 +2,7 @@
   "title": "Metabolix: conduce por el metabolismo humano",
   "upload_type": "software",
   "language": "spa",
-  "description": "<p>Metabolix es una aplicación web docente que presenta conduce por el metabolismo humano: cada ruta es una carretera, las enzimas son señales y el flujo cambia con el estado fisiológico (postprandial, ayuno, ayuno prolongado, ejercicio, estrés oxidativo, sobrecarga de fructosa) y el tejido. Incluye un modo «Predecir primero», misiones en las que el alumno sigue una molécula por el mapa, balances de ATP, ciclos interórgano, retos y flashcards.</p><p>Proyecto de Innovación Docente PID 26-15. Departamento de Bioquímica y Biología Molecular III e Inmunología, Facultad de Medicina, Universidad de Granada.</p><p>Código bajo Apache 2.0; contenidos docentes bajo CC BY 4.0.</p>",
+  "description": "<p>Metabolix es una aplicación web docente que presenta el metabolismo humano como un mapa de carreteras: cada ruta es una carretera, las enzimas son señales y el flujo cambia con el estado fisiológico (postprandial, ayuno, ayuno prolongado, ejercicio, estrés oxidativo, sobrecarga de fructosa) y el tejido. Incluye un modo «Predecir primero», misiones en las que el alumno sigue una molécula por el mapa, balances de ATP, ciclos interórgano, retos y flashcards.</p><p>Proyecto de Innovación Docente PID 26-15. Departamento de Bioquímica y Biología Molecular III e Inmunología, Facultad de Medicina, Universidad de Granada.</p><p>Código bajo Apache 2.0; contenidos docentes bajo CC BY 4.0.</p>",
   "creators": [
     {
       "name": "Torres de Pinedo, Jesus M",
