@@ -1,7 +1,9 @@
 Metabolix
-Mapa interactivo del metabolismo humano
+Un mapa de carreteras interactivo del metabolismo humano para la docencia de la Bioquímica en Ciencias de la Salud
 
-Copyright 2026 Departamento de Bioquímica y Biología Molecular III e Inmunología,
+Copyright 2026 Jesus M. Torres de Pinedo, Sergio Martinez, Francisco M. Ortuno
+y Carolina Torres.
+Departamento de Bioquímica y Biología Molecular III e Inmunología,
 Facultad de Medicina, Universidad de Granada.
 Proyecto de Innovación Docente.
 
@@ -12,9 +14,11 @@ Internacional (CC BY 4.0): https://creativecommons.org/licenses/by/4.0/deed.es
 
 Cualquier uso, copia o adaptación de este trabajo debe citar su origen así:
 
-  Metabolix: mapa interactivo del metabolismo humano. Departamento de
-  Bioquímica y Biología Molecular III e Inmunología, Facultad de Medicina,
-  Universidad de Granada. Proyecto de Innovación Docente.
-  https://github.com/ctp-granada/MetabolxMap
+  Torres de Pinedo, Jesus M; Martinez, Sergio; Ortuno, Francisco M; Torres,
+  Carolina (2026). Metabolix: un mapa de carreteras interactivo del
+  metabolismo humano para la docencia de la Bioquímica en Ciencias de la
+  Salud. Proyecto de Innovación Docente. Departamento de Bioquímica y
+  Biología Molecular III e Inmunología, Facultad de Medicina, Universidad de
+  Granada. https://github.com/ctp-granada/MetabolxMap
 
 Este aviso debe conservarse en cualquier redistribución o trabajo derivado.
