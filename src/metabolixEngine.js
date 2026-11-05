@@ -644,7 +644,7 @@ function buildRail(){
   const sb=$("#states");
   STATES.forEach(s=>{ const b=document.createElement("button"); b.className="state"; b.style.setProperty("--sc",s.c); b.setAttribute("aria-pressed",s===ST);
     b.setAttribute("role","radio"); b.setAttribute("aria-checked",String(s===ST)); b.title=`${s.name} · ${s.tissue}`;
-    b.innerHTML=`<b>${esc(s.name)}</b><small>${esc(s.tissue)}</small>`; b.onclick=()=>setState(s.id); sb.appendChild(b); });
+    b.innerHTML=`<b>${esc(s.name)}</b><small>${esc(s.tissue)}</small>`; b.onclick=()=>onStateClick(s.id); sb.appendChild(b); });
   const tsel=$("#tissue-select");
   if(tsel){
     const opts=[["all","Organismo completo"],["universal","Rutas universales"]].concat(Object.values(TISSUES_DATA).map(t=>[t.id,t.name]));
@@ -834,6 +834,111 @@ function syncTissueChips(){
     }
   });
 }
+
+/* ======================= Predecir antes de ver ======================= */
+/* Procesos que el alumno predice al cambiar de estado; cada uno se mide con
+   una reacción representativa (irreversible o con un sentido claro). */
+const PRED_ITEMS = [
+  {id:"glyc",  name:"Glucólisis",                 rx:"rx_pfk1",            pw:"glycolysis"},
+  {id:"gng",   name:"Gluconeogénesis",            rx:"rx_fbpase1",         pw:"gluconeogenesis"},
+  {id:"gs",    name:"Síntesis de glucógeno",      rx:"rx_gs",              pw:"glycogen_metabolism"},
+  {id:"gp",    name:"Degradación de glucógeno",   rx:"rx_gp",              pw:"glycogen_metabolism"},
+  {id:"ppp",   name:"Vía de las pentosas fosfato",rx:"rx_g6pdh",           pw:"pentose_phosphate"},
+  {id:"ldh",   name:"Producción de lactato",      rx:"rx_ldh",             pw:"mitochondrial_fate"},
+  {id:"krebs", name:"Ciclo de Krebs",             rx:"rx_cs",              pw:"krebs_cycle"},
+  {id:"fas",   name:"Síntesis de ácidos grasos",  rx:"rx_fas",             pw:"lipid_metabolism"},
+  {id:"box",   name:"β-oxidación",                rx:"rx_beta_oxidation",  pw:"lipid_metabolism"},
+  {id:"keto",  name:"Cetogénesis",                rx:"rx_ketogenesis",     pw:"lipid_metabolism"}
+].filter(it=>RXM[it.rx]);
+function levelIn(S,rxId){
+  const r=RXM[rxId]; if(!r) return 0;
+  let f=(r.id in S.rx)? S.rx[r.id] : (S.pw[r.pathway] ?? 0);
+  if(S.noMito && (r.compartment!=="cytosol" || ["rx_mpc","rx_citrate_export","rx_oaa_export","rx_malate_aspartate_shuttle"].includes(r.id))) f=0;
+  return Math.max(0,f);
+}
+const PRED_T=.15;
+/* nivel absoluto en el estado de destino: así la pregunta tiene sentido aunque cambie el tejido */
+const lvl=v=> v>=.55?"high": v>=.12?"low":"off";
+function predTruth(from,to,it){ return lvl(levelIn(to,it.rx)); }
+const PRED_KEYS=["high","low","off"];
+const PRED_LBL={high:"Activa",low:"Poco activa",off:"Apagada"};
+const _lv=(inner)=>`<svg class="lv" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><circle cx="6" cy="6" r="4.6" fill="none" stroke="currentColor" stroke-width="1.6"/>${inner}</svg>`;
+const PRED_ICON={high:_lv('<circle cx="6" cy="6" r="4.6" fill="currentColor"/>'),low:_lv('<path d="M6 1.4a4.6 4.6 0 0 1 0 9.2Z" fill="currentColor"/>'),off:_lv("")};
+let predictMode = (()=>{ try{ return localStorage.getItem("metabolix_predict_mode")==="predict"; }catch(e){ return false; } })();
+let pred=null; // {from,to,answers,checked}
+
+function syncPredictToggle(){
+  document.querySelectorAll("#predict-toggle button").forEach(b=>b.setAttribute("aria-pressed",String((b.dataset.pm==="predict")===predictMode)));
+  const h=document.getElementById("mc-mode-hint");
+  if(h) h.textContent = predictMode ? "Al elegir un estado, primero predices qué rutas cambian y luego lo compruebas en el mapa." : "Al elegir un estado, el mapa cambia al momento.";
+}
+function setPredictMode(on){
+  predictMode=on; try{ localStorage.setItem("metabolix_predict_mode",on?"predict":"view"); }catch(e){}
+  if(!on && pred) closePredict();
+  syncPredictToggle();
+}
+function onStateClick(id){
+  const to=STATES.find(s=>s.id===id);
+  if(!predictMode){ if(pred) closePredict(); setState(id); return; }
+  if(to===ST && !pred) return;
+  if(pred && pred.to===to) return;
+  openPredict(ST,to);
+}
+function markPending(to){
+  document.querySelectorAll(".map-controls .state").forEach((b,i)=>b.classList.toggle("pending", !!to && STATES[i]===to));
+}
+function openPredict(from,to){
+  pred={from,to,answers:{},checked:false};
+  markPending(to);
+  renderPredict();
+}
+function closePredict(){
+  pred=null; markPending(null);
+  const box=document.getElementById("predict"); if(box){ box.hidden=true; box.innerHTML=""; }
+}
+function renderPredict(){
+  const box=document.getElementById("predict"); if(!box||!pred) return;
+  const {from,to,answers,checked}=pred;
+  const n=PRED_ITEMS.length, nAns=Object.keys(answers).length;
+  let ok=0;
+  const rows=PRED_ITEMS.map(it=>{
+    const truth=predTruth(from,to,it), a=answers[it.id];
+    if(checked && a===truth) ok++;
+    const before=PRED_LBL[lvl(levelIn(from,it.rx))];
+    const res = !checked ? "" : `<span class="pr-res ${a===truth?"ok":"ko"}">${a===truth?"✓":(a?"✕":"–")}</span><span class="pr-before">Antes: ${before.toLowerCase()}</span>`;
+    const btns=PRED_KEYS.map(k=>`<button type="button" data-it="${it.id}" data-v="${k}" aria-pressed="${a===k}" ${checked?"disabled":""} title="${PRED_LBL[k]}" class="${checked&&k===truth?"truth":""}">${PRED_ICON[k]}<span>${PRED_LBL[k]}</span></button>`).join("");
+    return `<div class="pr-row ${checked?(a===truth?"is-ok":"is-ko"):""}">
+      <button type="button" class="pr-name" data-pw="${it.pw}" title="Aislar esta ruta en el mapa"><i style="background:${PW[it.pw]?.c||"var(--fg)"}"></i>${esc(it.name)}</button>
+      <div class="pr-seg" role="group" aria-label="${esc(it.name)}">${btns}</div>${res}</div>`;
+  }).join("");
+  box.hidden=false;
+  box.innerHTML = `
+    <div class="pr-head">
+      <div>
+        <div class="pr-step">${checked?"Resultado":"Tu predicción"}</div>
+        <h3>De ${esc(from.name)} a ${esc(to.name)}</h3>
+        <p>${checked
+          ? `Has acertado <b>${ok} de ${n}</b>. El mapa ya muestra ${esc(to.name.toLowerCase())}; toca una ruta para aislarla.`
+          : `¿Cómo estará cada ruta en ${esc(to.name.toLowerCase())} (${esc(to.tissue)})? Piensa en las hormonas y en la energía de la célula antes de comprobarlo.`}</p>
+      </div>
+      <button type="button" class="close pr-close" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="pr-rows">${rows}</div>
+    ${checked && to.notes?.length ? `<div class="pr-why"><b>Por qué</b><ul>${to.notes.slice(0,3).map(t=>`<li>${esc(t)}</li>`).join("")}</ul></div>`:""}
+    <div class="pr-foot">
+      ${checked
+        ? `<button type="button" class="btn pr-again">Repetir</button><button type="button" class="btn primary pr-done">Cerrar</button>`
+        : `<button type="button" class="btn pr-skip">Ver sin predecir</button><button type="button" class="btn primary pr-check" ${nAns?"":"disabled"}>Comprobar (${nAns}/${n})</button>`}
+    </div>`;
+  box.querySelectorAll(".pr-seg button").forEach(b=>b.onclick=()=>{ pred.answers[b.dataset.it]=b.dataset.v; renderPredict(); });
+  box.querySelectorAll(".pr-name").forEach(b=>b.onclick=()=>{ if(!pred.checked) return; focusPw = focusPw===b.dataset.pw? null : b.dataset.pw; syncChips(); apply(); });
+  box.querySelector(".pr-close").onclick=closePredict;
+  const sk=box.querySelector(".pr-skip"); if(sk) sk.onclick=()=>{ const t=pred.to; closePredict(); setState(t.id); };
+  const ck=box.querySelector(".pr-check"); if(ck) ck.onclick=()=>{ pred.checked=true; markPending(null); setState(pred.to.id); renderPredict(); };
+  const ag=box.querySelector(".pr-again"); if(ag) ag.onclick=()=>{ const {from,to}=pred; setState(from.id); openPredict(from,to); };
+  const dn=box.querySelector(".pr-done"); if(dn) dn.onclick=closePredict;
+}
+
 function setState(id){ ST=STATES.find(s=>s.id===id); document.querySelectorAll(".state").forEach((b,i)=>{ b.setAttribute("aria-pressed",String(STATES[i]===ST)); b.setAttribute("aria-checked",String(STATES[i]===ST)); }); renderStateInfo(); apply(); }
 function renderStateInfo(){
   $("#meters").innerHTML = Object.entries(ST.sig).map(([k,v])=>`<div class="meter" style="--mc:${k==="Insulina"?"var(--pw-glycolysis)":k==="Glucagón"?"var(--pw-gluconeogenesis)":k==="Adrenalina"?"var(--pw-glycogen)":k==="AMP/ATP"?"var(--pw-krebs)":"var(--pw-pentose)"}"><span>${k}</span><i><u style="width:${Math.round(v*100)}%"></u></i><em>${Math.round(v*100)}</em></div>`).join("");
@@ -841,7 +946,7 @@ function renderStateInfo(){
   const n=$("#st-notes"); n.style.setProperty("--sc",ST.c); n.innerHTML=ST.notes.map(t=>`<li>${esc(t)}</li>`).join("");
 }
 function drawHud(){
-  $("#hud").hidden = currentView==="reto"; { const mc=document.getElementById("map-controls"); if(mc) mc.hidden = currentView==="reto"; } gEnz.style.display = currentView==="reto" ? "none" : "";
+  $("#hud").hidden = currentView==="reto"; { const mc=document.getElementById("map-controls"); if(mc) mc.hidden = currentView==="reto"; if(currentView==="reto" && pred) closePredict(); } gEnz.style.display = currentView==="reto" ? "none" : "";
   const tName = tissueFilter === "universal" ? "Rutas universales" : (TISSUES_DATA[tissueFilter]?.name || tissueFilter);
   const tColor = TISSUE_COLORS[tissueFilter] || "var(--accent)";
   const tBadge = tissueFilter ? `<button class="pill" id="hud-tf" style="border-color:${tColor};background:color-mix(in srgb,${tColor} 12%,var(--ink-1))"><span class="dot" style="color:${tColor}"></span><b>Filtro:</b> ${esc(tName)} <span style="color:var(--fg-faint);margin-left:4px">✕</span></button>` : "";
@@ -3457,6 +3562,7 @@ if (hdrFcBtn) {
 }
 syncFlashcardBtn();
 buildRail(); renderStateInfo(); setMode(m0);
+document.querySelectorAll("#predict-toggle button").forEach(b=>b.onclick=()=>setPredictMode(b.dataset.pm==="predict")); syncPredictToggle();
 go(location.hash.slice(1)||"mapa");
 Object.assign(VB, fitBox()); setVB();
 

@@ -119,6 +119,13 @@ export const METABOLIX_TEMPLATE = `<div class="app">
             <span class="mc-label">Estado fisiológico</span>
             <div class="states" id="states"></div>
           </div>
+          <div class="mc-mode">
+            <div class="seg-mode" id="predict-toggle" role="group" aria-label="Qué pasa al elegir un estado">
+              <button type="button" data-pm="view" aria-pressed="true">Ver directamente</button>
+              <button type="button" data-pm="predict" aria-pressed="false">Predecir primero</button>
+            </div>
+            <span class="mc-mode-hint" id="mc-mode-hint" aria-live="polite">Al elegir un estado, el mapa cambia al momento.</span>
+          </div>
         </div>
         <div class="map-frame">
         <svg id="map" role="img" aria-label="Mapa metabólico de una célula humana"></svg>
@@ -137,6 +144,7 @@ export const METABOLIX_TEMPLATE = `<div class="app">
         </div>
         <div class="hint">Arrastra para moverte, usa la rueda o pellizca para acercar, y toca una carretera o un cruce para ver su ficha</div>
         <div class="quiz" id="quiz" hidden></div>
+        <section class="predict" id="predict" hidden aria-live="polite"></section>
         </div>
       </section>
       <section class="view" id="view-tejidos" hidden></section>
