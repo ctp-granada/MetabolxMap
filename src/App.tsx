@@ -42,14 +42,14 @@ export default function App() {
         nameEl.textContent = firstName;
         nameEl.title = `${p.name} (${p.degree || 'Estudiante'} - ${p.course || ''})`;
       } else {
-        nameEl.textContent = 'Acceso alumno';
+        nameEl.textContent = "Acceso alumno";
         nameEl.title = 'Identificación del estudiante';
       }
     }
 
     const visitsEl = document.getElementById('hdr-visits-badge');
     if (visitsEl) {
-      visitsEl.textContent = `👁️ ${v.totalVisits}`;
+      visitsEl.textContent = `${v.totalVisits}`;
       visitsEl.title = `Visitas totales registradas a la plataforma: ${v.totalVisits} (Sesión #${v.studentVisits})`;
     }
   }, []);

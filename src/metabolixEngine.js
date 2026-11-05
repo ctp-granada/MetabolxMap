@@ -91,7 +91,7 @@ const STATES = [
   sig:{Insulina:.95,"Glucagón":.1,Adrenalina:.1,"AMP/ATP":.15,"Demanda NADPH":.55},
   pw:{glycolysis:.9,gluconeogenesis:0,pentose_phosphate:.6,glycogen_metabolism:.9,monosaccharide_entry:.45,mitochondrial_fate:.8,krebs_cycle:.7,electron_transport:.7,lipid_metabolism:.85},
   rx:{rx_gp:.04,rx_acc:.9,rx_fas:.9,rx_tag_synth:.75,rx_acyl_coa_synth:0,rx_cpt1:0,rx_cact_cpt2:0,rx_beta_oxidation:0,rx_ketogenesis:0,rx_glut_out:0,rx_ldh:.1,rx_pyruvate_carboxylase:.1,rx_oaa_export:0,rx_pepck:0,rx_g6pase:0,rx_fbpase1:0,rx_galk:.4,rx_galt:.4,rx_aldose_reductase_gal:.02},
-  notes:["La insulina activa la proteína fosfatasa 1: la glucógeno sintasa queda desfosforilada (activa) y la fosforilasa inactiva.","La PFK-2 desfosforilada fabrica fructosa-2,6-bisfosfato y la PFK-1 trabaja a pleno rendimiento.","CONTROL RECÍPROCO: La ACC1 fabrica Malonil-CoA que BLOQUEA AL 100% a la CPT-1 (Ki ≈ 2,7 µM). La síntesis de palmitato está activa y la β-oxidación apagada (evita ciclo fútil)."]},
+  notes:["La insulina activa la proteína fosfatasa 1: la glucógeno sintasa queda desfosforilada (activa) y la fosforilasa inactiva.","La PFK-2 desfosforilada fabrica fructosa-2,6-bisfosfato y la PFK-1 trabaja a pleno rendimiento.","Control recíproco: La ACC1 fabrica Malonil-CoA que bloquea al 100% a la CPT-1 (Ki ≈ 2,7 µM). La síntesis de palmitato está activa y la β-oxidación apagada (evita ciclo fútil)."]},
  {id:"fast",name:"Ayuno nocturno",tissue:"Hepatocito · 12–24 h",c:"var(--pw-gluconeogenesis)",
   sig:{Insulina:.12,"Glucagón":.85,Adrenalina:.3,"AMP/ATP":.35,"Demanda NADPH":.2},
   pw:{glycolysis:.08,gluconeogenesis:1,pentose_phosphate:.15,glycogen_metabolism:.05,monosaccharide_entry:.05,mitochondrial_fate:.4,krebs_cycle:.5,electron_transport:.8,lipid_metabolism:.05},
@@ -218,7 +218,7 @@ function pointAt(g,s){ const c=g.cum; let lo=0,hi=c.length-1; while(hi-lo>1){con
 /* ======================= Construcción del SVG ======================= */
 const svg = $("#map");
 const el = (tag, attrs={}, parent) => { const e=document.createElementNS(NS,tag); for(const k in attrs){ const v=attrs[k]; if((k==="fill"||k==="stroke")&&typeof v==="string"&&v.includes("var(")) e.style.setProperty(k,v); else e.setAttribute(k,v);} if(parent) parent.appendChild(e); return e; };
-let VB = {x:20,y:10,w:1760,h:1400};
+let VB = {x:-60,y:-190,w:1920,h:1720};
 const setVB = ()=>svg.setAttribute("viewBox",`${VB.x} ${VB.y} ${VB.w} ${VB.h}`);
 setVB(); svg.setAttribute("preserveAspectRatio","xMidYMid meet");
 
@@ -228,43 +228,64 @@ defs.innerHTML = `
  <filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14"/></filter>
  <radialGradient id="mitoFill" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="var(--mito-fill-a)" stop-opacity=".55"/><stop offset="1" stop-color="var(--mito-fill-b)" stop-opacity=".35"/></radialGradient>
  <radialGradient id="cellFill" cx="40%" cy="35%" r="75%"><stop offset="0" stop-color="var(--cell-a)" stop-opacity=".7"/><stop offset="1" stop-color="var(--cell-b)" stop-opacity=".2"/></radialGradient>
- <pattern id="chrom" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="4" cy="4" r="1.4" fill="var(--nuc)" opacity=".35"/><circle cx="11" cy="10" r="1" fill="var(--nuc)" opacity=".25"/></pattern>`;
+ <pattern id="chrom" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="9" stroke="var(--nuc)" stroke-width="1.2" opacity=".35"/></pattern>`;
 Object.entries(PW).forEach(([k,v])=>{
   defs.insertAdjacentHTML("beforeend",`<marker id="m-${k}" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${v.c}"/></marker>`);
 });
 
 cssify(defs);
-const gComp = el("g",{},svg), gEdges=el("g",{filter:"url(#glow)",class:"edges-g"},svg), gHits=el("g",{},svg), gPart=el("g",{},svg), gNodes=el("g",{},svg), gFx=el("g",{},svg);
+const gGrid = el("g",{class:"atlas-grid"},svg), gComp = el("g",{},svg), gCase=el("g",{class:"casing-g"},svg), gEdges=el("g",{filter:"url(#glow)",class:"edges-g"},svg), gHits=el("g",{},svg), gPart=el("g",{},svg), gNodes=el("g",{},svg), gFx=el("g",{},svg);
+
+
+/* cuadrícula de atlas: columnas A–L, filas 1–9 */
+const GRID = {x0:10, y0:-20, x1:1790, y1:1430, cols:12, rows:9};
+GRID.cw=(GRID.x1-GRID.x0)/GRID.cols; GRID.ch=(GRID.y1-GRID.y0)/GRID.rows;
+const gridRef=(x,y)=>{ const c=Math.min(GRID.cols-1,Math.max(0,Math.floor((x-GRID.x0)/GRID.cw))); const r=Math.min(GRID.rows-1,Math.max(0,Math.floor((y-GRID.y0)/GRID.ch))); return "ABCDEFGHIJKL"[c]+(r+1); };
+(function drawGrid(){
+  const {x0,y0,x1,y1,cols,rows,cw,ch}=GRID, B=11; let h="";
+  for(let i=1;i<cols;i++) h+=`<line class="grid-line" x1="${x0+i*cw}" y1="${y0}" x2="${x0+i*cw}" y2="${y1}"/>`;
+  for(let j=1;j<rows;j++) h+=`<line class="grid-line" x1="${x0}" y1="${y0+j*ch}" x2="${x1}" y2="${y0+j*ch}"/>`;
+  h+=`<rect class="grid-frame" x="${x0-B}" y="${y0-B}" width="${x1-x0+2*B}" height="${y1-y0+2*B}"/>`;
+  for(let i=0;i<cols;i++){ const x=x0+i*cw, f=i%2?"grid-band-a":"grid-band-b";
+    h+=`<rect class="${f}" x="${x}" y="${y0-B}" width="${cw}" height="${B}"/><rect class="${f}" x="${x}" y="${y1}" width="${cw}" height="${B}"/>`;
+    h+=`<text class="grid-lbl" x="${x+cw/2}" y="${y0-B-9}" text-anchor="middle">${"ABCDEFGHIJKL"[i]}</text><text class="grid-lbl" x="${x+cw/2}" y="${y1+B+25}" text-anchor="middle">${"ABCDEFGHIJKL"[i]}</text>`; }
+  for(let j=0;j<rows;j++){ const y=y0+j*ch, f=j%2?"grid-band-a":"grid-band-b";
+    h+=`<rect class="${f}" x="${x0-B}" y="${y}" width="${B}" height="${ch}"/><rect class="${f}" x="${x1}" y="${y}" width="${B}" height="${ch}"/>`;
+    h+=`<text class="grid-lbl" x="${x0-B-10}" y="${y+ch/2+7}" text-anchor="end">${j+1}</text><text class="grid-lbl" x="${x1+B+10}" y="${y+ch/2+7}">${j+1}</text>`; }
+  h+=`<rect class="grid-neat" x="${x0}" y="${y0}" width="${x1-x0}" height="${y1-y0}"/>`;
+  gGrid.innerHTML=h;
+})();
 
 /* compartimentos */
 gComp.innerHTML = `
- <text class="comp-lbl" x="1740" y="70" text-anchor="end">SANGRE · ESPACIO EXTRACELULAR</text>
- <rect x="60" y="112" width="1690" height="1268" rx="96" fill="url(#cellFill)" stroke="var(--cell-stroke)" stroke-width="12" stroke-opacity=".35"/>
- <rect x="60" y="112" width="1690" height="1268" rx="96" fill="none" stroke="var(--cell-line)" stroke-width="1.4" stroke-opacity=".55"/>
- <text class="comp-lbl" x="96" y="160">CITOSOL</text>
- <g opacity=".9"><rect x="540" y="98" width="40" height="28" rx="8" fill="var(--node-fill)" stroke="var(--pw-glycolysis)" stroke-opacity=".7"/><text class="lbl-c" x="586" y="117">GLUT</text></g>
- <g><rect x="380" y="98" width="40" height="28" rx="8" fill="var(--node-fill)" stroke="var(--pw-gluconeogenesis)" stroke-opacity=".7"/><text class="lbl-c" x="330" y="117">GLUT2</text></g>
- <ellipse cx="210" cy="1250" rx="140" ry="96" fill="url(#chrom)" stroke="var(--nuc)" stroke-opacity=".5" stroke-width="3"/>
- <ellipse cx="210" cy="1250" rx="140" ry="96" fill="var(--nuc)" opacity=".05"/>
- <text class="comp-lbl" x="150" y="1255">NÚCLEO</text>
- <circle cx="198" cy="858" r="74" fill="var(--pw-lipid)" fill-opacity=".07" stroke="var(--pw-lipid)" stroke-opacity=".35" stroke-width="1.5"/>
- <text class="comp-lbl" x="118" y="770" style="fill:var(--lipid-lbl)">GOTA LIPÍDICA</text>
+ <text class="comp-lbl" x="1740" y="70" text-anchor="end">Sangre · espacio extracelular</text>
+ <rect x="60" y="112" width="1690" height="1268" rx="96" fill="var(--cell-a)" stroke="var(--cell-stroke)" stroke-width="7" stroke-opacity=".22"/>
+ <rect x="60" y="112" width="1690" height="1268" rx="96" fill="none" stroke="var(--cell-line)" stroke-width="1.6"/>
+ <rect x="71" y="123" width="1668" height="1246" rx="86" fill="none" stroke="var(--cell-line)" stroke-width="1.1" stroke-dasharray="16 5 2 5" stroke-opacity=".7"/>
+ <text class="comp-lbl comp-region" x="100" y="166">Citosol</text>
+ <g opacity=".9"><rect x="540" y="98" width="40" height="28" rx="3" fill="var(--node-fill)" stroke="var(--pw-glycolysis)" stroke-width="1.6"/><text class="lbl-c" x="586" y="117">GLUT</text></g>
+ <g><rect x="380" y="98" width="40" height="28" rx="3" fill="var(--node-fill)" stroke="var(--pw-gluconeogenesis)" stroke-width="1.6"/><text class="lbl-c" x="330" y="117">GLUT2</text></g>
+ <ellipse cx="210" cy="1250" rx="140" ry="96" fill="url(#chrom)" stroke="var(--nuc)" stroke-opacity=".7" stroke-width="1.6"/>
+ <ellipse cx="210" cy="1250" rx="140" ry="96" fill="var(--nuc)" opacity=".06"/>
+ <text class="comp-lbl comp-region" x="210" y="1256" text-anchor="middle">Núcleo</text>
+ <circle cx="198" cy="858" r="74" fill="var(--pw-lipid)" fill-opacity=".09" stroke="var(--pw-lipid)" stroke-opacity=".55" stroke-width="1.4"/>
+ <text class="comp-lbl comp-region" x="118" y="770" style="fill:var(--lipid-lbl)">Gota lipídica</text>
  <g id="granule" opacity=".75"></g>
  <g id="mito">
-  <rect x="770" y="700" width="945" height="645" rx="150" fill="url(#mitoFill)" stroke="var(--mito-stroke)" stroke-opacity=".5" stroke-width="3"/>
-  <path id="inner" d="" fill="none" stroke="var(--pw-mito)" stroke-opacity=".55" stroke-width="2.2"/>
-  <text class="comp-lbl" x="1112" y="760" style="fill:var(--mito-lbl)">MATRIZ MITOCONDRIAL</text>
-  <text class="comp-lbl" x="860" y="1325" style="fill:var(--mito-lbl)">ESPACIO INTERMEMBRANA</text>
-  <text id="nomito" class="comp-lbl" x="1242" y="1030" text-anchor="middle" style="fill:var(--pw-pentose);font-size:22px;letter-spacing:.12em" opacity="0">SIN MITOCONDRIAS EN EL ERITROCITO</text>
+  <rect x="770" y="700" width="945" height="645" rx="150" fill="var(--mito-fill-a)" stroke="var(--mito-stroke)" stroke-width="2" stroke-dasharray="1 5" stroke-linecap="round"/>
+  <path id="inner" d="" fill="none" stroke="var(--mito-stroke)" stroke-opacity=".8" stroke-width="1.6"/>
+  <text class="comp-lbl comp-region" x="1112" y="760" style="fill:var(--mito-lbl)">Matriz mitocondrial</text>
+  <text class="comp-lbl comp-region" x="860" y="1325" style="fill:var(--mito-lbl)">Espacio intermembrana</text>
+  <text id="nomito" class="comp-lbl comp-region" x="1242" y="1030" text-anchor="middle" style="fill:var(--pw-pentose);font-size:24px" opacity="0">Sin mitocondrias en el eritrocito</text>
  </g>
  <g id="lipid-zones">
-  <rect x="1145" y="525" width="530" height="74" rx="14" fill="var(--pw-lipid)" fill-opacity=".04" stroke="var(--pw-lipid)" stroke-opacity=".25" stroke-dasharray="4 4"/>
-  <text class="comp-lbl" x="1160" y="542" style="fill:var(--pw-lipid);font-size:10px">SÍNTESIS DE PALMITATO (CITOSOL · POSPRANDIAL)</text>
+  <rect x="1145" y="525" width="530" height="74" rx="4" fill="var(--pw-lipid)" fill-opacity=".05" stroke="var(--pw-lipid)" stroke-opacity=".4" stroke-dasharray="4 4"/>
+  <text class="comp-lbl" x="1160" y="542" style="fill:var(--lipid-lbl);font-size:12px">Síntesis de palmitato (citosol, posprandial)</text>
   <g id="map-malonyl-inh" style="transition:opacity .3s">
    <path d="M 1470 582 C 1470 670, 1530 670, 1595 670" fill="none" stroke="var(--danger)" stroke-width="2" stroke-dasharray="4 3"/>
    <line x1="1595" y1="663" x2="1595" y2="677" stroke="var(--danger)" stroke-width="3" stroke-linecap="round"/>
-   <rect x="1460" y="658" width="126" height="18" rx="4" fill="var(--bg-card)" stroke="var(--danger)" stroke-width="1" opacity="0.95"/>
-   <text x="1523" y="671" text-anchor="middle" class="lbl-c" style="fill:var(--danger);font-size:9.5px;font-weight:700">Malonil-CoA ⊣ CPT-1</text>
+   <rect x="1458" y="657" width="130" height="20" rx="3" fill="var(--node-fill)" stroke="var(--danger)" stroke-width="1.2"/>
+   <text x="1523" y="671" text-anchor="middle" class="lbl-c" style="fill:var(--danger);font-size:11px;font-weight:700">Malonil-CoA ⊣ CPT-1</text>
   </g>
  </g>`;
 cssify(gComp);
@@ -278,7 +299,7 @@ cssify(gComp);
   $("#inner").setAttribute("d",d);
   const g=$("#granule"); const [gx,gy]=L.glycogen;
   for(let i=0;i<34;i++){ const a=i*2.399, rr=8+Math.sqrt(i)*8.6; el("circle",{cx:gx+Math.cos(a)*rr,cy:gy+Math.sin(a)*rr,r:5.5-i*.06,fill:"var(--pw-glycogen)","fill-opacity":.16,stroke:"var(--pw-glycogen)","stroke-opacity":.35},g); }
-  el("text",{class:"comp-lbl",x:gx-40,y:gy+80,style:"fill:var(--gly-lbl)"},g).textContent="GRÁNULO";
+  el("text",{class:"comp-lbl comp-region",x:gx-40,y:gy+80,style:"fill:var(--gly-lbl)"},g).textContent="Gránulo";
 })();
 
 /* aristas */
@@ -286,6 +307,7 @@ const EDGES = [];
 RX.forEach(r=>{
   const g=geom(r); if(!g) return;
   const c=PW[r.pathway].c;
+  const cs=el("path",{d:g.d,class:"casing",fill:"none","stroke-linecap":"round"},gCase);
   const p=el("path",{d:g.d,class:"edge",fill:"none",stroke:c,"stroke-linecap":"round"},gEdges);
   if(r.id==="rx_malate_aspartate_shuttle") p.setAttribute("stroke-dasharray","2 9");
   const h=el("path",{d:g.d,class:"hit"},gHits);
@@ -293,7 +315,7 @@ RX.forEach(r=>{
   h.addEventListener("mouseenter",()=>p.classList.add("edge-hover"));
   h.addEventListener("mouseleave",()=>p.classList.remove("edge-hover"));
   const tt=el("title",{},h); tt.textContent=`${r.enzymeAbbreviation} · ${r.name}`;
-  EDGES.push({r,g,p,h,parts:[],f:0});
+  EDGES.push({r,g,p,cs,h,parts:[],f:0});
 });
 /* nodos */
 const NODES = {};
@@ -334,9 +356,10 @@ const PILL_T = {rx_g6pase:.68,rx_g6pdh:.62,rx_pyruvate_carboxylase:.33,rx_ketoge
 const shortAbbr = a => String(a||"").replace(/\s*\([^)]*\)/g,"").trim();
 function enzPill(parent,x,y,r,fs){
   const key=isKey(r), dz=!!(r.regulation&&r.regulation.clinical), txt=SHORT[r.id]||shortAbbr(r.enzymeAbbreviation);
-  const w=Math.round(txt.length*fs*.64+(key?fs*1.2:0)+fs*1.5), h=Math.round(fs*1.75);
+  const w=Math.round(txt.length*fs*.6+(key?fs*1.1:0)+fs*1.6), h=Math.round(fs*1.85);
   const g=el("g",{class:"enz pw-"+r.pathway+(key?" key":""),transform:`translate(${x.toFixed(1)} ${y.toFixed(1)})`,tabindex:"0",role:"button","aria-label":"Enzima "+r.enzymeName},parent);
-  const rc=el("rect",{x:-w/2,y:-h/2,width:w,height:h,rx:h/2},g); rc.style.fill=PW[r.pathway].c;
+  const rc=el("rect",{x:-w/2,y:-h/2,width:w,height:h,rx:3},g); rc.style.fill=PW[r.pathway].c;
+  el("rect",{class:"sign-inner",x:-w/2+2.2,y:-h/2+2.2,width:w-4.4,height:h-4.4,rx:1.6},g);
   const t=el("text",{x:0,y:fs*.36,"text-anchor":"middle",style:`font-size:${fs}px`},g);
   if(key){ const s=document.createElementNS(NS,"tspan"); s.setAttribute("class","star"); s.textContent="★ "; t.appendChild(s); }
   t.appendChild(document.createTextNode(txt));
@@ -364,8 +387,11 @@ function apply(){
     const isTissueIn = !tissueFilter || (TISSUE_PW_MAP[tissueFilter] && TISSUE_PW_MAP[tissueFilter].includes(E.r.pathway) && !isRxAbsentInTissue(E.r, tissueFilter));
     const inFocus = (!focusPw || E.r.pathway===focusPw) && isTissueIn;
     const on = a>0.02 && isTissueIn;
-    E.p.setAttribute("stroke-width", on ? (1.6+a*5.4).toFixed(2) : 1.3);
-    E.p.style.opacity = (!inFocus? .05 : on ? (.28+.72*a) : .16);
+    const sw = on ? 1.8+a*5.8 : 1.3;
+    E.p.setAttribute("stroke-width", sw.toFixed(2));
+    E.p.style.opacity = (!inFocus? .05 : on ? (.45+.55*a) : .3);
+    E.cs.setAttribute("stroke-width", on ? (sw+2.8).toFixed(2) : 0);
+    E.cs.style.opacity = (!inFocus? .04 : on ? (.35+.6*a) : 0);
     E.p.setAttribute("stroke-dasharray", E.r.id==="rx_malate_aspartate_shuttle" ? "2 9" : on? "" : "3 6");
     E.p.style.stroke = block===E.r.id ? "var(--danger)" : PW[E.r.pathway].c;
     const mk = `url(#m-${E.r.pathway})`;
@@ -383,7 +409,7 @@ function apply(){
     const a=act[N.m.id]||0;
     const isTissueNode = !tissueFilter || N.m.pathways.some(p => TISSUE_PW_MAP[tissueFilter]?.includes(p));
     const inFocus = (!focusPw || N.m.pathways.includes(focusPw)) && isTissueNode;
-    N.halo.style.opacity = (a*(document.documentElement.dataset.mode==="dark"?.55:.22)).toFixed(2);
+    N.halo.style.opacity = (a*(document.documentElement.dataset.mode==="dark"?.5:0)).toFixed(2);
     N.g.style.opacity = inFocus ? (a>0.02? 1 : .5) : .14;
   });
   $("#nomito").setAttribute("opacity", isRbc ? 1 : 0);
@@ -438,8 +464,8 @@ const endPtr=e=>{ ptrs.delete(e.pointerId); if(ptrs.size===0){ drag=null; svg.cl
 window.addEventListener("pointerup",endPtr); window.addEventListener("pointercancel",endPtr);
 function animVB(to,ms=550){ const from={...VB}, t0=performance.now(); if(RM) ms=0;
   (function st(t){ const k=ms?Math.min(1,(t-t0)/ms):1, e=1-Math.pow(1-k,3); for(const key in VB) VB[key]=from[key]+(to[key]-from[key])*e; setVB(); if(k<1) requestAnimationFrame(st); })(t0); }
-const FIT={x:20,y:-40,w:1760,h:1450};
-function fitBox(){ const a=svg.clientHeight/(svg.clientWidth||1); if(a>1.1) return {x:60,y:-40,w:980,h:980*a}; if(currentView==="reto") return {x:20,y:-260,w:1760,h:1680}; return {...FIT}; }
+const FIT={x:-60,y:-190,w:1920,h:1720};
+function fitBox(){ const a=svg.clientHeight/(svg.clientWidth||1); if(a>1.1) return {x:60,y:-40,w:980,h:980*a}; if(currentView==="reto") return {x:-40,y:-290,w:1880,h:1760}; return {...FIT}; }
 function focusXY(x,y,w=760){ const r=svg.clientHeight/svg.clientWidth||.7; const h=w*r; const pw=$("#panel").classList.contains("open")&&innerWidth>860?440:0;
   const shift = pw? (pw/svg.clientWidth)*w*.5 : 0; animVB({x:x-w/2+shift,y:y-h/2,w,h}); }
 $("#z-in").onclick=()=>{const b=svg.getBoundingClientRect(); zoomAt(.75,b.left+b.width/2,b.top+b.height/2);};
@@ -475,7 +501,7 @@ function buildRail(){
     bAll.className = "tissue-chip";
     bAll.dataset.tissue = "all";
     bAll.setAttribute("aria-pressed", String(!tissueFilter));
-    bAll.innerHTML = `<span class="tissue-chip-icon">🌐</span><span>Organismo completo</span>`;
+    bAll.innerHTML = `<span class="tissue-chip-icon">Org</span><span>Organismo completo</span>`;
     bAll.onclick = () => { tissueFilter = null; syncTissueChips(); apply(); };
     tc.appendChild(bAll);
 
@@ -484,7 +510,7 @@ function buildRail(){
     bUni.dataset.tissue = "universal";
     bUni.style.setProperty("--tc", TISSUE_COLORS.universal);
     bUni.setAttribute("aria-pressed", String(tissueFilter === "universal"));
-    bUni.innerHTML = `<span class="tissue-chip-icon">✨</span><span>Rutas Universales</span>`;
+    bUni.innerHTML = `<span class="tissue-chip-icon">Uni</span><span>Rutas universales</span>`;
     bUni.onclick = () => { tissueFilter = tissueFilter === "universal" ? null : "universal"; syncTissueChips(); apply(); };
     tc.appendChild(bUni);
 
@@ -495,7 +521,7 @@ function buildRail(){
       const col = TISSUE_COLORS[t.id] || "var(--accent)";
       b.style.setProperty("--tc", col);
       b.setAttribute("aria-pressed", String(tissueFilter === t.id));
-      b.innerHTML = `<span class="tissue-chip-icon">${t.icon}</span><span>${esc(t.name.split(" ")[0])}</span>`;
+      b.innerHTML = `<span class="tissue-chip-icon"></span><span>${esc(t.name.split(" ")[0])}</span>`;
       b.onclick = () => {
         tissueFilter = tissueFilter === t.id ? null : t.id;
         syncTissueChips();
@@ -638,8 +664,8 @@ function drawHud(){
   const tColor = TISSUE_COLORS[tissueFilter] || "var(--accent)";
   const tBadge = tissueFilter ? `<button class="pill" id="hud-tf" style="border-color:${tColor};background:color-mix(in srgb,${tColor} 12%,var(--ink-1))"><span class="dot" style="color:${tColor}"></span><b>Filtro:</b> ${esc(tName)} <span style="color:var(--fg-faint);margin-left:4px">✕</span></button>` : "";
   const fcBadge = flashcardMode
-    ? `<button class="pill active" id="hud-fc" style="border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 15%,var(--ink-1));pointer-events:auto" title="Modo Flashcard activo: clic para desactivar"><span class="dot" style="background:var(--accent)"></span><b>🎴 Flashcards: ACTIVO</b> <span style="margin-left:4px">✓</span></button>`
-    : `<button class="pill" id="hud-fc" style="border-color:var(--line);background:var(--ink-1);color:var(--fg-dim);pointer-events:auto" title="Activar Modo Estudio Flashcard (oculta nombres para memorizar)"><span class="dot" style="background:var(--fg-faint)"></span><b>🎴 Modo Flashcards</b> <span style="font-size:10px;opacity:0.8;margin-left:4px">Iniciar</span></button>`;
+    ? `<button class="pill active" id="hud-fc" style="border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 15%,var(--ink-1));pointer-events:auto" title="Modo Flashcard activo: clic para desactivar"><span class="dot" style="background:var(--accent)"></span><b>Flashcards: Activo</b> <span style="margin-left:4px">✓</span></button>`
+    : `<button class="pill" id="hud-fc" style="border-color:var(--line);background:var(--ink-1);color:var(--fg-dim);pointer-events:auto" title="Activar Modo Estudio Flashcard (oculta nombres para memorizar)"><span class="dot" style="background:var(--fg-faint)"></span><b>Modo Flashcards</b> <span style="font-size:10px;opacity:0.8;margin-left:4px">Iniciar</span></button>`;
 
   $("#hud").innerHTML = `<span class="pill"><span class="dot" style="color:${ST.c}"></span><b>${esc(ST.name)}</b><span style="color:var(--fg-dim)">${esc(ST.tissue)}</span></span>` +
    tBadge +
@@ -679,7 +705,7 @@ function openNextFlashcard() {
     const pt = pointAt(E.g, E.g.len / 2);
     focusXY(pt[0], pt[1], 820);
   }
-  toast(`🎴 Ficha ${deckIndex} de ${FLASHCARD_DECK.length}: Deduce la enzima y autoevalúate`);
+  toast(`Ficha ${deckIndex} de ${FLASHCARD_DECK.length}: Deduce la enzima y autoevalúate`);
 }
 
 function syncFlashcardBtn() {
@@ -730,7 +756,7 @@ function toggleFlashcardMode(forceState) {
       // Abre de inmediato una ficha de alto impacto pedagógico en el mapa celular
       openNextFlashcard();
     }
-    toast("🎴 Modo Estudio Flashcard ACTIVADO: Nombres ocultos. ¡Toca para revelar!");
+    toast("Modo Estudio Flashcard activado: Nombres ocultos. ¡Toca para revelar!");
   } else {
     if (currentPanelItem) {
       if (currentPanelItem.kind === "rx") openRx(currentPanelItem.id, currentPanelItem.fromDisease);
@@ -807,7 +833,7 @@ function setupFlashcardInteractions(container) {
           ? `✓ <b>¡Excelente retención!</b> Registrado en <b>${esc(pwName)}</b> (${updated.correct}/${updated.practiced} aciertos, ${updated.accuracyRate}%).`
           : `✕ <b>Anotado para repaso.</b> Registrado en <b>${esc(pwName)}</b> (${updated.correct}/${updated.practiced} aciertos, ${updated.accuracyRate}%).`;
       }
-      toast(isCorrect ? "🎯 ¡Acierto registrado en tus estadísticas!" : "📌 Guardado para repaso en tus estadísticas.");
+      toast(isCorrect ? "¡Acierto registrado en tus estadísticas!" : "Guardado para repaso en tus estadísticas.");
     };
 
     if (btnOk) btnOk.onclick = (e) => { e.stopPropagation(); handleEval(true); };
@@ -843,11 +869,11 @@ function openRx(id, fromDisease){
     flashcardBanner = `
       <div class="flashcard-study-banner">
         <div class="fc-banner-top">
-          <div class="fc-badge"><span class="fc-dot"></span><b>Modo Estudio Flashcard</b></div>
+          <div class="fc-badge"><span class="fc-dot"></span><b>Modo estudio Flashcard</b></div>
           <div class="fc-banner-actions">
-            <button type="button" class="fc-action-btn primary" id="fc-next-card" title="Practicar con la siguiente tarjeta flashcard">🎲 Siguiente Flashcard ▶</button>
-            <button type="button" class="fc-action-btn" id="fc-reveal-all" title="Revelar todos los nombres de esta ficha">👁️ Revelar todo</button>
-            <button type="button" class="fc-action-btn" id="fc-hide-all" title="Ocultar de nuevo para volver a memorizar">🔒 Ocultar</button>
+            <button type="button" class="fc-action-btn primary" id="fc-next-card" title="Practicar con la siguiente tarjeta flashcard">Siguiente Flashcard ▶</button>
+            <button type="button" class="fc-action-btn" id="fc-reveal-all" title="Revelar todos los nombres de esta ficha">Revelar todo</button>
+            <button type="button" class="fc-action-btn" id="fc-hide-all" title="Ocultar de nuevo para volver a memorizar">Ocultar</button>
           </div>
         </div>
         <p class="fc-banner-desc">
@@ -867,20 +893,20 @@ function openRx(id, fromDisease){
         <div class="flashcard-card-block" data-fc-block="title" style="margin-top:8px">
           <div class="fc-card-label">
             <span>¿Qué enzima cataliza este paso?</span>
-            <span style="font-size:10px;opacity:0.8">Toca para revelar 👁️</span>
+            <span style="font-size:10px;opacity:0.8">Toca para revelar </span>
           </div>
           <div class="fc-card-trigger">
-            <div class="fc-card-cover"><span class="fc-eye">👁️</span><span>Revelar nombre de la enzima</span></div>
+            <div class="fc-card-cover"><span class="fc-eye"><svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></span><span>Revelar nombre de la enzima</span></div>
             <div class="fc-card-secret p-title" style="margin:0">${esc(r.enzymeName)}</div>
           </div>
         </div>
         <div class="flashcard-card-block compact" data-fc-block="sub" style="margin-top:6px">
           <div class="fc-card-label">
             <span>Reacción química y código EC</span>
-            <span style="font-size:10px;opacity:0.8">Toca para revelar 👁️</span>
+            <span style="font-size:10px;opacity:0.8">Toca para revelar </span>
           </div>
           <div class="fc-card-trigger">
-            <div class="fc-card-cover" style="font-size:11.5px;padding:4px 10px"><span class="fc-eye">👁️</span><span>Revelar reacción</span></div>
+            <div class="fc-card-cover" style="font-size:11.5px;padding:4px 10px"><span class="fc-eye"><svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></span><span>Revelar reacción</span></div>
             <div class="fc-card-secret p-sub" style="margin:0">${esc(r.name)}${r.ecNumber?` · <span class="mono">${esc(r.ecNumber)}</span>`:""}</div>
           </div>
         </div>
@@ -891,18 +917,18 @@ function openRx(id, fromDisease){
       <div class="eq fc-eq" style="--pc:${c}">
         <div class="fc-eq-item" data-fc-block="sub_a" data-node="${A.id}" title="Toca para revelar sustrato (haz clic para navegar tras revelar)">
           <span class="fc-eq-label">Sustrato inicial</span>
-          <span class="fc-eq-cover">¿Sustrato? 👁️</span>
+          <span class="fc-eq-cover">¿Sustrato? </span>
           <span class="fc-eq-secret">${esc(A.abbreviation)}</span>
         </div>
         <span class="arrow">${r.reversible?"⇌":"⟶"}</span>
         <div class="fc-eq-item" data-fc-block="sub_b" data-node="${B.id}" title="Toca para revelar producto (haz clic para navegar tras revelar)">
           <span class="fc-eq-label">Producto formado</span>
-          <span class="fc-eq-cover">¿Producto? 👁️</span>
+          <span class="fc-eq-cover">¿Producto? </span>
           <span class="fc-eq-secret">${esc(B.abbreviation)}</span>
         </div>
         <div class="fc-eq-item" data-fc-block="enz_abbr" style="margin-left:auto" title="Toca para revelar siglas de la enzima">
           <span class="fc-eq-label">Enzima</span>
-          <span class="fc-eq-cover">¿Siglas? 👁️</span>
+          <span class="fc-eq-cover">¿Siglas? </span>
           <span class="fc-eq-secret">${esc(r.enzymeAbbreviation)}</span>
         </div>
       </div>
@@ -915,6 +941,7 @@ function openRx(id, fromDisease){
           <span class="tag">${esc(COMP[r.compartment]||r.compartment)}</span>
           ${reg&&reg.isKeyRegulator?'<span class="tag k">Punto de control</span>':""}
           ${r.reversible?'<span class="tag">Reversible</span>':'<span class="tag">Irreversible</span>'}
+          ${rxRef(r.id)?`<span class="tag grid-tag" title="Casilla del mapa">Casilla ${rxRef(r.id)}</span>`:""}
         </div>
         <h2 class="p-title">${esc(r.enzymeName)}</h2>
         <div class="p-sub">${esc(r.name)}${r.ecNumber?` · <span class="mono">${esc(r.ecNumber)}</span>`:""}</div>
@@ -936,7 +963,7 @@ function openRx(id, fromDisease){
     selfEvalBox = `
       <div class="fc-self-eval-box" id="fc-self-eval-box" data-pw="${r.pathway}">
         <div class="fc-eval-prompt">
-          <span class="fc-eval-title">🎯 Autoevaluación Activa</span>
+          <span class="fc-eval-title">Autoevaluación activa</span>
           <span class="fc-eval-sub">Tras revelar los nombres, ¿recordabas la enzima o sustratos?</span>
         </div>
         <div class="fc-eval-btns">
@@ -1008,7 +1035,7 @@ function openNode(id){
     return `<div class="fc-rx-button" data-fc-block="rx_${r.id}" data-rx="${r.id}" title="Toca para revelar o doble clic para abrir reacción">
       <span class="dot" style="color:${PW[r.pathway].c}"></span>
       <span style="font-weight:700;font-family:var(--f-mono)">${dir}</span>
-      <span class="fc-rx-cover">¿Enzima y conector? 👁️</span>
+      <span class="fc-rx-cover">¿Enzima y conector? </span>
       <span class="fc-rx-secret"><b>${esc(r.enzymeAbbreviation)}</b> · ${esc(partner?.abbreviation||"")}</span>
       <small>${esc(PW[r.pathway].name)}</small>
     </div>`;
@@ -1021,11 +1048,11 @@ function openNode(id){
     flashcardBanner = `
       <div class="flashcard-study-banner">
         <div class="fc-banner-top">
-          <div class="fc-badge"><span class="fc-dot"></span><b>Modo Estudio Flashcard</b></div>
+          <div class="fc-badge"><span class="fc-dot"></span><b>Modo estudio Flashcard</b></div>
           <div class="fc-banner-actions">
-            <button type="button" class="fc-action-btn primary" id="fc-next-card" title="Practicar con la siguiente tarjeta flashcard">🎲 Siguiente Flashcard ▶</button>
-            <button type="button" class="fc-action-btn" id="fc-reveal-all" title="Revelar todos los nombres de esta ficha">👁️ Revelar todo</button>
-            <button type="button" class="fc-action-btn" id="fc-hide-all" title="Ocultar de nuevo para volver a memorizar">🔒 Ocultar</button>
+            <button type="button" class="fc-action-btn primary" id="fc-next-card" title="Practicar con la siguiente tarjeta flashcard">Siguiente Flashcard ▶</button>
+            <button type="button" class="fc-action-btn" id="fc-reveal-all" title="Revelar todos los nombres de esta ficha">Revelar todo</button>
+            <button type="button" class="fc-action-btn" id="fc-hide-all" title="Ocultar de nuevo para volver a memorizar">Ocultar</button>
           </div>
         </div>
         <p class="fc-banner-desc">
@@ -1039,24 +1066,25 @@ function openNode(id){
         <div class="tags">
           <span class="tag">${esc(COMP[m.compartment]||m.compartment)}</span>
           ${m.isBranchPoint?'<span class="tag k">Encrucijada metabólica</span>':""}
+          ${L[m.id]?`<span class="tag grid-tag" title="Casilla del mapa">Casilla ${gridRef(L[m.id][0],L[m.id][1])}</span>`:""}
         </div>
         <div class="flashcard-card-block" data-fc-block="title" style="margin-top:8px">
           <div class="fc-card-label">
             <span>¿Qué metabolito intermedio es este?</span>
-            <span style="font-size:10px;opacity:0.8">Toca para revelar 👁️</span>
+            <span style="font-size:10px;opacity:0.8">Toca para revelar </span>
           </div>
           <div class="fc-card-trigger">
-            <div class="fc-card-cover"><span class="fc-eye">👁️</span><span>Revelar Metabolito</span></div>
+            <div class="fc-card-cover"><span class="fc-eye"><svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></span><span>Revelar metabolito</span></div>
             <div class="fc-card-secret p-title" style="color:${c};margin:0">${esc(m.name)}</div>
           </div>
         </div>
         <div class="flashcard-card-block compact" data-fc-block="sub" style="margin-top:6px">
           <div class="fc-card-label">
             <span>Abreviatura y fórmula</span>
-            <span style="font-size:10px;opacity:0.8">Toca para revelar 👁️</span>
+            <span style="font-size:10px;opacity:0.8">Toca para revelar </span>
           </div>
           <div class="fc-card-trigger">
-            <div class="fc-card-cover" style="font-size:11.5px;padding:4px 10px"><span class="fc-eye">👁️</span><span>Revelar abreviatura</span></div>
+            <div class="fc-card-cover" style="font-size:11.5px;padding:4px 10px"><span class="fc-eye"><svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></span><span>Revelar abreviatura</span></div>
             <div class="fc-card-secret p-sub mono" style="margin:0">${esc(m.abbreviation)}${m.formula?` · ${esc(m.formula)}`:""}</div>
           </div>
         </div>
@@ -1068,6 +1096,7 @@ function openNode(id){
         <div class="tags">
           <span class="tag">${esc(COMP[m.compartment]||m.compartment)}</span>
           ${m.isBranchPoint?'<span class="tag k">Encrucijada metabólica</span>':""}
+          ${L[m.id]?`<span class="tag grid-tag" title="Casilla del mapa">Casilla ${gridRef(L[m.id][0],L[m.id][1])}</span>`:""}
         </div>
         <h2 class="p-title" style="color:${c}">${esc(m.name)}</h2>
         <div class="p-sub mono">${esc(m.abbreviation)}${m.formula?` · ${esc(m.formula)}`:""}</div>
@@ -1080,7 +1109,7 @@ function openNode(id){
     selfEvalBox = `
       <div class="fc-self-eval-box" id="fc-self-eval-box" data-pw="${primaryPw}">
         <div class="fc-eval-prompt">
-          <span class="fc-eval-title">🎯 Autoevaluación Activa</span>
+          <span class="fc-eval-title">Autoevaluación activa</span>
           <span class="fc-eval-sub">Tras revelar el metabolito, ¿recordabas su estructura y función?</span>
         </div>
         <div class="fc-eval-btns">
@@ -1158,6 +1187,8 @@ function kinetics(k, color){
 }
 
 /* ======================= Búsqueda ======================= */
+function rxRef(id){ const E=EDGES.find(e=>e.r.id===id); if(!E) return ""; const [x,y]=pointAt(E.g,E.g.len/2); return gridRef(x,y); }
+function resRef(r){ if(r.kind==="node"&&L[r.id]) return gridRef(L[r.id][0],L[r.id][1]); if(r.kind==="rx"||r.kind==="dis") return rxRef(r.id); return ""; }
 let IDX = [
   ...D.METABOLITES.map(m=>({kind:"node",id:m.id,label:m.name,sub:m.abbreviation,c:PW[m.pathways[0]]?.c,txt:(m.name+" "+m.abbreviation).toLowerCase()})),
   ...RX.map(r=>({kind:"rx",id:r.id,label:r.enzymeName,sub:r.enzymeAbbreviation,c:PW[r.pathway].c,txt:(r.enzymeName+" "+r.enzymeAbbreviation+" "+r.name).toLowerCase()})),
@@ -1167,7 +1198,7 @@ const norm=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"");
 let hl=0, curRes=[];
 $("#q").addEventListener("input",()=>{ const q=norm($("#q").value.trim().toLowerCase()); const box=$("#results");
   if(!q){ box.hidden=true; return; } curRes=IDX.filter(i=>norm(i.txt).includes(q)).slice(0,12); hl=0;
-  box.innerHTML = curRes.length? curRes.map((r,i)=>`<button data-i="${i}" class="${i===0?"hl":""}"><span class="dot" style="color:${r.c}"></span><span>${esc(r.label)}</span><small>${({node:"metabolito",rx:"enzima",dis:"enfermedad",mnode:"metabolito · esquema",mrx:"enzima · esquema",mdis:"enfermedad · esquema",mod:"esquema",tissue:"especialización tisular"})[r.kind]||""}</small></button>`).join("") : `<div style="padding:10px;color:var(--fg-faint);font-size:12px">Sin resultados para «${esc($("#q").value)}»</div>`;
+  box.innerHTML = curRes.length? curRes.map((r,i)=>`<button data-i="${i}" class="${i===0?"hl":""}"><span class="dot" style="color:${r.c}"></span><span>${esc(r.label)}</span>${resRef(r)?`<span class="res-ref">${resRef(r)}</span>`:""}<small>${({node:"metabolito",rx:"enzima",dis:"enfermedad",mnode:"metabolito · esquema",mrx:"enzima · esquema",mdis:"enfermedad · esquema",mod:"esquema",tissue:"especialización tisular"})[r.kind]||""}</small></button>`).join("") : `<div style="padding:10px;color:var(--fg-faint);font-size:12px">Sin resultados para «${esc($("#q").value)}»</div>`;
   box.hidden=false; box.querySelectorAll("button").forEach(b=>b.onclick=()=>goRes(curRes[+b.dataset.i])); });
 $("#q").addEventListener("keydown",e=>{ const box=$("#results"); if(box.hidden||!curRes.length) return;
   if(e.key==="ArrowDown"||e.key==="ArrowUp"){ e.preventDefault(); hl=(hl+(e.key==="ArrowDown"?1:-1)+curRes.length)%curRes.length; box.querySelectorAll("button").forEach((b,i)=>b.classList.toggle("hl",i===hl)); }
@@ -1187,7 +1218,7 @@ let quiz=null;
 function shuffle(a){ const cp=[...a]; for(let i=cp.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[cp[i],cp[j]]=[cp[j],cp[i]];} return cp; }
 
 const BIOCHEM_QUESTIONS = [
-  // --- ACUMULACIÓN DE METABOLITOS (Identificar qué metabolito se acumula) ---
+  // --- acumulación de metabolitos (Identificar qué metabolito se acumula) ---
   {
     kind: "node", id: "f6p",
     concept: "Acumulación de metabolito",
@@ -1280,7 +1311,7 @@ const BIOCHEM_QUESTIONS = [
     explanation: "El lactato se acumula y sale al torrente sanguíneo hacia el hígado (ciclo de Cori), permitiendo que la GAPDH continúe operando a gran velocidad."
   },
 
-  // --- DÉFICIT DE PRODUCTO Y CONSECUENCIAS FUNCIONALES ---
+  // --- déficit de producto y consecuencias funcionales ---
   {
     kind: "node", id: "r5p",
     concept: "Consecuencia metabólica",
@@ -1310,7 +1341,7 @@ const BIOCHEM_QUESTIONS = [
     explanation: "La FBPasa-1 hidroliza el fosfato en C-1; su inhibición por fructosa-2,6-bisfosfato frena la síntesis neta de glucosa en el estado alimentado."
   },
 
-  // --- REGULACIÓN ENZIMÁTICA Y MARCAPASOS ---
+  // --- regulación enzimática y marcapasos ---
   {
     kind: "rx", id: "rx_pfk1",
     concept: "Regulación enzimática",
@@ -1420,7 +1451,7 @@ function renderQuiz(){
   const Q=$("#quiz"); if(!quiz){ Q.hidden=true; return; } Q.hidden=false;
   if(window.metabolixIsSurveyBlocked && window.metabolixIsSurveyBlocked()){
     Q.innerHTML=`<div class="quiz-top">
-      <span class="eyebrow" style="color:var(--warn);font-weight:700">🔒 Encuesta Requerida</span>
+      <span class="eyebrow" style="color:var(--warn);font-weight:700">Encuesta requerida</span>
       <span class="score" style="color:var(--warn);font-weight:700">3 Retos completados</span>
     </div>
     <div style="margin:14px 0 16px">
@@ -1432,7 +1463,7 @@ function renderQuiz(){
       </p>
     </div>
     <div class="row" style="gap:10px;flex-wrap:wrap">
-      <button class="btn pri" id="qz-open-survey" style="background:var(--accent);color:#fff">⭐ Rellenar Encuesta de Satisfacción (Obligatorio)</button>
+      <button class="btn pri" id="qz-open-survey" style="background:var(--accent);color:#fff">Rellenar encuesta de satisfacción (obligatorio)</button>
       <button class="btn" id="qz-exit">Volver al mapa</button>
     </div>`;
     const btnSurv=$("#qz-open-survey"); if(btnSurv) btnSurv.onclick=()=>{ if(window.metabolixOpenSurvey) window.metabolixOpenSurvey(true); };
@@ -1440,7 +1471,7 @@ function renderQuiz(){
     return;
   }
   if(quiz.done){ const pct=Math.round(quiz.score/quiz.qs.length*100);
-    Q.innerHTML=`<div class="quiz-top"><span class="eyebrow">Reto de Bioquímica General</span></div>
+    Q.innerHTML=`<div class="quiz-top"><span class="eyebrow">Reto de bioquímica general</span></div>
     <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap">
       <span class="big-score">${quiz.score}<span style="font-size:24px;color:var(--fg-faint)">/${quiz.qs.length}</span></span>
       <p style="margin:0;color:var(--fg-dim);max-width:44ch">
@@ -1548,9 +1579,9 @@ function renderShuttleComparisonSuite(currentShuttle, selectedSubstrateId){
   const isGlc = selectedSubstrateId === "glucose_aerobic";
   
   const tabs = [
-    { id: "glucose", label: "⚡ Rendimiento en Glucosa (32 vs 30 ATP)" },
-    { id: "matrix", label: "🔬 Matriz Comparativa Frente a Frente" },
-    { id: "clinical", label: "🏥 Bioquímica Tisular y Clínica" }
+    { id: "glucose", label: "Rendimiento en glucosa (32 vs 30 ATP)" },
+    { id: "matrix", label: "Matriz comparativa frente a frente" },
+    { id: "clinical", label: "Bioquímica tisular y clínica" }
   ];
   
   const navHtml = `<div class="clinical-nav-tabs" role="tablist">
@@ -1570,7 +1601,7 @@ function renderShuttleComparisonSuite(currentShuttle, selectedSubstrateId){
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px">
-          ${!isGlc ? `<button class="clinical-btn-ghost" data-select-glucose="true">⚡ Aplicar en D-Glucosa Aeróbica</button>` : `<span class="clinical-badge-active">D-Glucosa seleccionada</span>`}
+          ${!isGlc ? `<button class="clinical-btn-ghost" data-select-glucose="true">Aplicar en D-Glucosa aeróbica</button>` : `<span class="clinical-badge-active">D-Glucosa seleccionada</span>`}
         </div>
       </div>
 
@@ -1578,13 +1609,13 @@ function renderShuttleComparisonSuite(currentShuttle, selectedSubstrateId){
         <div class="clinical-card-box ${isMas ? 'active-shuttle' : ''}" data-card-sh="mas" title="Pulsa para activar la lanzadera malato-aspartato">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
             <div>
-              <span class="clinical-eyebrow">COMPLEJO I · MATRIZ</span>
+              <span class="clinical-eyebrow">Complejo I · matriz</span>
               <h4 style="margin:2px 0 0;font-size:17px;font-weight:700">Lanzadera Malato-Aspartato (MAS)</h4>
-              <p style="margin:2px 0 0;font-size:12px;color:var(--fg-dim)">Hígado, Miocardio (corazón) y Corteza Renal</p>
+              <p style="margin:2px 0 0;font-size:12px;color:var(--fg-dim)">Hígado, miocardio (corazón) y corteza renal</p>
             </div>
             <div style="text-align:right">
               <span style="font-family:var(--f-mono);font-size:28px;font-weight:800;color:${isMas ? '#059669' : 'var(--fg)'}">32</span>
-              <span style="display:block;font-size:10px;color:var(--fg-faint);text-transform:uppercase">ATP / Glucosa</span>
+              <span style="display:block;font-size:10px;color:var(--fg-faint);text-transform:uppercase">ATP / glucosa</span>
             </div>
           </div>
 
@@ -1624,13 +1655,13 @@ function renderShuttleComparisonSuite(currentShuttle, selectedSubstrateId){
         <div class="clinical-card-box ${!isMas ? 'active-shuttle' : ''}" data-card-sh="g3p" title="Pulsa para activar la lanzadera glicerol-3-fosfato">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
             <div>
-              <span class="clinical-eyebrow" style="color:${!isMas ? '#059669' : '#d97706'}">COENZIMA Q · CARA EXTERNA MMI</span>
+              <span class="clinical-eyebrow" style="color:${!isMas ? '#059669' : '#d97706'}">Coenzima Q · cara externa MMI</span>
               <h4 style="margin:2px 0 0;font-size:17px;font-weight:700">Lanzadera Glicerol-3-Fosfato (G3P)</h4>
               <p style="margin:2px 0 0;font-size:12px;color:var(--fg-dim)">Músculo esquelético rápido (IIb), Encéfalo y Grasa parda</p>
             </div>
             <div style="text-align:right">
               <span style="font-family:var(--f-mono);font-size:28px;font-weight:800;color:${!isMas ? '#059669' : '#d97706'}">30</span>
-              <span style="display:block;font-size:10px;color:var(--fg-faint);text-transform:uppercase">ATP / Glucosa (Δ = −2)</span>
+              <span style="display:block;font-size:10px;color:var(--fg-faint);text-transform:uppercase">ATP / glucosa (Δ = −2)</span>
             </div>
           </div>
 
@@ -1683,8 +1714,8 @@ function renderShuttleComparisonSuite(currentShuttle, selectedSubstrateId){
 
         <div class="clinical-breakdown-table">
           <div class="clinical-bt-head">
-            <span>Fase / Reacción</span>
-            <span>Rendimiento Base</span>
+            <span>Fase / reacción</span>
+            <span>Rendimiento base</span>
             <span>Vía Malato-Aspartato</span>
             <span>Vía Glicerol-3-P</span>
           </div>
@@ -1697,7 +1728,7 @@ function renderShuttleComparisonSuite(currentShuttle, selectedSubstrateId){
           <div class="clinical-bt-row highlight-row">
             <span><b>2 NADH citosólicos (GAPDH)</b></span>
             <span>2 mol NADH en citosol</span>
-            <b style="color:#059669">+5,0 ATP (vía Complejo I)</b>
+            <b style="color:#059669">+5,0 ATP (vía complejo I)</b>
             <b style="color:#d97706">+3,0 ATP (vía CoQ, −2 ATP)</b>
           </div>
           <div class="clinical-bt-row">
@@ -1725,7 +1756,7 @@ function renderShuttleComparisonSuite(currentShuttle, selectedSubstrateId){
             <b class="pos">+15,0 ATP</b>
           </div>
           <div class="clinical-bt-total">
-            <span><b>TOTAL NETO AERÓBICO</b></span>
+            <span><b>Total neto aeróbico</b></span>
             <span>Estequiometría P/O moderna</span>
             <b style="font-size:15px;color:#059669">32 ATP (100%)</b>
             <b style="font-size:15px;color:#d97706">30 ATP (93,8%)</b>
@@ -1737,55 +1768,55 @@ function renderShuttleComparisonSuite(currentShuttle, selectedSubstrateId){
     bodyHtml = `
       <div class="clinical-matrix-wrap">
         <div class="clinical-matrix-header">
-          <span>Parámetro Fisiológico y Bioquímico</span>
+          <span>Parámetro fisiológico y bioquímico</span>
           <span style="color:#059669">Lanzadera Malato-Aspartato (MAS)</span>
           <span style="color:#d97706">Lanzadera Glicerol-3-Fosfato (G3P)</span>
         </div>
 
         <div class="clinical-matrix-row">
-          <div><b>Rendimiento Neto de ATP (Glucosa)</b><small style="color:var(--fg-dim)">Balance aeróbico total por hexosa</small></div>
+          <div><b>Rendimiento neto de ATP (glucosa)</b><small style="color:var(--fg-dim)">Balance aeróbico total por hexosa</small></div>
           <div><b style="color:#059669">32 ATP</b> <span style="font-size:11px;color:var(--fg-dim)">(rendimiento máximo del 100%)</span></div>
           <div><b style="color:#d97706">30 ATP</b> <span style="font-size:11px;color:var(--fg-dim)">(pérdida neta de 2 ATP por glucosa)</span></div>
         </div>
 
         <div class="clinical-matrix-row">
-          <div><b>Rendimiento por NADH Citosólico</b><small style="color:var(--fg-dim)">Equivalente en fosforilación oxidativa</small></div>
+          <div><b>Rendimiento por NADH citosólico</b><small style="color:var(--fg-dim)">Equivalente en fosforilación oxidativa</small></div>
           <div><b>2,5 ATP / NADH</b> <span style="font-size:11px;color:var(--fg-dim)">(5,0 ATP por 2 NADH de GAPDH)</span></div>
           <div><b>1,5 ATP / NADH</b> <span style="font-size:11px;color:var(--fg-dim)">(3,0 ATP por 2 NADH de GAPDH)</span></div>
         </div>
 
         <div class="clinical-matrix-row">
           <div><b>Punto de Entrada en Cadena de e⁻</b><small style="color:var(--fg-dim)">Aceptor inicial del par de electrones</small></div>
-          <div><b>Complejo I (NADH Deshidrogenasa)</b><br><small style="color:var(--fg-dim)">El NADH se regenera intacto en la matriz</small></div>
-          <div><b>Coenzima Q / Pool Q (Ubiquinona)</b><br><small style="color:var(--fg-dim)">Vía FAD unido a la enzima GPD2 (salta Complejo I)</small></div>
+          <div><b>Complejo I (NADH deshidrogenasa)</b><br><small style="color:var(--fg-dim)">El NADH se regenera intacto en la matriz</small></div>
+          <div><b>Coenzima Q / pool Q (ubiquinona)</b><br><small style="color:var(--fg-dim)">Vía FAD unido a la enzima GPD2 (salta Complejo I)</small></div>
         </div>
 
         <div class="clinical-matrix-row">
-          <div><b>Protones Bombeados (H⁺)</b><small style="color:var(--fg-dim)">Fuerza protón-motriz por par de electrones</small></div>
+          <div><b>Protones bombeados (H⁺)</b><small style="color:var(--fg-dim)">Fuerza protón-motriz por par de electrones</small></div>
           <div><b>10 H⁺ bombeados</b><br><small style="color:var(--fg-dim)">4 H⁺ (CI) + 4 H⁺ (CIII) + 2 H⁺ (CIV)</small></div>
           <div><b>6 H⁺ bombeados</b><br><small style="color:var(--fg-dim)">0 H⁺ (salta CI) + 4 H⁺ (CIII) + 2 H⁺ (CIV)</small></div>
         </div>
 
         <div class="clinical-matrix-row">
-          <div><b>Enzimas Citosólica y Mitocondrial</b><small style="color:var(--fg-dim)">Isoenzimas que acoplan el flujo redox</small></div>
+          <div><b>Enzimas citosólica y mitocondrial</b><small style="color:var(--fg-dim)">Isoenzimas que acoplan el flujo redox</small></div>
           <div><b>MDH1 / MDH2 y AST1 / AST2</b><br><small style="color:var(--fg-dim)">Malato deshidrogenasas + Aspartato aminotransferasas</small></div>
           <div><b>GPD1 y GPD2</b><br><small style="color:var(--fg-dim)">Glicerol-3-P deshidrogenasas citosólica (NAD⁺) y mitocondrial (FAD)</small></div>
         </div>
 
         <div class="clinical-matrix-row">
-          <div><b>Transportadores de Membrana Interna</b><small style="color:var(--fg-dim)">Sistemas de translocación en MMI</small></div>
-          <div><b>Doble Antiporte: OGC + AGC1/Citrina</b><br><small style="color:var(--fg-dim)">OGC (SLC25A11, malato/α-KG) y AGC (SLC25A12/13, asp/glu+H⁺)</small></div>
+          <div><b>Transportadores de membrana interna</b><small style="color:var(--fg-dim)">Sistemas de translocación en MMI</small></div>
+          <div><b>Doble antiporte: OGC + AGC1/Citrina</b><br><small style="color:var(--fg-dim)">OGC (SLC25A11, malato/α-KG) y AGC (SLC25A12/13, asp/glu+H⁺)</small></div>
           <div><b>Ninguno requerido</b><br><small style="color:var(--fg-dim)">GPD2 expuesta a cara externa de MMI; metabolitos cruzan porinas de MME</small></div>
         </div>
 
         <div class="clinical-matrix-row">
-          <div><b>Distribución Tisular Clave</b><small style="color:var(--fg-dim)">Órganos donde predomina la lanzadera</small></div>
-          <div><b>Hígado, Miocardio (corazón) y Riñón</b><br><small style="color:var(--fg-dim)">Tejidos estrictamente aeróbicos con máxima exigencia energética</small></div>
+          <div><b>Distribución tisular clave</b><small style="color:var(--fg-dim)">Órganos donde predomina la lanzadera</small></div>
+          <div><b>Hígado, miocardio (corazón) y riñón</b><br><small style="color:var(--fg-dim)">Tejidos estrictamente aeróbicos con máxima exigencia energética</small></div>
           <div><b>Músculo esquelético rápido (IIb), Cerebro y Grasa parda</b><br><small style="color:var(--fg-dim)">Tejidos de respuesta veloz, explosiva o termogénica</small></div>
         </div>
 
         <div class="clinical-matrix-row">
-          <div><b>Cinética y Control Fisiológico</b><small style="color:var(--fg-dim)">Reversibilidad y efectores alostéricos</small></div>
+          <div><b>Cinética y control fisiológico</b><small style="color:var(--fg-dim)">Reversibilidad y efectores alostéricos</small></div>
           <div><b>Reversible in vitro; impulsada por ΔΨm</b><br><small style="color:var(--fg-dim)">El gradiente electroquímico impulsa el simporte electrogénico aspartato/H⁺</small></div>
           <div><b>Irreversible (ΔG°′ ≈ −43 kJ/mol); estimulada por Ca²⁺</b><br><small style="color:var(--fg-dim)">Dominios EF-hand de GPD2 captan Ca²⁺ citosólico durante la contracción</small></div>
         </div>
@@ -1796,29 +1827,29 @@ function renderShuttleComparisonSuite(currentShuttle, selectedSubstrateId){
       <div class="clinical-dis-grid">
         <div class="clinical-dis-card">
           <div class="clinical-dis-head">
-            <span class="clinical-tag-danger">Gen SLC25A13 · Autosómica Recesiva</span>
-            <h4>Citrulinemia Tipo II (CTLN2) & Déficit de Citrina</h4>
+            <span class="clinical-tag-danger">Gen SLC25A13 · autosómica recesiva</span>
+            <h4>Citrulinemia tipo II (CTLN2) & déficit de citrina</h4>
           </div>
           <p>
             La citrina es la isoforma hepática del transportador aspartato-glutamato (AGC2). Su mutación colapsa la lanzadera malato-aspartato en el hepatocito, impidiendo la exportación de aspartato mitocondrial al citosol.
           </p>
           <div class="clinical-bullet-list">
-            <div><b>Mecanismo Patogénico:</b> Acúmulo masivo de NADH citosólico (relación NADH/NAD⁺ desproporcionada) que inhibe la GAPDH y bloquea el ciclo de la urea en el paso de la ASS1.</div>
-            <div><b>Clínica Clásica:</b> Crisis recurrentes de hiperamonemia con encefalopatía en adultos jóvenes, delirio, conductas maníacas, hepatomegalia y esteatosis hepática.</div>
-            <div><b>Signo Cardinal:</b> Aversión innata y peculiar a alimentos ricos en hidratos de carbono (dulces, arroz) y preferencia compulsiva por alimentos ricos en grasas y proteínas.</div>
+            <div><b>Mecanismo patogénico:</b> Acúmulo masivo de NADH citosólico (relación NADH/NAD⁺ desproporcionada) que inhibe la GAPDH y bloquea el ciclo de la urea en el paso de la ASS1.</div>
+            <div><b>Clínica clásica:</b> Crisis recurrentes de hiperamonemia con encefalopatía en adultos jóvenes, delirio, conductas maníacas, hepatomegalia y esteatosis hepática.</div>
+            <div><b>Signo cardinal:</b> Aversión innata y peculiar a alimentos ricos en hidratos de carbono (dulces, arroz) y preferencia compulsiva por alimentos ricos en grasas y proteínas.</div>
           </div>
         </div>
 
         <div class="clinical-dis-card">
           <div class="clinical-dis-head">
-            <span class="clinical-tag-danger">Gen SLC25A12 · Autosómica Recesiva</span>
-            <h4>Encefalopatía Hipomielinizante por Déficit de Aralar1 (AGC1)</h4>
+            <span class="clinical-tag-danger">Gen SLC25A12 · autosómica recesiva</span>
+            <h4>Encefalopatía hipomielinizante por déficit de Aralar1 (AGC1)</h4>
           </div>
           <p>
             Aralar1 (AGC1) es la isoforma predominante en neuronas y oligodendrocitos cerebrales. Se encarga de translocar el aspartato necesario para sintetizar N-acetilaspartato (NAA).
           </p>
           <div class="clinical-bullet-list">
-            <div><b>Fisiopatología Cerebral:</b> Sin Aralar1, el cerebro carece de aspartato citosólico para fabricar NAA, el precursor obligado de los lípidos que estructuran la vaina de mielina.</div>
+            <div><b>Fisiopatología cerebral:</b> Sin Aralar1, el cerebro carece de aspartato citosólico para fabricar NAA, el precursor obligado de los lípidos que estructuran la vaina de mielina.</div>
             <div><b>Manifestaciones:</b> Microcefalia progresiva en los primeros meses de vida, epilepsia precoz refractaria a fármacos y ausencia de adquisición de hitos motores.</div>
             <div><b>Neuroimagen:</b> Hipomielinización cerebral global severa y colapso del pico de NAA en la espectroscopia por resonancia magnética (¹H-MRS).</div>
           </div>
@@ -1826,29 +1857,29 @@ function renderShuttleComparisonSuite(currentShuttle, selectedSubstrateId){
 
         <div class="clinical-dis-card">
           <div class="clinical-dis-head">
-            <span class="clinical-tag-warn">Oncología Molecular · Efecto Warburg</span>
-            <h4>Reprogramación Tumoral: Sobreexpresión de GPD2 en Glioblastoma</h4>
+            <span class="clinical-tag-warn">Oncología molecular · efecto Warburg</span>
+            <h4>Reprogramación tumoral: Sobreexpresión de GPD2 en glioblastoma</h4>
           </div>
           <p>
             Las células cancerosas de alta malignidad enfrentan una enorme producción de NADH por la glucólisis aeróbica desbocada. Para evitar el bloqueo de la GAPDH, muchas líneas tumorales sobreexpresan GPD2.
           </p>
           <div class="clinical-bullet-list">
-            <div><b>Ventaja de Selección:</b> Al estar anclada a la cara externa de la membrana mitocondrial interna, la GPD2 reoxida el NADH citosólico a velocidad instantánea sin la limitación de transportadores de metabolitos.</div>
-            <div><b>Diana Terapéutica:</b> Moléculas inhibidoras selectivas de GPD2 (iGPD2) están en investigación preclínica para forzar el agotamiento de NAD⁺ en tumores sólidos y revertir la ventaja proliferativa.</div>
+            <div><b>Ventaja de selección:</b> Al estar anclada a la cara externa de la membrana mitocondrial interna, la GPD2 reoxida el NADH citosólico a velocidad instantánea sin la limitación de transportadores de metabolitos.</div>
+            <div><b>Diana terapéutica:</b> Moléculas inhibidoras selectivas de GPD2 (iGPD2) están en investigación preclínica para forzar el agotamiento de NAD⁺ en tumores sólidos y revertir la ventaja proliferativa.</div>
           </div>
         </div>
 
         <div class="clinical-dis-card">
           <div class="clinical-dis-head">
-            <span class="clinical-tag-warn">Acoplamiento Electromecánico</span>
-            <h4>Sensibilidad al Calcio (Ca²⁺) de la GPD2 & Hipertermia Maligna</h4>
+            <span class="clinical-tag-warn">Acoplamiento electromecánico</span>
+            <h4>Sensibilidad al calcio (Ca²⁺) de la GPD2 & hipertermia maligna</h4>
           </div>
           <p>
             A diferencia de la lanzadera de malato-aspartato, la GPD2 mitocondrial posee dominios reguladores EF-hand orientados al espacio intermembrana que reconocen directamente iones de calcio libre.
           </p>
           <div class="clinical-bullet-list">
-            <div><b>Sincronización Funcional:</b> Durante el ejercicio intenso, el Ca²⁺ liberado por el retículo sarcoplásmico se une a la GPD2 y la hiperactiva inmediatamente, coordinando la glucólisis rápida con la respiración celular.</div>
-            <div><b>Relevancia en Hipertermia Maligna:</b> Mutaciones en el canal RYR1 provocan liberación incontrolada de Ca²⁺, que hiperestimula a la GPD2 y a la glucogenólisis, produciendo un hipermetabolismo fulminante con acidosis y fiebre extrema.</div>
+            <div><b>Sincronización funcional:</b> Durante el ejercicio intenso, el Ca²⁺ liberado por el retículo sarcoplásmico se une a la GPD2 y la hiperactiva inmediatamente, coordinando la glucólisis rápida con la respiración celular.</div>
+            <div><b>Relevancia en hipertermia maligna:</b> Mutaciones en el canal RYR1 provocan liberación incontrolada de Ca²⁺, que hiperestimula a la GPD2 y a la glucogenólisis, produciendo un hipermetabolismo fulminante con acidosis y fiebre extrema.</div>
           </div>
         </div>
       </div>
@@ -1859,10 +1890,10 @@ function renderShuttleComparisonSuite(currentShuttle, selectedSubstrateId){
     <div class="clinical-shuttle-suite">
       <div class="clinical-head">
         <div>
-          <span class="clinical-eyebrow">DASHBOARD CLÍNICO DE LANZADERAS · REGULACIÓN BIOENERGÉTICA</span>
-          <h3>Comparativa de Lanzaderas: Malato-Aspartato (MAS) vs. Glicerol-3-Fosfato (G3P)</h3>
+          
+          <h3>Dos lanzaderas, dos rendimientos</h3>
           <p>
-            La membrana mitocondrial interna es impermeable al NADH citosólico producido por la GAPDH. El organismo dispone de dos circuitos de transporte con rendimientos energéticos diferentes: <b>32 ATP</b> (máxima economía) frente a <b>30 ATP</b> (máxima velocidad).
+            El NADH que fabrica la GAPDH en el citosol no atraviesa la membrana mitocondrial interna. Sus electrones entran por la lanzadera malato-aspartato (<b>32 ATP</b> por glucosa, la vía económica) o por la del glicerol-3-fosfato (<b>30 ATP</b>, la vía rápida).
           </p>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
@@ -2064,7 +2095,7 @@ const MNODES = {
  lp_enoyl:{name:"L-3-Hidroxiacil-CoA",abbreviation:"3-HO-Acil-CoA",carbons:16,compartment:"mitochondria_matrix",pw:"lipid_metabolism",description:"Intermediario hidratado; sufre la 2ª deshidrogenación rindiendo NADH."},
  lp_thiol:{name:"β-Cetoacil-CoA",abbreviation:"Cetoacil-CoA",carbons:16,compartment:"mitochondria_matrix",pw:"lipid_metabolism",description:"Sustrato de la tiolasa para escisión tiolítica dependiente de CoA-SH."},
  lp_acoa_m:{name:"Acetil-CoA mitocondrial liberada",abbreviation:"Acetil-CoA",carbons:2,compartment:"mitochondria_matrix",pw:"krebs_cycle",description:"8 moléculas de acetil-CoA generadas por cada palmitato (16C) para el Ciclo de Krebs o Cetogénesis."},
- lp_krebs:{name:"Ciclo de Krebs & Cuerpos Cetónicos",abbreviation:"Krebs / Cetonas",carbons:0,compartment:"mitochondria_matrix",pw:"krebs_cycle",description:"Destinos finales para la producción de ATP o exportación de cetonas al encéfalo."}
+ lp_krebs:{name:"Ciclo de Krebs & cuerpos cetónicos",abbreviation:"Krebs / Cetonas",carbons:0,compartment:"mitochondria_matrix",pw:"krebs_cycle",description:"Destinos finales para la producción de ATP o exportación de cetonas al encéfalo."}
 };
 
 const MRX_LIST = [
@@ -2120,7 +2151,7 @@ const MRX_LIST = [
    clin("Déficit de N-acetilglutamato sintasa","Autosómica recesiva (gen NAGS)","Sin NAG la CPS1 está prácticamente inactiva y el amonio no entra en el ciclo.",["Hiperamonemia neonatal o de inicio tardío","Vómitos, letargia, coma"],["Amonio y glutamina elevados","Citrulina baja","Ácido orótico urinario normal"],["Ácido carglúmico (análogo del NAG): corrige el defecto","Dieta controlada en proteínas durante las crisis"]),true)},
  {id:"u_cps1",module:"urea",name:"Síntesis de carbamoil fosfato",enzymeName:"Carbamoil fosfato sintetasa I (CPS1)",enzymeAbbreviation:"CPS1",ecNumber:"EC 6.3.4.16",fromNodeId:"u_nh4",toNodeId:"u_cp",reversible:false,pathway:"urea_cycle",compartment:"mitochondria_matrix",
   cofactorsConsumed:["2 ATP","HCO₃⁻","NH₄⁺"],cofactorsProduced:["2 ADP","Pi"],
-  pathWayNotes:"PASO LIMITANTE DEL CICLO. No confundir con la CPS2 citosólica, que usa glutamina y fabrica pirimidinas.",
+  pathWayNotes:"Paso limitante del ciclo. No confundir con la CPS2 citosólica, que usa glutamina y fabrica pirimidinas.",
   regulation:regOf([eff("N-Acetilglutamato","activator","Activador alostérico obligado: sin él la CPS1 no funciona.","Requisito absoluto")],
    clin("Déficit de carbamoil fosfato sintetasa I","Autosómica recesiva (gen CPS1)","Bloquea la entrada del amonio en el ciclo: es la forma más grave de hiperamonemia neonatal.",["Rechazo de tomas, vómitos y letargia en los primeros días","Hiperventilación con alcalosis respiratoria","Convulsiones y coma"],["Amonio > 150 µmol/L","Glutamina elevada, citrulina baja","Ácido orótico bajo o normal (lo distingue del déficit de OTC)"],["Retirar proteínas y aportar calorías (glucosa y lípidos)","Benzoato sódico y fenilbutirato sódico","Arginina o citrulina","Hemodiálisis si el amonio es muy alto","Trasplante hepático"]),true)},
  {id:"u_otc",module:"urea",name:"Formación de citrulina",enzymeName:"Ornitina transcarbamilasa (OTC)",enzymeAbbreviation:"OTC",ecNumber:"EC 2.1.3.3",fromNodeId:"u_cp",toNodeId:"u_cit_m",reversible:false,pathway:"urea_cycle",compartment:"mitochondria_matrix",
@@ -2159,7 +2190,7 @@ const MRX_LIST = [
   regulation:regOf([],clin("Déficit de β-cetotiolasa (T2)","Autosómica recesiva (gen ACAT1)","Falla la ruptura del acetoacetil-CoA en los tejidos periféricos y el último paso de la degradación de la isoleucina.",["Crisis de cetoacidosis grave con infecciones o ayuno, sobre todo entre los 6 y 24 meses","Vómitos, deshidratación, taquipnea","Asintomático entre crisis"],["Cetonemia muy alta con acidosis","2-Metil-3-hidroxibutirato y tiglilglicina en orina"],["Evitar el ayuno","Glucosa intravenosa y bicarbonato en las crisis","Dieta moderada en proteínas"]))},
  {id:"k_hmgcs2",module:"keto",name:"Síntesis de HMG-CoA mitocondrial",enzymeName:"HMG-CoA sintasa mitocondrial (HMGCS2)",enzymeAbbreviation:"HMGCS2",ecNumber:"EC 2.3.3.10",fromNodeId:"k_aacoa",toNodeId:"k_hmg",reversible:false,pathway:"lipid_metabolism",compartment:"mitochondria_matrix",
   cofactorsConsumed:["Acetil-CoA","H₂O"],cofactorsProduced:["CoA"],
-  pathWayNotes:"PASO LIMITANTE DE LA CETOGÉNESIS. Se expresa casi solo en el hígado (y en el epitelio intestinal del recién nacido).",
+  pathWayNotes:"Paso limitante de la cetogénesis. Se expresa casi solo en el hígado (y en el epitelio intestinal del recién nacido).",
   regulation:{isKeyRegulator:true,allostericEffectors:[eff("Succinil-CoA","inhibitor","Succinila la enzima y la inactiva; la desacilasa SIRT5 revierte la modificación.")],
    covalent:{hasCovalentRegulation:true,activeForm:"Inducida y desuccinilada",inactiveForm:"Reprimida o succinilada",activatingHormone:"Glucagón, ayuno y dieta cetogénica: el factor PPARα activa la transcripción del gen HMGCS2.",inactivatingHormone:"Insulina: reprime su transcripción en el estado alimentado.",mechanism:"El control es sobre todo transcripcional: la cantidad de enzima se multiplica en horas de ayuno."},
    clinical:clin("Déficit de HMG-CoA sintasa 2","Autosómica recesiva (gen HMGCS2)","El hígado no puede fabricar cuerpos cetónicos: en ayuno el cerebro se queda sin combustible alternativo a la glucosa.",["Hipoglucemia hipocetósica con el ayuno o infecciones, en los primeros años","Hepatomegalia y encefalopatía","Asintomático fuera de las crisis"],["Cuerpos cetónicos inapropiadamente bajos con ácidos grasos libres altos","Perfil de acilcarnitinas normal (lo distingue de los defectos de β-oxidación)"],["Evitar el ayuno prolongado","Aporte de hidratos de carbono en las enfermedades intercurrentes"])}},
@@ -2183,7 +2214,7 @@ const MRX_LIST = [
   pathWayNotes:"Genera un NADH (≈2,5 ATP): por eso el β-hidroxibutirato rinde algo más que el acetoacetato."},
  {id:"k_scot",module:"keto",name:"Activación del acetoacetato",enzymeName:"Succinil-CoA:3-cetoácido CoA transferasa (SCOT, OXCT1)",enzymeAbbreviation:"SCOT",ecNumber:"EC 2.8.3.5",fromNodeId:"kt_acac",toNodeId:"kt_aacoa",reversible:true,pathway:"lipid_metabolism",compartment:"mitochondria_matrix",
   cofactorsConsumed:["Succinil-CoA"],cofactorsProduced:["Succinato"],
-  pathWayNotes:"PASO CLAVE DE LA CETÓLISIS. Toma el CoA del succinil-CoA, que así no rinde su GTP en el ciclo de Krebs. El hígado no la expresa.",
+  pathWayNotes:"Paso clave de la cetólisis. Toma el CoA del succinil-CoA, que así no rinde su GTP en el ciclo de Krebs. El hígado no la expresa.",
   regulation:regOf([],clin("Déficit de SCOT","Autosómica recesiva (gen OXCT1)","Los tejidos no pueden usar los cuerpos cetónicos, que se acumulan aunque el hígado los produzca a ritmo normal.",["Crisis recurrentes de cetoacidosis grave desde la lactancia","Cetosis permanente incluso tras comer en las formas graves","Taquipnea, vómitos, letargia"],["Cetonemia elevada con glucemia normal o alta","Actividad SCOT reducida en fibroblastos"],["Evitar el ayuno","Glucosa y bicarbonato intravenosos en las crisis","Dieta moderada en proteínas y grasas"]))},
  {id:"k_thl_t",module:"keto",name:"Ruptura del acetoacetil-CoA",enzymeName:"Acetoacetil-CoA tiolasa mitocondrial (T2, ACAT1)",enzymeAbbreviation:"Tiolasa",ecNumber:"EC 2.3.1.9",fromNodeId:"kt_aacoa",toNodeId:"kt_acoa",reversible:true,pathway:"lipid_metabolism",compartment:"mitochondria_matrix",
   cofactorsConsumed:["CoA"],cofactorsProduced:["2 Acetil-CoA"],
@@ -2258,7 +2289,7 @@ const MRX_LIST = [
   pathWayNotes:"Genera 1 NADH (≈2,5 ATP) y escinde un Acetil-CoA acortando la cadena en 2 carbonos."},
  {id:"l_out",module:"lipids",name:"Rendimiento final de Acetil-CoA",enzymeName:"Liberación de 8 Acetil-CoA",enzymeAbbreviation:"8 Acetil-CoA",fromNodeId:"lp_thiol",toNodeId:"lp_acoa_m",reversible:false,pathway:"lipid_metabolism",compartment:"mitochondria_matrix",
   pathWayNotes:"Tras 7 ciclos completos de la espiral, 1 palmitato (16C) rinde 8 Acetil-CoA, 7 FADH₂ y 7 NADH (106 ATP netos)."},
- {id:"l_tca",module:"lipids",name:"Destino en Krebs y Cetogénesis",enzymeName:"Citrato sintasa / HMGCS2",enzymeAbbreviation:"Krebs / Cetonas",fromNodeId:"lp_acoa_m",toNodeId:"lp_krebs",reversible:false,pathway:"krebs_cycle",compartment:"mitochondria_matrix",
+ {id:"l_tca",module:"lipids",name:"Destino en Krebs y cetogénesis",enzymeName:"Citrato sintasa / HMGCS2",enzymeAbbreviation:"Krebs / Cetonas",fromNodeId:"lp_acoa_m",toNodeId:"lp_krebs",reversible:false,pathway:"krebs_cycle",compartment:"mitochondria_matrix",
   pathWayNotes:"En ayuno o ejercicio, el acetil-CoA mitocondrial alimenta el Ciclo de Krebs (músculo/corazón) o la Cetogénesis (hígado)."}
 ];
 const MRXM = Object.fromEntries(MRX_LIST.map(r=>[r.id,r]));
@@ -2284,10 +2315,10 @@ const MODULES = [
    {id:"a_alt_h",from:"h_ala",to:"h_pyr",tag:"α-KG → Glu",v:["ala"]},
    {id:"a_n",from:"h_ala",to:"h_nh4",v:["ala"]}
   ],
-  bg:`<rect x="40" y="40" width="380" height="640" rx="44" class="mx-box"/><text class="comp-lbl" x="70" y="80">MÚSCULO EN ESFUERZO · ERITROCITO<\/text>
-   <rect x="470" y="30" width="260" height="660" rx="30" class="mx-blood"/><text class="comp-lbl" x="600" y="70" text-anchor="middle" style="fill:var(--danger);opacity:.7">SANGRE<\/text>
+  bg:`<rect x="40" y="40" width="380" height="640" rx="44" class="mx-box"/><text class="comp-lbl" x="70" y="80">Músculo en esfuerzo · eritrocito<\/text>
+   <rect x="470" y="30" width="260" height="660" rx="30" class="mx-blood"/><text class="comp-lbl" x="600" y="70" text-anchor="middle" style="fill:var(--danger);opacity:.7">Sangre<\/text>
    <g class="mx-rbc"><ellipse cx="520" cy="300" rx="16" ry="9"/><ellipse cx="680" cy="250" rx="16" ry="9"/><ellipse cx="545" cy="660" rx="16" ry="9"/><ellipse cx="690" cy="380" rx="16" ry="9"/><ellipse cx="510" cy="420" rx="16" ry="9"/><\/g>
-   <rect x="780" y="40" width="380" height="640" rx="44" class="mx-box"/><text class="comp-lbl" x="1130" y="80" text-anchor="end">HÍGADO<\/text>`,
+   <rect x="780" y="40" width="380" height="640" rx="44" class="mx-box"/><text class="comp-lbl" x="1130" y="80" text-anchor="end">Hígado<\/text>`,
   ledger:{cori:[["Músculo","+2 ATP","pos"],["Hígado","−6 ATP","neg"],["Balance por vuelta","−4 ATP","neg"]],ala:[["Músculo","+2 ATP","pos"],["Hígado","−6 ATP y coste de la urea","neg"],["Transporta","carbono y nitrógeno",""]]},
   steps:{cori:[
    {e:["c_glut4"],t:"La glucosa llega desde la sangre: GLUT4 en el músculo, GLUT1 en el eritrocito."},
@@ -2328,8 +2359,8 @@ const MODULES = [
    {id:"u_ast",from:"u_oaa",to:"u_asp",tag:"Glu → α-KG"}
   ],
   bg:`<rect x="30" y="40" width="470" height="680" rx="60" class="mx-mito"/><rect x="48" y="58" width="434" height="644" rx="48" class="mx-inner"/>
-   <text class="comp-lbl" x="70" y="700" style="fill:var(--mito-lbl)">MATRIZ MITOCONDRIAL<\/text>
-   <text class="comp-lbl" x="560" y="720">CITOSOL DEL HEPATOCITO<\/text>
+   <text class="comp-lbl" x="70" y="700" style="fill:var(--mito-lbl)">Matriz mitocondrial<\/text>
+   <text class="comp-lbl" x="560" y="720">Citosol del hepatocito<\/text>
    <rect x="474" y="458" width="34" height="44" rx="9" class="mx-tr"/><rect x="474" y="618" width="34" height="44" rx="9" class="mx-tr"/>
    <text class="lbl-c" x="1090" y="700" text-anchor="middle">→ sangre → riñón<\/text>`,
   fg:`<path d="M330 152 C 300 260, 230 300, 212 320" class="mx-act"/><text class="lbl-c mx-act-t" x="268" y="250">+ activa<\/text>`,
@@ -2366,14 +2397,14 @@ const MODULES = [
    {id:"k_thl_t",from:"kt_aacoa",to:"kt_acoa",tag:"→ 2 acetil-CoA"},
    {id:"k_tca",rx:"rx_cs",from:"kt_acoa",to:"kt_krebs"}
   ],
-  bg:`<rect x="30" y="40" width="440" height="700" rx="40" class="mx-box"/><text class="comp-lbl" x="56" y="74">HÍGADO<\/text>
-   <rect x="56" y="96" width="390" height="624" rx="50" class="mx-mito"/><text class="comp-lbl" x="426" y="708" text-anchor="end" style="fill:var(--mito-lbl)">MITOCONDRIA<\/text>
+  bg:`<rect x="30" y="40" width="440" height="700" rx="40" class="mx-box"/><text class="comp-lbl" x="56" y="74">Hígado<\/text>
+   <rect x="56" y="96" width="390" height="624" rx="50" class="mx-mito"/><text class="comp-lbl" x="426" y="708" text-anchor="end" style="fill:var(--mito-lbl)">Mitocondria<\/text>
    <text class="lbl-c" x="250" y="760" text-anchor="middle">Sin SCOT: el hígado fabrica cuerpos cetónicos, pero no los usa<\/text>
    <text class="lbl-c" x="140" y="540" text-anchor="middle">→ aliento afrutado<\/text>
-   <rect x="500" y="30" width="200" height="720" rx="30" class="mx-blood"/><text class="comp-lbl" x="600" y="70" text-anchor="middle" style="fill:var(--danger);opacity:.7">SANGRE<\/text>
+   <rect x="500" y="30" width="200" height="720" rx="30" class="mx-blood"/><text class="comp-lbl" x="600" y="70" text-anchor="middle" style="fill:var(--danger);opacity:.7">Sangre<\/text>
    <g class="mx-rbc"><ellipse cx="540" cy="260" rx="16" ry="9"/><ellipse cx="660" cy="200" rx="16" ry="9"/><ellipse cx="560" cy="420" rx="16" ry="9"/><ellipse cx="655" cy="480" rx="16" ry="9"/><\/g>
-   <rect x="730" y="40" width="440" height="700" rx="40" class="mx-box"/><text class="comp-lbl" x="1146" y="74" text-anchor="end">CEREBRO · CORAZÓN · MÚSCULO<\/text>
-   <rect x="756" y="96" width="390" height="624" rx="50" class="mx-mito"/><text class="comp-lbl" x="1126" y="124" text-anchor="end" style="fill:var(--mito-lbl)">MITOCONDRIA<\/text>`,
+   <rect x="730" y="40" width="440" height="700" rx="40" class="mx-box"/><text class="comp-lbl" x="1146" y="74" text-anchor="end">Cerebro · corazón · músculo<\/text>
+   <rect x="756" y="96" width="390" height="624" rx="50" class="mx-mito"/><text class="comp-lbl" x="1126" y="124" text-anchor="end" style="fill:var(--mito-lbl)">Mitocondria<\/text>`,
   ledger:[["Cetonemia normal","< 0,5 mmol/L",""],["Ayuno prolongado","hasta 5–7 mmol/L",""],["Cetoacidosis diabética","> 3 mmol/L con pH < 7,3","neg"],["1 β-hidroxibutirato","≈21,5 ATP","pos"]],
   steps:[
    {e:["k_box"],t:"En ayuno el glucagón moviliza los ácidos grasos del tejido adiposo. Sin malonil-CoA la CPT-1 los deja entrar y la β-oxidación hepática produce acetil-CoA a gran velocidad."},
@@ -2401,9 +2432,9 @@ const MODULES = [
    {id:"m_ast1",from:"ma_asp_c",to:"ma_oaa_c"},
    {id:"m_ast1_b",rx:"m_ast1",from:"ma_akg_c",to:"ma_glu_c",tag:"α-KG → Glu"}
   ],
-  bg:`<rect x="20" y="20" width="960" height="320" rx="24" class="mx-box"/><text class="comp-lbl" x="44" y="320">CITOSOL<\/text>
-   <rect x="20" y="350" width="960" height="70" rx="14" class="mx-membrane"/><text class="comp-lbl" x="500" y="392" text-anchor="middle">MEMBRANA MITOCONDRIAL INTERNA<\/text>
-   <rect x="20" y="430" width="960" height="310" rx="24" class="mx-mito"/><text class="comp-lbl" x="44" y="460" style="fill:var(--mito-lbl)">MATRIZ<\/text>
+  bg:`<rect x="20" y="20" width="960" height="320" rx="24" class="mx-box"/><text class="comp-lbl" x="44" y="320">Citosol<\/text>
+   <rect x="20" y="350" width="960" height="70" rx="14" class="mx-membrane"/><text class="comp-lbl" x="500" y="392" text-anchor="middle">Membrana mitocondrial interna<\/text>
+   <rect x="20" y="430" width="960" height="310" rx="24" class="mx-mito"/><text class="comp-lbl" x="44" y="460" style="fill:var(--mito-lbl)">Matriz<\/text>
    <rect x="118" y="346" width="200" height="78" rx="16" class="mx-tr"/><text class="lbl-c" x="236" y="378" text-anchor="start">AGC<\/text><text class="lbl-c" x="236" y="396" text-anchor="start">aralar / citrina<\/text>
    <rect x="688" y="346" width="204" height="78" rx="16" class="mx-tr"/><text class="lbl-c" x="752" y="378" text-anchor="start">OGC<\/text><text class="lbl-c" x="752" y="396" text-anchor="start">malato / α-KG<\/text>
    <text class="lbl-c" x="610" y="170" text-anchor="middle">NADH de la glucólisis (GAPDH)<\/text>`,
@@ -2431,11 +2462,11 @@ const MODULES = [
    {id:"g_e3",rx:"rx_etc_cytc",from:"g_c3",to:"g_cytc"},
    {id:"g_e4",rx:"rx_etc_c4",from:"g_cytc",to:"g_c4"}
   ],
-  bg:`<rect x="20" y="20" width="1060" height="270" rx="24" class="mx-box"/><text class="comp-lbl" x="44" y="276">CITOSOL<\/text>
+  bg:`<rect x="20" y="20" width="1060" height="270" rx="24" class="mx-box"/><text class="comp-lbl" x="44" y="276">Citosol<\/text>
    <line x1="20" y1="300" x2="1080" y2="300" class="mx-outer"/><text class="lbl-c" x="44" y="320">membrana externa (porosa)<\/text>
-   <text class="comp-lbl" x="44" y="372">ESPACIO INTERMEMBRANA<\/text>
+   <text class="comp-lbl" x="44" y="372">Espacio intermembrana<\/text>
    <rect x="20" y="392" width="1060" height="56" rx="12" class="mx-membrane"/><text class="lbl-c" x="44" y="426">membrana interna<\/text>
-   <rect x="20" y="458" width="1060" height="222" rx="24" class="mx-mito"/><text class="comp-lbl" x="44" y="490" style="fill:var(--mito-lbl)">MATRIZ<\/text>
+   <rect x="20" y="458" width="1060" height="222" rx="24" class="mx-mito"/><text class="comp-lbl" x="44" y="490" style="fill:var(--mito-lbl)">Matriz<\/text>
    <text class="lbl-c" x="550" y="560" text-anchor="middle" style="font-size:13px">El NADH citosólico nunca entra en la matriz:<\/text>
    <text class="lbl-c" x="550" y="582" text-anchor="middle" style="font-size:13px">sus electrones llegan al CoQ y rinden ≈1,5 ATP en lugar de ≈2,5<\/text>
    <path d="M330 470 l0 60" class="mx-x"/><text class="lbl-c" x="330" y="548" text-anchor="middle">no participa<\/text>`,
@@ -2448,11 +2479,11 @@ const MODULES = [
    {e:[],t:"Es más rápida pero menos rentable que la de malato-aspartato: con ella la glucosa rinde unos 30 ATP en vez de 32."}],
   facts:["Predomina en el músculo esquelético rápido, el cerebro y la grasa parda.","El Ca²⁺ de la contracción activa la GPD2.","La DHAP regenerada vuelve a la glucólisis o a la síntesis de lípidos."]},
 
- {id:"lipids",title:"β-Oxidación y Síntesis de Palmitato",kicker:"Procesos no simultáneos · Regulación recíproca · Malonil-CoA ⊣ CPT-1",c:"var(--pw-lipid)",vb:[1240,740],
+ {id:"lipids",title:"β-Oxidación y síntesis de palmitato",kicker:"Procesos no simultáneos · Regulación recíproca · Malonil-CoA ⊣ CPT-1",c:"var(--pw-lipid)",vb:[1240,740],
   intro:"La síntesis de palmitato y su β-oxidación son rutas metabólicas opuestas y mutuamente excluyentes en la célula. Ocurren en compartimentos separados (citosol vs. matriz) y están reguladas recíprocamente por el Malonil-CoA para impedir un ciclo fútil de despilfarro energético.",
   variants:[
     {id:"reciprocal",label:"Regulación recíproca (No simultáneas)"},
-    {id:"synth",label:"1. Síntesis de Palmitato (Posprandial)"},
+    {id:"synth",label:"1. Síntesis de palmitato (posprandial)"},
     {id:"betaox",label:"2. β-Oxidación Mitocondrial (Ayuno)"}
   ],
   nodes:{
@@ -2480,19 +2511,19 @@ const MODULES = [
     {id:"l_tca",from:"lp_acoa_m",to:"lp_krebs",tag:"Krebs / Cetonas",v:["betaox","reciprocal"]}
   ],
   bg:{
-    reciprocal:`<rect x="20" y="20" width="940" height="175" rx="22" class="mx-box"/><text class="comp-lbl" x="42" y="48">CITOSOL · SÍNTESIS DE PALMITATO (ESTADO POSPRANDIAL / INSULINA ↑)</text>
+    reciprocal:`<rect x="20" y="20" width="940" height="175" rx="22" class="mx-box"/><text class="comp-lbl" x="42" y="48">Citosol · síntesis de palmitato (estado posprandial / insulina ↑)</text>
      <text class="lbl-c" x="42" y="170" style="fill:var(--fg-dim);font-size:11px">Insulina activa ACC1 por desfosforilación · El palmitato se almacena en TAG (gota lipídica) o se secreta en VLDL</text>
-     <rect x="990" y="20" width="230" height="105" rx="16" class="mx-blood"/><text class="comp-lbl" x="1105" y="46" text-anchor="middle" style="fill:var(--danger)">SANGRE · LIPÓLISIS (AYUNO)</text>
-     <rect x="990" y="230" width="230" height="325" rx="16" class="mx-membrane"/><text class="comp-lbl" x="1105" y="254" text-anchor="middle" style="font-size:10px">MEMBRANA MITOCONDRIAL (OMM / IMS / IMM)</text>
-     <rect x="20" y="430" width="1200" height="290" rx="24" class="mx-mito"/><text class="comp-lbl" x="42" y="460" style="fill:var(--mito-lbl)">MATRIZ MITOCONDRIAL · ESPIRAL DE β-OXIDACIÓN (AYUNO / GLUCAGÓN ↑)</text>
+     <rect x="990" y="20" width="230" height="105" rx="16" class="mx-blood"/><text class="comp-lbl" x="1105" y="46" text-anchor="middle" style="fill:var(--danger)">Sangre · lipólisis (ayuno)</text>
+     <rect x="990" y="230" width="230" height="325" rx="16" class="mx-membrane"/><text class="comp-lbl" x="1105" y="254" text-anchor="middle" style="font-size:10px">Membrana mitocondrial (OMM / IMS / IMM)</text>
+     <rect x="20" y="430" width="1200" height="290" rx="24" class="mx-mito"/><text class="comp-lbl" x="42" y="460" style="fill:var(--mito-lbl)">Matriz mitocondrial · espiral de β-OXIDACIÓN (ayuno / glucagón ↑)</text>
      <text class="lbl-c" x="42" y="700" style="fill:var(--fg-dim);font-size:11px">4 pasos cíclicos: Acil-CoA DH (FAD) ➔ Enoil hidratasa (+H₂O) ➔ Hidroxiacil DH (NAD⁺) ➔ Tiolasa (+CoA-SH)</text>`,
-    synth:`<rect x="20" y="20" width="1200" height="420" rx="24" class="mx-box"/><text class="comp-lbl" x="44" y="52">CITOSOL DEL HEPATOCITO / ADIPOCITO · LIPOGÉNESIS DE NOVO (POSPRANDIAL)</text>
+    synth:`<rect x="20" y="20" width="1200" height="420" rx="24" class="mx-box"/><text class="comp-lbl" x="44" y="52">Citosol del hepatocito / adipocito · lipogénesis de novo (posprandial)</text>
      <text class="lbl-c" x="44" y="230" style="fill:var(--fg-dim);font-size:12px">Activada por insulina mediante desfosforilación de la ACC1 por la proteína fosfatasa 2A (PP2A).</text>
-     <text class="lbl-c" x="44" y="255" style="fill:var(--fg-dim);font-size:12px">El producto Malonil-CoA bloquea alostéricamente a la CPT-1 mitocondrial: el palmitato sintetizado NO entra a oxidarse.</text>
+     <text class="lbl-c" x="44" y="255" style="fill:var(--fg-dim);font-size:12px">El producto Malonil-CoA bloquea alostéricamente a la CPT-1 mitocondrial: el palmitato sintetizado no entra a oxidarse.</text>
      <text class="lbl-c" x="44" y="280" style="fill:var(--fg-dim);font-size:12px">Destino posprandial exclusivo: esterificación a triacilgliceroles (TAG) para depósito tisular o secreción en VLDL.</text>`,
-    betaox:`<rect x="880" y="20" width="340" height="105" rx="18" class="mx-blood"/><text class="comp-lbl" x="1050" y="46" text-anchor="middle" style="fill:var(--danger)">SANGRE · ÁCIDOS GRASOS LIBRES (LIPÓLISIS)</text>
-     <rect x="880" y="140" width="340" height="420" rx="18" class="mx-membrane"/><text class="comp-lbl" x="1050" y="165" text-anchor="middle">LANZADERA DE CARNITINA (OMM / IMS / IMM)</text>
-     <rect x="20" y="430" width="1200" height="290" rx="24" class="mx-mito"/><text class="comp-lbl" x="42" y="460" style="fill:var(--mito-lbl)">MATRIZ MITOCONDRIAL · ESPIRAL DE β-OXIDACIÓN (AYUNO / EJERCICIO)</text>
+    betaox:`<rect x="880" y="20" width="340" height="105" rx="18" class="mx-blood"/><text class="comp-lbl" x="1050" y="46" text-anchor="middle" style="fill:var(--danger)">Sangre · ácidos grasos libres (lipólisis)</text>
+     <rect x="880" y="140" width="340" height="420" rx="18" class="mx-membrane"/><text class="comp-lbl" x="1050" y="165" text-anchor="middle">Lanzadera de carnitina (OMM / IMS / IMM)</text>
+     <rect x="20" y="430" width="1200" height="290" rx="24" class="mx-mito"/><text class="comp-lbl" x="42" y="460" style="fill:var(--mito-lbl)">Matriz mitocondrial · espiral de β-OXIDACIÓN (ayuno / ejercicio)</text>
      <text class="lbl-c" x="42" y="700" style="fill:var(--fg-dim);font-size:11px">7 ciclos de degradación rinden 8 Acetil-CoA + 7 FADH₂ + 7 NADH = 106 ATP netos para contracción o cetogénesis.</text>`
   },
   fg:{
@@ -2500,7 +2531,7 @@ const MODULES = [
      <path d="M 480 135 C 480 295, 780 295, 1070 295" fill="none" stroke="var(--danger)" stroke-width="2.6" stroke-dasharray="6 4"/>
      <line x1="1070" y1="281" x2="1070" y2="309" stroke="var(--danger)" stroke-width="4.5" stroke-linecap="round"/>
      <rect x="530" y="268" width="450" height="52" rx="12" fill="var(--bg-card)" stroke="var(--danger)" stroke-width="1.8" opacity="0.95"/>
-     <text class="lbl-c" x="755" y="289" text-anchor="middle" style="fill:var(--danger);font-weight:700;font-size:12px">INHIBICIÓN RECÍPROCA: Malonil-CoA ⊣ CPT-1</text>
+     <text class="lbl-c" x="755" y="289" text-anchor="middle" style="fill:var(--danger);font-weight:700;font-size:12px">Inhibición recíproca: Malonil-CoA ⊣ CPT-1</text>
      <text class="lbl-c" x="755" y="307" text-anchor="middle" style="fill:var(--fg-dim);font-size:10.5px">Evita el ciclo fútil: mientras hay síntesis activa, la entrada a β-oxidación está bloqueada al 100%</text>
     </g>`,
     synth:"",
@@ -2683,9 +2714,9 @@ function openModule(id){ go("ciclos"); selectModule(id); }
 /* portales en el mapa celular */
 (function(){
   const gP=el("g",{},svg);
-  [["cori","Ciclo de Cori",300,1160],["urea","Ciclo de la urea",1430,1128],["keto","Cuerpos cetónicos",935,790],["mas","Lanzadera malato-aspartato",653,878],["g3p","Lanzadera del glicerol-3-P",880,700],["lipids","β-Oxidación & Palmitato",1410,500]].forEach(([id,label,x,y])=>{
-    const w=label.length*7.7+34; const g=el("g",{class:"portal",transform:`translate(${x} ${y})`,tabindex:"0",role:"button","aria-label":"Abrir "+label},gP);
-    const r=el("rect",{x:0,y:-15,width:w,height:30,rx:15},g); r.style.stroke=MODM[id].c;
+  [["cori","Ciclo de Cori",300,1160],["urea","Ciclo de la urea",1430,1128],["keto","Cuerpos cetónicos",935,790],["mas","Lanzadera malato-aspartato",653,878],["g3p","Lanzadera del glicerol-3-P",880,700],["lipids","β-oxidación y palmitato",1410,500]].forEach(([id,label,x,y])=>{
+    const w=label.length*8+30; const g=el("g",{class:"portal",transform:`translate(${x} ${y})`,tabindex:"0",role:"button","aria-label":"Abrir "+label},gP);
+    const r=el("rect",{x:0,y:-15,width:w,height:30,rx:3},g); r.style.stroke=MODM[id].c;
     const t=el("text",{x:16,y:5,class:"portal-t"},g); t.textContent="↗ "+label;
     g.addEventListener("click",()=>{ if(!dragMoved) openModule(id); }); g.addEventListener("keydown",e=>{ if(e.key==="Enter"){ openModule(id);} });
   });

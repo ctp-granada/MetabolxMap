@@ -54,7 +54,7 @@ export const GALA_VARIANTS = {
     sepsisBadge: 'danger',
     mechanismLens: 'La aldosa reductasa (AKR1B1) satura su Km reduciendo el exceso de galactosa a galactitol a expensas de NADPH. Al carecer de vía catabólica adicional (no es sustrato de sorbitol deshidrogenasa) y no atravesar membranas, el galactitol queda atrapado en el cristalino atrayendo agua por ósmosis, provocando tumefacción fibrilar y agregación de cristalinas.',
     mechanismVisceral: 'La Gal-1-P se acumula intracelularmente secuestrando fosfatos libres, e inhibe competitivamente a la Fosfoglucomutasa (PGM1) y a la UDP-Glucosa Pirofosforilasa, provocando hipoglucemia, depleción de ATP hepático, insuficiencia renal tubular y apoptosis masiva de células de la granulosa ovárica.',
-    managementSummary: 'Retirada INMEDIATA de leche materna o fórmula estándar. Introducir fórmula a base de aislado de soja o elemental. Monitorización trimestral de Gal-1-P eritrocitaria. Cribado oftalmológico urgente con lámpara de hendidura.',
+    managementSummary: 'Retirada inmediata de leche materna o fórmula estándar. Introducir fórmula a base de aislado de soja o elemental. Monitorización trimestral de Gal-1-P eritrocitaria. Cribado oftalmológico urgente con lámpara de hendidura.',
     guidelineRef: 'Guía Clínica Internacional GalNet & Consenso ACMG 2024'
   },
   duarte_dg: {
@@ -92,7 +92,7 @@ export const GALA_VARIANTS = {
     sepsisBadge: 'safe',
     mechanismLens: 'La actividad residual del 15 al 25% de GALT permite metabolizar la galactosa dietética con suficiente rapidez para evitar la hipergalactosemia mantenida. La aldosa reductasa permanece en estado basal no saturado y no se acumula galactitol en concentraciones osmóticamente dañinas.',
     mechanismVisceral: 'La discreta elevación transitoria de Gal-1-P tras la ingesta de leche no alcanza el umbral de inhibición enzimática de la PGM1 ni agota los depósitos de fosfatos energéticos en hepatocitos ni tejido ovárico.',
-    managementSummary: 'Consenso Internacional Actual: Dieta LIBRE con lactosa normal. Ensayos clínicos y estudios prospectivos demuestran que la restricción de galactosa es innecesaria y no aporta beneficios clínicos.',
+    managementSummary: 'Consenso Internacional Actual: Dieta libre con lactosa normal. Ensayos clínicos y estudios prospectivos demuestran que la restricción de galactosa es innecesaria y no aporta beneficios clínicos.',
     guidelineRef: 'Recomendación Consensuada ACMG / Estudio Longitudinal Duarte'
   },
   duarte_dd: {
@@ -144,7 +144,7 @@ export const GALA_VARIANTS = {
     activityBar: 2,
     activityStatus: 'Actividad quinasa indetectable (< 3%)',
     gal1pVal: '0.00 mmol/L',
-    gal1pStatus: 'COMPLETAMENTE AUSENTE (No se fosforila)',
+    gal1pStatus: 'Completamente ausente (No se fosforila)',
     gal1pLevel: 'safe',
     galactitolVal: '> 220 mmol/mol crea',
     galactitolStatus: 'Desvío extremo a Aldosa Reductasa',
@@ -155,18 +155,18 @@ export const GALA_VARIANTS = {
     aldoseFlux: 'maximal',
     lensRisk: 'Extremo y precoz · Catarata bilateral aislada como único signo clínico',
     lensBadge: 'danger',
-    liverRisk: 'CERO: Hígado intacto porque NO se forma Galactosa-1-P',
+    liverRisk: 'Cero: Hígado intacto porque no se forma Galactosa-1-P',
     liverBadge: 'safe',
-    ovaryRisk: 'CERO: Fertilidad y ovocitos preservados al 100%',
+    ovaryRisk: 'Cero: Fertilidad y ovocitos preservados al 100%',
     ovaryBadge: 'safe',
-    kidneyRisk: 'CERO: Sin tubulopatía renal ni proteinuria',
+    kidneyRisk: 'Cero: Sin tubulopatía renal ni proteinuria',
     kidneyBadge: 'safe',
-    neuroRisk: 'CERO: Cociente intelectual y lenguaje totalmente preservados',
+    neuroRisk: 'Cero: Cociente intelectual y lenguaje totalmente preservados',
     neuroBadge: 'safe',
     sepsisRisk: 'Sin susceptibilidad incrementada a sepsis neonatal',
     sepsisBadge: 'safe',
     mechanismLens: 'Al no poder fosforilarse a Gal-1-P, la galactosa libre en plasma alcanza concentraciones masivas (>10-25 mM). En el cristalino, la aldosa reductasa actúa a velocidad máxima produciendo ingentes cantidades de galactitol. El gradiente osmótico revienta las membranas de las fibras del cristalino generando cataratas bilaterales nucleares.',
-    mechanismVisceral: 'DIAGNÓSTICO DIFERENCIAL CLAVE: La ausencia de Gal-1-P protege totalmente al hepatocito, al riñón y al ovario. No existe secuestro de fosfatos ni fallo multiorgánico.',
+    mechanismVisceral: 'Diagnóstico diferencial clave: La ausencia de Gal-1-P protege totalmente al hepatocito, al riñón y al ovario. No existe secuestro de fosfatos ni fallo multiorgánico.',
     managementSummary: 'Dieta estricta sin galactosa/lactosa de por vida. La supresión precoz de lactosa en las primeras 2-3 semanas de vida revierte las opacidades cristalinianas tempranas sin secuelas visuales.',
     guidelineRef: 'Guía Clínica de Galactosemia Tipo II'
   },
@@ -229,7 +229,7 @@ export function renderGalactoseClinicalSuite(contextId) {
           </span>
           <span class="gala-chip-protocol">${v.guidelineRef}</span>
         </div>
-        <h3 class="gala-title">Panel Clínico: Galactosemias y Vía del Galactitol</h3>
+        <h3 class="gala-title">Panel clínico: Galactosemias y vía del galactitol</h3>
         <p class="gala-subtitle" id="gala-sub">${v.title} · ${v.genotype}</p>
       </div>
 
@@ -249,7 +249,7 @@ export function renderGalactoseClinicalSuite(contextId) {
         </button>
         <button class="gala-tab-btn" data-var="galk" data-def="galk" role="tab" aria-selected="false">
           <span class="gala-tab-dot danger"></span>
-          <span class="gala-tab-text">GALK1 (Tipo II)</span>
+          <span class="gala-tab-text">GALK1 (tipo II)</span>
         </button>
         <button class="gala-tab-btn" data-var="normal" role="tab" aria-selected="false">
           <span class="gala-tab-dot success"></span>
@@ -262,8 +262,8 @@ export function renderGalactoseClinicalSuite(contextId) {
     <div class="gala-card gala-diagram-card">
       <div class="gala-card-header">
         <div class="gala-card-title-group">
-          <span class="gala-card-eyebrow">DIAGRAMA METABÓLICO DINÁMICO</span>
-          <h4 class="gala-card-heading">Bifurcación: Vía de Leloir vs Desvío Osmotóxico por Aldosa Reductasa</h4>
+          <span class="gala-card-eyebrow">Diagrama metabólico dinámico</span>
+          <h4 class="gala-card-heading">Bifurcación: Vía de Leloir vs desvío osmotóxico por aldosa reductasa</h4>
         </div>
         <div class="gala-live-badge danger" id="gala-live-badge">${v.badge}</div>
       </div>
@@ -305,13 +305,13 @@ export function renderGalactoseClinicalSuite(contextId) {
 
           <!-- Zona Fondo: Shunt Osmótico de Poliol (Superior) -->
           <rect x="130" y="16" width="395" height="74" rx="10" fill="color-mix(in srgb, var(--danger) 5%, transparent)" stroke="color-mix(in srgb, var(--danger) 15%, transparent)" stroke-dasharray="4 3"/>
-          <text x="142" y="32" class="gala-svg-lbl-faint">DESVÍO PATOLÓGICO: VÍA DEL POLIOL (CRISTALINO OCULAR)</text>
+          <text x="142" y="32" class="gala-svg-lbl-faint">Desvío patológico: VÍA del poliol (cristalino ocular)</text>
 
           <!-- Zona Fondo: Vía Fisiológica de Leloir (Inferior) -->
           <rect x="130" y="104" width="395" height="132" rx="10" fill="color-mix(in srgb, var(--ok) 5%, transparent)" stroke="color-mix(in srgb, var(--ok) 18%, transparent)"/>
-          <text x="142" y="120" class="gala-svg-lbl-faint">VÍA FISIOLÓGICA DE LELOIR (HEPATOCITO Y SISTÉMICA)</text>
+          <text x="142" y="120" class="gala-svg-lbl-faint">VÍA fisiológica DE Leloir (hepatocito y sistémica)</text>
 
-          <!-- NODO 1: D-Galactosa (Origen Común) -->
+          <!-- nodo 1: D-Galactosa (Origen Común) -->
           <g id="gala-node-gal" class="gala-svg-node" transform="translate(18, 98)">
             <rect width="96" height="52" rx="8" fill="var(--ink-1)" stroke="var(--accent)" stroke-width="2"/>
             <text x="48" y="22" text-anchor="middle" class="gala-svg-node-title">D-Galactosa</text>
@@ -322,38 +322,38 @@ export function renderGalactoseClinicalSuite(contextId) {
             </g>
           </g>
 
-          <!-- FLECHA 1: HACIA ARRIBA -> ALDOSA REDUCTASA -> GALACTITOL -->
+          <!-- flecha 1: Hacia arriba -> aldosa reductasa -> Galactitol -->
           <path id="gala-path-aldose" d="M 114 114 C 150 114, 160 54, 210 54" fill="none" stroke="#ef4444" stroke-width="4" marker-end="url(#arrow-red)"/>
           
-          <!-- ENZIMA: Aldosa Reductasa (AKR1B1) -->
+          <!-- enzima: Aldosa Reductasa (AKR1B1) -->
           <g id="gala-enz-aldose" transform="translate(175, 34)">
             <rect x="-48" y="-12" width="96" height="24" rx="12" fill="var(--ink-1)" stroke="#ef4444" stroke-width="1.5"/>
-            <text x="0" y="4" text-anchor="middle" class="gala-svg-enz-txt">Aldosa Reductasa</text>
+            <text x="0" y="4" text-anchor="middle" class="gala-svg-enz-txt">Aldosa reductasa</text>
             <text x="0" y="-16" text-anchor="middle" class="gala-svg-cof-txt">+ NADPH → NADP⁺</text>
           </g>
 
-          <!-- NODO 2: GALACTITOL (POLIOL ATRAPADO) -->
+          <!-- nodo 2: Galactitol (poliol atrapado) -->
           <g id="gala-node-galactitol" class="gala-svg-node" transform="translate(225, 28)">
             <rect id="gala-rect-galactitol" width="102" height="52" rx="8" fill="var(--ink-1)" stroke="#ef4444" stroke-width="2.2" filter="url(#glow-danger)"/>
-            <text x="51" y="21" text-anchor="middle" class="gala-svg-node-title" fill="#ef4444">GALACTITOL</text>
+            <text x="51" y="21" text-anchor="middle" class="gala-svg-node-title" fill="#ef4444">Galactitol</text>
             <text x="51" y="37" text-anchor="middle" class="gala-svg-node-sub">Poliol osmótico</text>
             <text id="gala-badge-galactitol" x="51" y="48" text-anchor="middle" class="gala-svg-node-extra" fill="#ef4444">↑↑ Acúmulo</text>
           </g>
 
-          <!-- FLECHA GALACTITOL -> CRISTALINO -->
+          <!-- flecha galactitol -> Cristalino -->
           <path id="gala-path-lens" d="M 327 54 L 385 54" fill="none" stroke="#ef4444" stroke-width="3" stroke-dasharray="3 2" marker-end="url(#arrow-red)"/>
 
-          <!-- DIANA CRISTALINO: CATARATAS EN GOTA DE ACEITE -->
+          <!-- diana cristalino: Cataratas EN GOTA DE aceite -->
           <g id="gala-node-lens" transform="translate(395, 30)">
             <rect id="gala-rect-lens" width="120" height="48" rx="8" fill="color-mix(in srgb, #ef4444 12%, var(--ink-1))" stroke="#ef4444" stroke-width="1.8"/>
-            <text x="60" y="20" text-anchor="middle" class="gala-svg-organ-title">👁️ Cristalino</text>
+            <text x="60" y="20" text-anchor="middle" class="gala-svg-organ-title">Cristalino</text>
             <text id="gala-lens-diag" x="60" y="36" text-anchor="middle" class="gala-svg-organ-sub" fill="#ef4444">Cataratas bilaterales</text>
           </g>
 
-          <!-- FLECHA 2: HACIA LELOIR -> GALK1 -> GAL-1-P -->
+          <!-- flecha 2: Hacia Leloir -> GALK1 -> GAL-1-P -->
           <path id="gala-path-galk" d="M 114 136 L 200 136" fill="none" stroke="#10b981" stroke-width="3" marker-end="url(#arrow-green)"/>
           
-          <!-- ENZIMA: GALK1 -->
+          <!-- enzima: GALK1 -->
           <g id="gala-enz-galk" transform="translate(155, 136)">
             <rect id="gala-rect-galk" x="-32" y="-12" width="64" height="24" rx="12" fill="var(--ink-1)" stroke="#10b981" stroke-width="1.5"/>
             <text id="gala-txt-galk" x="0" y="4" text-anchor="middle" class="gala-svg-enz-txt">GALK1</text>
@@ -364,7 +364,7 @@ export function renderGalactoseClinicalSuite(contextId) {
             </g>
           </g>
 
-          <!-- NODO 3: GALACTOSA-1-FOSFATO (GAL-1-P) -->
+          <!-- nodo 3: Galactosa-1-fosfato (GAL-1-P) -->
           <g id="gala-node-gal1p" class="gala-svg-node" transform="translate(210, 114)">
             <rect id="gala-rect-gal1p" width="98" height="52" rx="8" fill="var(--ink-1)" stroke="#ef4444" stroke-width="2.2" filter="url(#glow-danger)"/>
             <text x="49" y="21" text-anchor="middle" class="gala-svg-node-title" fill="#ef4444">Galactosa-1-P</text>
@@ -372,10 +372,10 @@ export function renderGalactoseClinicalSuite(contextId) {
             <text id="gala-badge-gal1p" x="49" y="48" text-anchor="middle" class="gala-svg-node-extra" fill="#ef4444">↑↑ Tóxico visceral</text>
           </g>
 
-          <!-- FLECHA 3: GAL-1-P -> GALT -> G-1-P -->
+          <!-- flecha 3: GAL-1-P -> GALT -> G-1-P -->
           <path id="gala-path-galt" d="M 308 136 L 385 136" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="4 2" marker-end="url(#arrow-red)"/>
 
-          <!-- ENZIMA: GALT (PUNTO CRÍTICO) -->
+          <!-- enzima: GALT (punto crítico) -->
           <g id="gala-enz-galt" transform="translate(345, 136)">
             <rect id="gala-rect-galt" x="-32" y="-12" width="64" height="24" rx="12" fill="var(--ink-1)" stroke="#ef4444" stroke-width="2"/>
             <text id="gala-txt-galt" x="0" y="4" text-anchor="middle" class="gala-svg-enz-txt" fill="#ef4444">GALT</text>
@@ -387,21 +387,21 @@ export function renderGalactoseClinicalSuite(contextId) {
             </g>
           </g>
 
-          <!-- NODO 4: Glucosa-1-Fosfato (Continuación hacia Glucólisis) -->
+          <!-- nodo 4: Glucosa-1-Fosfato (Continuación hacia Glucólisis) -->
           <g id="gala-node-g1p" class="gala-svg-node" transform="translate(395, 114)">
             <rect id="gala-rect-g1p" width="120" height="44" rx="8" fill="var(--ink-1)" stroke="#94a3b8" stroke-width="1.4"/>
             <text x="60" y="20" text-anchor="middle" class="gala-svg-node-title">Glucosa-1-P</text>
             <text id="gala-g1p-sub" x="60" y="34" text-anchor="middle" class="gala-svg-node-sub">↓ Agotada</text>
           </g>
 
-          <!-- FLECHA HACIA GLUCÓLISIS / GLUCÓGENO -->
+          <!-- flecha hacia glucólisis / glucógeno -->
           <path id="gala-path-glyc" d="M 455 158 L 455 190" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="3 2" marker-end="url(#arrow-gray)"/>
-          <text x="455" y="208" text-anchor="middle" class="gala-svg-lbl-faint">Glucosa-6-P · Glucólisis</text>
+          <text x="455" y="208" text-anchor="middle" class="gala-svg-lbl-faint">Glucosa-6-P · glucólisis</text>
 
           <!-- Alerta de Toxicidad Visceral Bajo Gal-1-P -->
           <g id="gala-box-tox" transform="translate(210, 178)">
             <rect width="190" height="42" rx="6" fill="color-mix(in srgb, #ef4444 8%, var(--ink-1))" stroke="color-mix(in srgb, #ef4444 25%, transparent)"/>
-            <text x="8" y="16" class="gala-svg-tox-title" fill="#ef4444">⚠️ Toxicidad Visceral de Gal-1-P:</text>
+            <text x="8" y="16" class="gala-svg-tox-title" fill="#ef4444">Toxicidad visceral de Gal-1-P:</text>
             <text x="8" y="30" class="gala-svg-tox-desc">Inhibe PGM1, depleta ATP, lesión hepática y POI ovárica</text>
           </g>
         </svg>
@@ -413,7 +413,7 @@ export function renderGalactoseClinicalSuite(contextId) {
       <!-- Tarjeta 1: Actividad Enzimática -->
       <div class="gala-kpi-card" id="kpi-card-act">
         <div class="gala-kpi-top">
-          <span class="gala-kpi-label">Actividad Residual GALT</span>
+          <span class="gala-kpi-label">Actividad residual GALT</span>
           <span class="gala-kpi-tag danger" id="kpi-tag-act">${v.activityPct}</span>
         </div>
         <div class="gala-kpi-val-row">
@@ -431,7 +431,7 @@ export function renderGalactoseClinicalSuite(contextId) {
       <div class="gala-kpi-card" id="kpi-card-gal1p">
         <div class="gala-kpi-top">
           <span class="gala-kpi-label">Galactosa-1-Fosfato (Gal-1-P)</span>
-          <span class="gala-kpi-tag danger" id="kpi-tag-gal1p">Tóxico Visceral</span>
+          <span class="gala-kpi-tag danger" id="kpi-tag-gal1p">Tóxico visceral</span>
         </div>
         <div class="gala-kpi-val-row">
           <span class="gala-kpi-num" id="kpi-val-gal1p">${v.gal1pVal}</span>
@@ -445,7 +445,7 @@ export function renderGalactoseClinicalSuite(contextId) {
       <!-- Tarjeta 3: Galactitol Acumulado -->
       <div class="gala-kpi-card" id="kpi-card-galactitol">
         <div class="gala-kpi-top">
-          <span class="gala-kpi-label">Galactitol (Cristalino / Orina)</span>
+          <span class="gala-kpi-label">Galactitol (cristalino / orina)</span>
           <span class="gala-kpi-tag danger" id="kpi-tag-galactitol">Hiperosmolar</span>
         </div>
         <div class="gala-kpi-val-row">
@@ -467,13 +467,13 @@ export function renderGalactoseClinicalSuite(contextId) {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M2.5 12c2.5-5 6.5-8 9.5-8s7 3 9.5 8c-2.5 5-6.5 8-9.5 8s-7-3-9.5-8z"/></svg>
           </div>
           <div>
-            <h5 class="gala-mech-title">Foco Cristalino: Osmolaridad de Galactitol</h5>
-            <span class="gala-mech-subtitle">Patogénesis de las Cataratas Nucleares</span>
+            <h5 class="gala-mech-title">Foco cristalino: Osmolaridad de galactitol</h5>
+            <span class="gala-mech-subtitle">Patogénesis de las cataratas nucleares</span>
           </div>
         </div>
         <p class="gala-mech-text" id="gala-mech-lens-p">${v.mechanismLens}</p>
         <div class="gala-mech-bullet">
-          <b>Signo Clave:</b> La aldosa reductasa periférica atrapa galactitol no difusible $\rightarrow$ colapso de cristalinas y catarata bilateral en "gota de aceite".
+          <b>Signo clave:</b> La aldosa reductasa periférica atrapa galactitol no difusible $\rightarrow$ colapso de cristalinas y catarata bilateral en "gota de aceite".
         </div>
       </div>
 
@@ -484,13 +484,13 @@ export function renderGalactoseClinicalSuite(contextId) {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           </div>
           <div>
-            <h5 class="gala-mech-title">Foco Visceral: Citotoxicidad de Gal-1-P</h5>
-            <span class="gala-mech-subtitle">Hígado, Gónadas Femeninas y Riñón</span>
+            <h5 class="gala-mech-title">Foco visceral: Citotoxicidad de Gal-1-P</h5>
+            <span class="gala-mech-subtitle">Hígado, gónadas femeninas y riñón</span>
           </div>
         </div>
         <p class="gala-mech-text" id="gala-mech-visceral-p">${v.mechanismVisceral}</p>
         <div class="gala-mech-bullet">
-          <b>Punto Clínico Crítico:</b> La Gal-1-P inhibe a la PGM1 hepática provocando hipoglucemia neonatal e induce fallo ovárico primario (POI) irreversible en &gt;80% de mujeres.
+          <b>Punto clínico crítico:</b> La Gal-1-P inhibe a la PGM1 hepática provocando hipoglucemia neonatal e induce fallo ovárico primario (POI) irreversible en &gt;80% de mujeres.
         </div>
       </div>
     </div>
@@ -498,13 +498,13 @@ export function renderGalactoseClinicalSuite(contextId) {
     <!-- Matriz Clínica de Impacto por Órgano Diana -->
     <div class="gala-card gala-matrix-card">
       <div class="gala-card-header">
-        <span class="gala-card-eyebrow">MATRIZ DE IMPACTO CLÍNICO POR ÓRGANO</span>
-        <h4 class="gala-card-heading">Manifestaciones Sistémicas de la Variante Activa</h4>
+        <span class="gala-card-eyebrow">Matriz de impacto clínico por órgano</span>
+        <h4 class="gala-card-heading">Manifestaciones sistémicas de la variante activa</h4>
       </div>
       <div class="gala-matrix-grid">
         <div class="gala-matrix-item" id="org-liver">
           <div class="gala-matrix-top">
-            <span class="gala-matrix-icon">🫁</span>
+            <span class="gala-matrix-icon">Hí</span>
             <span class="gala-matrix-org">Hígado</span>
             <span class="gala-status-pill danger" id="org-tag-liver">Severo</span>
           </div>
@@ -513,16 +513,16 @@ export function renderGalactoseClinicalSuite(contextId) {
 
         <div class="gala-matrix-item" id="org-lens">
           <div class="gala-matrix-top">
-            <span class="gala-matrix-icon">👁️</span>
+            <span class="gala-matrix-icon">Cr</span>
             <span class="gala-matrix-org">Cristalino</span>
-            <span class="gala-status-pill danger" id="org-tag-lens">Alto Riesgo</span>
+            <span class="gala-status-pill danger" id="org-tag-lens">Alto riesgo</span>
           </div>
           <p class="gala-matrix-desc" id="org-desc-lens">${v.lensRisk}</p>
         </div>
 
         <div class="gala-matrix-item" id="org-ovary">
           <div class="gala-matrix-top">
-            <span class="gala-matrix-icon">🥚</span>
+            <span class="gala-matrix-icon">Ov</span>
             <span class="gala-matrix-org">Ovario (POI)</span>
             <span class="gala-status-pill danger" id="org-tag-ovary">&gt;80% POI</span>
           </div>
@@ -531,7 +531,7 @@ export function renderGalactoseClinicalSuite(contextId) {
 
         <div class="gala-matrix-item" id="org-kidney">
           <div class="gala-matrix-top">
-            <span class="gala-matrix-icon">🫘</span>
+            <span class="gala-matrix-icon">Ri</span>
             <span class="gala-matrix-org">Riñón</span>
             <span class="gala-status-pill danger" id="org-tag-kidney">Sd. Fanconi</span>
           </div>
@@ -540,7 +540,7 @@ export function renderGalactoseClinicalSuite(contextId) {
 
         <div class="gala-matrix-item" id="org-neuro">
           <div class="gala-matrix-top">
-            <span class="gala-matrix-icon">🧠</span>
+            <span class="gala-matrix-icon">Ce</span>
             <span class="gala-matrix-org">SNC</span>
             <span class="gala-status-pill warning" id="org-tag-neuro">Dispraxia</span>
           </div>
@@ -549,8 +549,8 @@ export function renderGalactoseClinicalSuite(contextId) {
 
         <div class="gala-matrix-item" id="org-sepsis">
           <div class="gala-matrix-top">
-            <span class="gala-matrix-icon">🛡️</span>
-            <span class="gala-matrix-org">Sepsis Neonatal</span>
+            <span class="gala-matrix-icon">In</span>
+            <span class="gala-matrix-org">Sepsis neonatal</span>
             <span class="gala-status-pill danger" id="org-tag-sepsis">E. coli</span>
           </div>
           <p class="gala-matrix-desc" id="org-desc-sepsis">${v.sepsisRisk}</p>
@@ -561,7 +561,7 @@ export function renderGalactoseClinicalSuite(contextId) {
     <!-- Barra de Conducta Terapéutica y Navegación -->
     <div class="gala-footer-card">
       <div class="gala-footer-info">
-        <span class="gala-card-eyebrow">MANEJO TERAPÉUTICO BASADO EN GUÍAS</span>
+        <span class="gala-card-eyebrow">Manejo terapéutico basado EN guías</span>
         <p class="gala-footer-text" id="gala-mgmt-p">${v.managementSummary}</p>
       </div>
       <div class="gala-footer-actions">
