@@ -2,6 +2,7 @@ cff-version: 1.2.0
 message: "Si usas o adaptas Metabolix, cítalo así."
 title: "Metabolix: conduce por el metabolismo humano"
 type: software
+doi: "10.5281/zenodo.23990015"
 authors:
   - family-names: "Torres de Pinedo"
     given-names: "Jesus M"
