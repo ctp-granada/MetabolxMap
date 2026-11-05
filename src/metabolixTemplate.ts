@@ -9,6 +9,7 @@ export const METABOLIX_TEMPLATE = `<div class="app">
       <button role="tab" data-view="tejidos" aria-selected="false">Tejidos<span class="lx"> y rutas</span></button>
       <button role="tab" data-view="ciclos" aria-selected="false">Ciclos<span class="lx"> y lanzaderas</span></button>
       <button role="tab" data-view="balances" aria-selected="false">Balances<span class="lx"> de ATP</span></button>
+      <button role="tab" data-view="misiones" aria-selected="false">Misiones</button>
       <button role="tab" data-view="reto" aria-selected="false">Reto</button>
     </nav>
     <div class="header-actions">
@@ -145,6 +146,7 @@ export const METABOLIX_TEMPLATE = `<div class="app">
         <div class="hint">Arrastra para moverte, usa la rueda o pellizca para acercar, y toca una carretera o un cruce para ver su ficha</div>
         <div class="quiz" id="quiz" hidden></div>
         <section class="predict" id="predict" hidden aria-live="polite"></section>
+        <section class="predict mission" id="mission" hidden aria-live="polite"></section>
         </div>
       </section>
       <section class="view" id="view-tejidos" hidden></section>

@@ -244,7 +244,7 @@ Object.entries(PW).forEach(([k,v])=>{
 });
 
 cssify(defs);
-const gGrid = el("g",{class:"atlas-grid"},svg), gComp = el("g",{},svg), gCase=el("g",{class:"casing-g"},svg), gEdges=el("g",{filter:"url(#glow)",class:"edges-g"},svg), gHits=el("g",{},svg), gPart=el("g",{},svg), gNodes=el("g",{},svg), gFx=el("g",{},svg);
+const gGrid = el("g",{class:"atlas-grid"},svg), gComp = el("g",{},svg), gCase=el("g",{class:"casing-g"},svg), gEdges=el("g",{filter:"url(#glow)",class:"edges-g"},svg), gHits=el("g",{},svg), gPart=el("g",{class:"parts-g"},svg), gNodes=el("g",{},svg), gFx=el("g",{},svg), gFxMs=el("g",{class:"ms-fx"},svg);
 
 
 /* cuadrícula de atlas: columnas A–L, filas 1–9 */
@@ -835,6 +835,216 @@ function syncTissueChips(){
   });
 }
 
+
+/* ======================= Misiones: sigue la molécula ======================= */
+const MISSIONS = [
+  { id:"cori", title:"Operación Cori", goal:"Del lactato a la glucosa de la sangre", state:"fast", from:"lactate_cyt", to:"glucose_ext",
+    intro:"Tras el ejercicio, el lactato del músculo llega al hígado. Es de noche y llevas horas sin comer: convierte ese lactato en glucosa y devuélvela a la sangre.",
+    hints:{
+      rx_pdh:"En ayuno la PDH está casi apagada: la PDH quinasa la fosforila y el acetil-CoA y el NADH de la β-oxidación la frenan. El piruvato se reserva para fabricar glucosa.",
+      rx_pk:"La piruvato quinasa es irreversible. Para subir de piruvato a PEP hay que dar un rodeo por la mitocondria.",
+      rx_pfk1:"La PFK-1 es irreversible. El camino de vuelta lo hace otra enzima que en ayuno está activa porque ha bajado la fructosa-2,6-bisfosfato.",
+      rx_hk:"La glucoquinasa no funciona al revés. Para liberar la glucosa hace falta otra enzima, en el retículo endoplásmico."
+    },
+    takeaways:["Tres rodeos esquivan los pasos irreversibles de la glucólisis: piruvato carboxilasa + PEPCK, FBPasa-1 y glucosa-6-fosfatasa.","El oxalacetato no atraviesa la membrana mitocondrial: sale al citosol como malato.","Fabricar una glucosa a partir de dos lactatos cuesta 6 enlaces de alta energía (4 ATP y 2 GTP)."] },
+  { id:"grasa", title:"Fábrica de grasa", goal:"De la glucosa al palmitato", state:"fed", from:"glucose_ext", to:"palmitate",
+    intro:"Acabas de comer y sobra glucosa. Lleva sus carbonos desde la sangre hasta el palmitato, el ácido graso que fabrica el hígado.",
+    hints:{
+      rx_aconitase:"Si sigues por el ciclo de Krebs, el carbono acabará como CO₂. Para fabricar grasa tiene que salir de la mitocondria.",
+      rx_pyruvate_carboxylase:"Después de comer la piruvato carboxilasa trabaja poco: el piruvato se dirige a acetil-CoA.",
+      rx_g6pdh:"La vía de las pentosas aporta el NADPH que necesita la síntesis de ácidos grasos, pero no lleva los carbonos al palmitato.",
+      rx_pgm_glycogen:"Por ahí guardas la glucosa como glucógeno, no como grasa."
+    },
+    takeaways:["El acetil-CoA no atraviesa la membrana mitocondrial: sale como citrato y la ATP-citrato liasa lo libera en el citosol.","La acetil-CoA carboxilasa es el paso limitante; la activan el citrato y la insulina.","El malonil-CoA que fabrica bloquea la CPT-1, así que la grasa recién hecha no se quema."] },
+  { id:"galactosa", title:"La ruta de la leche", goal:"De la galactosa al glucógeno", state:"fed", from:"galactose", to:"glycogen",
+    intro:"La lactosa de la leche ha liberado galactosa. Llévala al hígado y guárdala como glucógeno.",
+    hints:{
+      rx_aldose_reductase_gal:"La aldosa reductasa convierte la galactosa en galactitol, que no se metaboliza y se acumula en el cristalino: así aparecen las cataratas de la galactosemia.",
+      rx_pgm_glycogen:"Por ahí vas hacia la glucosa-6-fosfato y la glucólisis. Para guardar glucógeno hay que activar antes la glucosa-1-fosfato."
+    },
+    takeaways:["La GALT es la enzima que falta en la galactosemia clásica: se acumulan galactosa-1-fosfato y galactitol.","La glucosa-1-fosfato se activa como UDP-glucosa antes de unirse al glucógeno."] },
+  { id:"cetonas", title:"Combustible de emergencia", goal:"Del palmitato a los cuerpos cetónicos", state:"keto", from:"palmitate", to:"ketone_bodies",
+    intro:"Llevas más de tres días sin comer. El tejido adiposo libera ácidos grasos: convierte el palmitato en cuerpos cetónicos para alimentar al cerebro.",
+    hints:{
+      rx_cs:"En ayuno prolongado el oxalacetato se gasta en gluconeogénesis y el ciclo de Krebs no da abasto con tanto acetil-CoA: el exceso se desvía.",
+      rx_tag_synth:"Esterificar el ácido graso lo guardaría otra vez como triglicérido."
+    },
+    takeaways:["Sin insulina no hay malonil-CoA, así que la CPT-1 queda libre y los ácidos grasos entran en la mitocondria.","Los cuerpos cetónicos se fabrican en el hígado pero el hígado no los usa: son para el cerebro, el corazón y el músculo."] },
+  { id:"sprint", title:"Sprint final", goal:"Del glucógeno muscular al lactato", state:"run", from:"glycogen", to:"lactate_cyt",
+    intro:"Últimos 100 metros. El músculo necesita ATP ya y la mitocondria no da abasto: rompe el glucógeno muscular y llega hasta lactato.",
+    hints:{
+      rx_g6pase:"El músculo no tiene glucosa-6-fosfatasa: su glucógeno no puede salir como glucosa, es solo para él.",
+      rx_mpc:"En un sprint la mitocondria no puede oxidar todo el piruvato al ritmo de la glucólisis.",
+      rx_g6pdh:"La vía de las pentosas no produce ATP. Ahora lo que hace falta es energía rápida."
+    },
+    takeaways:["La glucógeno fosforilasa libera glucosa-1-fosfato sin gastar ATP: el glucógeno rinde un ATP más que la glucosa libre.","La LDH regenera el NAD⁺ que necesita la GAPDH para que la glucólisis no se detenga."] },
+  { id:"glicerol", title:"Reciclar la grasa", goal:"Del glicerol-3-fosfato a la glucosa", state:"fast", from:"glycerol_3p", to:"glucose_ext",
+    intro:"La lipólisis del tejido adiposo libera glicerol, que el hígado fosforila. Conviértelo en glucosa para la sangre.",
+    hints:{
+      rx_pfk1:"La PFK-1 es irreversible. El camino de vuelta lo hace la FBPasa-1, activa en ayuno.",
+      rx_hk:"La glucoquinasa no funciona al revés. La glucosa se libera en el retículo endoplásmico."
+    },
+    takeaways:["El glicerol entra en la gluconeogénesis a la altura de las triosas: se salta el rodeo de la piruvato carboxilasa y la PEPCK.","Los ácidos grasos de número par no pueden dar glucosa; el glicerol de los triglicéridos sí."] }
+];
+const MS_SKIP = new Set(["complex_1","complex_2","coenzyme_q","complex_3","cytochrome_c","complex_4","atp_synthase","proton_gradient"]);
+const MS_RX = RX.filter(r=>L[r.fromNodeId]&&L[r.toNodeId]&&!MS_SKIP.has(r.fromNodeId)&&!MS_SKIP.has(r.toNodeId));
+function signedIn(S,r){
+  let f=(r.id in S.rx)? S.rx[r.id] : (S.pw[r.pathway] ?? 0);
+  if(S.noMito && (r.compartment!=="cytosol" || ["rx_mpc","rx_citrate_export","rx_oaa_export","rx_malate_aspartate_shuttle"].includes(r.id))) f=0;
+  return f;
+}
+const MS_OPEN=.05;
+/* reacciones en equilibrio: funcionan en ambos sentidos si la ruta está encendida */
+const MS_EQ=new Set(["rx_tpi"]);
+const msOpen=(S,r,dir)=> MS_EQ.has(r.id) ? Math.abs(signedIn(S,r))>MS_OPEN : signedIn(S,r)*dir>MS_OPEN;
+function msMoves(S,A){
+  const out=[];
+  MS_RX.forEach(r=>{
+    if(r.fromNodeId===A) out.push({r,dir:1,next:r.toNodeId});
+    else if(r.toNodeId===A) out.push({r,dir:-1,next:r.fromNodeId});
+  });
+  out.forEach(m=>{ m.kind = (m.dir<0 && !m.r.reversible) ? "oneway" : (msOpen(S,m.r,m.dir) ? "open" : "closed"); });
+  return out;
+}
+function msDist(S,target){
+  const d={[target]:0}, q=[target];
+  while(q.length){ const n=q.shift();
+    MS_RX.forEach(r=>{ [[r.fromNodeId,r.toNodeId,1],[r.toNodeId,r.fromNodeId,-1]].forEach(([a,b,dir])=>{
+      if(b!==n || a in d) return; if(dir<0 && !r.reversible) return; if(!msOpen(S,r,dir)) return;
+      d[a]=d[n]+1; q.push(a); }); }); }
+  return d;
+}
+function msUndist(target){
+  const d={[target]:0}, q=[target];
+  while(q.length){ const n=q.shift(); MS_RX.forEach(r=>{ [[r.fromNodeId,r.toNodeId],[r.toNodeId,r.fromNodeId]].forEach(([a,b])=>{ if(b===n && !(a in d)){ d[a]=d[n]+1; q.push(a);} }); }); }
+  return d;
+}
+const COF_KEYS=[["ATP",/^(\d+)?\s*(ATP|GTP)\b/],["NADH",/^(\d+)?\s*NADH\b/],["NADPH",/^(\d+)?\s*NADPH\b/],["FADH₂",/^(\d+)?\s*FADH/],["CO₂",/^(\d+)?\s*CO₂/]];
+function cofDelta(r,dir){
+  const d={}; const add=(list,sgn)=>(list||[]).forEach(t=>{ COF_KEYS.forEach(([k,re])=>{ const m=String(t).trim().match(re); if(m) d[k]=(d[k]||0)+sgn*(+(m[1]||1)); }); });
+  add(r.cofactorsConsumed,-dir); add(r.cofactorsProduced,dir);
+  return d;
+}
+let ms=null; // partida en curso
+let msPrevState=null;
+const msBest=id=>{ try{ return JSON.parse(localStorage.getItem("metabolix_mission_"+id)||"null"); }catch(e){ return null; } };
+const msSaveBest=(id,res)=>{ try{ const b=msBest(id); if(!b || res.errors<b.errors) localStorage.setItem("metabolix_mission_"+id,JSON.stringify(res)); }catch(e){} };
+const stName=id=>STATES.find(s=>s.id===id);
+const nodeName=id=>(MET[id]?.abbreviation||MET[id]?.name||id);
+
+function enterMissions(){
+  if(!msPrevState) msPrevState=ST.id;
+  svg.classList.add("ms"); { const tb=document.querySelector(".map-topbar"); if(tb) tb.hidden=true; }
+  if(ms && !ms.done) renderMission(); else renderMissionList();
+}
+function leaveMissions(){
+  svg.classList.remove("ms"); clearMsMarks(); gFxMs.innerHTML=""; { const tb=document.querySelector(".map-topbar"); if(tb) tb.hidden=false; }
+  $("#mission").hidden=true;
+  if(msPrevState && ST.id!==msPrevState) setState(msPrevState);
+  msPrevState=null;
+}
+function clearMsMarks(){ svg.querySelectorAll(".ms-opt,.ms-trail,.ms-cur,.ms-target").forEach(e=>e.classList.remove("ms-opt","ms-trail","ms-cur","ms-target")); }
+function renderMissionList(){
+  ms=null; clearMsMarks(); gFxMs.innerHTML="";
+  const box=$("#mission"); box.hidden=false;
+  box.innerHTML=`<div class="ms-head"><div><div class="pr-step">Misiones</div><h3>Sigue la molécula</h3>
+    <p>Lleva una molécula de un punto a otro del mapa eligiendo en cada cruce la carretera correcta. Cada misión ocurre en un estado fisiológico: algunas carreteras estarán cortadas.</p></div></div>
+    <ol class="ms-list">${MISSIONS.map((M,i)=>{ const b=msBest(M.id), S=stName(M.state);
+      return `<li><button type="button" data-ms="${M.id}"><span class="ms-n">${i+1}</span><span class="ms-t"><b>${esc(M.title)}</b><small>${esc(M.goal)}</small><em><i style="background:${S?.c||"var(--accent)"}"></i>${esc(S?.name||"")} · ${esc(S?.tissue||"")}</em></span>${b?`<span class="ms-best" title="Tu mejor resultado">${b.errors===0?"Sin fallos":b.errors+(b.errors===1?" fallo":" fallos")}</span>`:""}</button></li>`; }).join("")}</ol>`;
+  box.querySelectorAll("[data-ms]").forEach(b=>b.onclick=()=>startMission(b.dataset.ms));
+  Object.assign(VB, fitBox()); setVB();
+}
+function startMission(id){
+  const M=MISSIONS.find(m=>m.id===id); if(!M) return;
+  setState(M.state);
+  ms={M,cur:M.from,trail:[M.from],edges:[],errors:0,hints:0,tally:{},fb:null,done:false,started:false,dist:msDist(ST,M.to),und:msUndist(M.to)};
+  renderMission();
+}
+function msOptions(){
+  const {cur,M,und}=ms;
+  return msMoves(ST,cur).filter(m=> m.kind!=="oneway" || (und[m.next]??99) < (und[cur]??99));
+}
+function msChoose(opt){
+  if(!ms||ms.done) return;
+  const {M}=ms, S=ST, en=opt.r.enzymeAbbreviation||opt.r.enzymeName, hint=M.hints[opt.r.id];
+  const toName=nodeName(opt.next);
+  if(opt.kind==="oneway"){ ms.errors++; ms.fb={t:"ko",h:"Sentido prohibido",b:hint||`La ${en} es irreversible dentro de la célula. Busca otra forma de llegar a ${toName}.`}; }
+  else if(opt.kind==="closed"){ ms.errors++; ms.fb={t:"ko",h:"Carretera cortada",b:hint||`En ${S.name.toLowerCase()} la ${en} no funciona en ese sentido.`}; }
+  else if((ms.dist[opt.next]??99) >= (ms.dist[ms.cur]??99)){ ms.errors++; ms.fb={t:"warn",h:"Desvío",b:hint||`La carretera está abierta, pero por ahí te alejas de ${nodeName(M.to)}.`}; }
+  else {
+    const d=cofDelta(opt.r,opt.dir); Object.entries(d).forEach(([k,v])=>ms.tally[k]=(ms.tally[k]||0)+v);
+    const cross = opt.r.compartment==="mitochondria_membrane" || opt.r.id==="rx_glut" || opt.r.id==="rx_glut_out";
+    const cof = Object.entries(d).filter(([,v])=>v).map(([k,v])=>`${v>0?"+":"−"}${Math.abs(v)} ${k}`).join(", ");
+    ms.fb={t:"ok",h:cross?`Frontera cruzada: ${en}`:`${en}`,b:`${nodeName(ms.cur)} → ${toName}${cof?` · ${cof}`:""}`};
+    ms.cur=opt.next; ms.trail.push(opt.next); ms.edges.push(opt.r.id);
+    if(ms.cur===M.to){ ms.done=true; msSaveBest(M.id,{errors:ms.errors,hints:ms.hints}); }
+  }
+  renderMission();
+}
+function msHint(){
+  if(!ms||ms.done) return; ms.hints++;
+  const good=msOptions().find(o=>o.kind==="open" && (ms.dist[o.next]??99) < (ms.dist[ms.cur]??99));
+  if(good) ms.fb={t:"hint",h:"Pista",b:`Busca la enzima ${good.r.enzymeAbbreviation||good.r.enzymeName}.`};
+  renderMission();
+}
+function renderMission(){
+  const box=$("#mission"); if(!ms){ renderMissionList(); return; }
+  const {M,cur,trail,errors,hints,tally,fb,done}=ms, S=ST;
+  clearMsMarks(); gFxMs.innerHTML="";
+  const opts = done? [] : msOptions();
+  // marcas en el mapa
+  ms.edges.forEach(id=>{ const E=EDGES.find(e=>e.r.id===id); if(E){ E.p.classList.add("ms-trail"); E.cs.classList.add("ms-trail"); E.pill&&E.pill.classList.add("ms-trail"); } });
+  trail.forEach(n=>NODES[n]?.g.classList.add("ms-trail"));
+  opts.forEach(o=>{ const E=EDGES.find(e=>e.r.id===o.r.id); if(E){ E.p.classList.add("ms-opt"); E.cs.classList.add("ms-opt"); E.pill&&E.pill.classList.add("ms-opt"); } NODES[o.next]?.g.classList.add("ms-opt"); });
+  NODES[cur]?.g.classList.add("ms-cur"); NODES[M.to]?.g.classList.add("ms-target");
+  [[cur,"ms-ring"],[M.to,"ms-flag"]].forEach(([n,c])=>{ const P=L[n]; if(!P) return; el("circle",{cx:P[0],cy:P[1],r:nodeR(n)+12,class:c},gFxMs); });
+  requestAnimationFrame(()=>{ const P=L[cur]; if(P){ const w=innerWidth<860?620:1000, r=svg.clientHeight/svg.clientWidth||.7, h=w*r;
+      // deja el nodo en la parte del mapa que no tapa la tarjeta
+      const card=box.getBoundingClientRect(), sv=svg.getBoundingClientRect();
+      const side = innerWidth>=860 ? ((card.right-sv.left)/sv.width)*w*.5 : 0;
+      const down = innerWidth<860 ? ((sv.bottom-card.top)/sv.height)*h*.5 : 0;
+      animVB({x:P[0]-w/2-side, y:P[1]-h/2+down, w, h}); } });
+  const tallyTxt=["ATP","NADH","NADPH","FADH₂","CO₂"].filter(k=>tally[k]).map(k=>`<span><b>${tally[k]>0?"+":"−"}${Math.abs(tally[k])}</b> ${k==="ATP"?"ATP/GTP":k}</span>`).join("") || `<span class="ms-zero">Aún sin gasto ni ganancia</span>`;
+  const optBtns = opts.map((o,i)=>{ const cross=o.r.compartment==="mitochondria_membrane"||o.r.id==="rx_glut"||o.r.id==="rx_glut_out";
+    return `<button type="button" class="ms-opt-btn" data-i="${i}"><span class="ms-arrow" style="background:${PW[o.r.pathway]?.c||"var(--fg)"}"></span><span><b>${esc(nodeName(o.next))}</b><small>${esc(o.r.enzymeAbbreviation||o.r.enzymeName)}${cross?" · cruza una membrana":""}</small></span></button>`; }).join("");
+  box.hidden=false;
+  box.innerHTML = `
+    <div class="ms-head">
+      <div><div class="pr-step">Misión ${MISSIONS.indexOf(M)+1} · ${esc(M.title)}</div>
+        <h3>${esc(M.goal)}</h3>
+        <p class="ms-state"><i style="background:${S.c}"></i>${esc(S.name)} · ${esc(S.tissue)}</p></div>
+      <button type="button" class="close ms-exit" aria-label="Volver a la lista de misiones">✕</button>
+    </div>
+    ${trail.length===1 && !fb && !done ? `<p class="ms-intro">${esc(M.intro)}</p>`:""}
+    <div class="ms-odo" aria-label="Cuentakilómetros">
+      <span><b>${trail.length-1}</b> pasos</span><span><b>${errors}</b> ${errors===1?"fallo":"fallos"}</span>${tallyTxt}
+    </div>
+    <div class="ms-trailtxt">${trail.map(n=>`<span>${esc(nodeName(n))}</span>`).join('<i>›</i>')}${done?"":`<i>›</i><span class="ms-goal">${esc(nodeName(M.to))}</span>`}</div>
+    ${fb?`<div class="ms-fb ${fb.t}" role="status"><b>${esc(fb.h)}</b> ${esc(fb.b)}</div>`:""}
+    ${done ? `<div class="ms-win"><h4>Misión cumplida</h4><p>Has llegado en ${trail.length-1} pasos con ${errors} ${errors===1?"fallo":"fallos"}${hints?` y ${hints} ${hints===1?"pista":"pistas"}`:""}.</p><ul>${M.takeaways.map(t=>`<li>${esc(t)}</li>`).join("")}</ul></div>`
+           : `<div class="ms-q">Estás en <b>${esc(MET[cur]?.name||cur)}</b>. ¿Por qué carretera sigues?</div><div class="ms-opts">${optBtns}</div>`}
+    <div class="pr-foot">
+      ${done? `<button type="button" class="btn ms-again">Repetir</button><button type="button" class="btn primary ms-list-btn">Otra misión</button>`
+            : `<button type="button" class="btn ms-hint">Pista</button><button type="button" class="btn ms-again">Empezar de nuevo</button>`}
+    </div>`;
+  box.querySelectorAll(".ms-opt-btn").forEach(b=>b.onclick=()=>msChoose(opts[+b.dataset.i]));
+  if(innerWidth<860){ const f=box.querySelector(".ms-fb")||box.querySelector(".ms-q"); if(f) box.scrollTop=Math.max(0,f.offsetTop-12); }
+  box.querySelector(".ms-exit").onclick=renderMissionList;
+  const a=box.querySelector(".ms-again"); if(a) a.onclick=()=>startMission(M.id);
+  const h=box.querySelector(".ms-hint"); if(h) h.onclick=msHint;
+  const l=box.querySelector(".ms-list-btn"); if(l) l.onclick=renderMissionList;
+}
+function msPick(kind,id){
+  if(!ms||ms.done) return;
+  const opts=msOptions();
+  const o = kind==="rx" ? opts.find(x=>x.r.id===id) : opts.find(x=>x.next===id);
+  if(o) msChoose(o); else toast("Elige una de las carreteras que salen de tu posición");
+}
+/* comprobación para quien escriba misiones nuevas: window.__msCheck() devuelve el camino de cada una */
+if(typeof window!=="undefined") window.__msCheck=()=>MISSIONS.map(M=>{ const S=stName(M.state); const d=msDist(S,M.to); let cur=M.from, path=[cur], guard=0;
+  while(cur!==M.to && guard++<40){ const n=msMoves(S,cur).find(m=>m.kind==="open" && (d[m.next]??99)<(d[cur]??99)); if(!n) break; cur=n.next; path.push(cur+"("+n.r.id+")"); }
+  return M.id+": "+(d[M.from]===undefined?"SIN CAMINO":path.join(" → ")); });
+
 /* ======================= Predecir antes de ver ======================= */
 /* Procesos que el alumno predice al cambiar de estado; cada uno se mide con
    una reacción representativa (irreversible o con un sentido claro). */
@@ -946,7 +1156,7 @@ function renderStateInfo(){
   const n=$("#st-notes"); n.style.setProperty("--sc",ST.c); n.innerHTML=ST.notes.map(t=>`<li>${esc(t)}</li>`).join("");
 }
 function drawHud(){
-  $("#hud").hidden = currentView==="reto"; { const mc=document.getElementById("map-controls"); if(mc) mc.hidden = currentView==="reto"; if(currentView==="reto" && pred) closePredict(); } gEnz.style.display = currentView==="reto" ? "none" : "";
+  $("#hud").hidden = currentView==="reto"||currentView==="misiones"; { const mc=document.getElementById("map-controls"); if(mc) mc.hidden = currentView==="reto"||currentView==="misiones"; if((currentView==="reto"||currentView==="misiones") && pred) closePredict(); } gEnz.style.display = currentView==="reto" ? "none" : "";
   const tName = tissueFilter === "universal" ? "Rutas universales" : (TISSUES_DATA[tissueFilter]?.name || tissueFilter);
   const tColor = TISSUE_COLORS[tissueFilter] || "var(--accent)";
   const tBadge = tissueFilter ? `<button class="pill" id="hud-tf" style="border-color:${tColor};background:color-mix(in srgb,${tColor} 12%,var(--ink-1))"><span class="dot" style="color:${tColor}"></span><b>Filtro:</b> ${esc(tName)} <span style="color:var(--fg-faint);margin-left:4px">✕</span></button>` : "";
@@ -1549,6 +1759,7 @@ function closePanel(){ panel.classList.remove("open"); $(".body").classList.remo
 document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ closePanel(); $("#results").hidden=true; } if(e.key==="/" && document.activeElement!==$("#q")){ e.preventDefault(); $("#q").focus(); } });
 
 function onPick(kind,id){
+  if(currentView==="misiones"){ msPick(kind,id); return; }
   if(quiz && !quiz.done && !quiz.reveal && currentView==="reto"){ answer(kind,id); return; }
   if(kind==="rx") openRx(id); else openNode(id);
 }
@@ -3509,7 +3720,7 @@ function renderTissues(){
 }
 
 function go(v){
-  if(!["mapa","balances","reto","ciclos","tejidos"].includes(v)) v="mapa";
+  if(!["mapa","balances","reto","ciclos","tejidos","misiones"].includes(v)) v="mapa";
   const prev=currentView; currentView=v;
   document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.view===v)));
   const isFullFlow = v==="balances"||v==="ciclos"||v==="tejidos";
@@ -3525,6 +3736,7 @@ function go(v){
   if(v==="tejidos"){ renderTissues(); }
   if(v==="reto"){ if(!quiz||quiz.done) newQuiz(); else renderQuiz(); }
   else { $("#quiz").hidden=true; if(quiz){ quiz=null; drawFx(); } }
+  if(v==="misiones") enterMissions(); else if(prev==="misiones") leaveMissions();
   drawHud();
   if(location.hash.slice(1)!==v) history.replaceState(null,"","#"+v);
 }

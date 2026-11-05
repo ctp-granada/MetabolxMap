@@ -4062,3 +4062,68 @@ select{width:100%;background:var(--ink-2);color:var(--fg);border:1px solid var(-
 .map-controls{flex-wrap:wrap}
 .mc-states{flex:1 1 520px}
 .pr-seg .lv{flex:none}
+
+/* ---------- Misiones ---------- */
+#map.ms .edge,#map.ms .casing{opacity:.08!important}
+#map.ms .node{opacity:.18;transition:opacity .3s}
+#map.ms .enz{opacity:.12}
+#map.ms .parts-g{opacity:.15}
+#map.ms .edge.ms-trail{opacity:1!important;stroke-width:8px}
+#map.ms .casing.ms-trail{opacity:.9!important;stroke-width:11px}
+#map.ms .edge.ms-opt{opacity:.95!important;stroke-width:5px;stroke-dasharray:10 6!important}
+#map.ms .casing.ms-opt{opacity:.5!important;stroke-width:8px}
+#map.ms .node.ms-trail{opacity:.85}
+#map.ms .node.ms-opt{opacity:1;cursor:pointer}
+#map.ms .node.ms-cur,#map.ms .node.ms-target{opacity:1}
+#map.ms .enz.ms-opt,#map.ms .enz.ms-trail{opacity:1}
+.ms-fx{pointer-events:none}
+.ms-ring{fill:none;stroke:var(--accent);stroke-width:4;animation:msPulse 1.6s ease-in-out infinite}
+.ms-flag{fill:none;stroke:var(--danger);stroke-width:3;stroke-dasharray:6 5}
+@keyframes msPulse{0%,100%{stroke-opacity:1}50%{stroke-opacity:.25}}
+@media (prefers-reduced-motion:reduce){ .ms-ring{animation:none} }
+.mission{left:16px;right:auto;width:min(430px,calc(100% - 32px))}
+.ms-head{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+.ms-head h3{font:700 21px/1.15 var(--f-display);margin:2px 0 4px}
+.ms-head p{font-size:13.5px;color:var(--fg-dim);line-height:1.45;margin:0}
+.ms-state{display:flex;align-items:center;gap:6px}
+.ms-state i,.ms-t em i{display:inline-block;width:12px;height:4px}
+.ms-list{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.ms-list button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:10px 4px;border-bottom:1px solid var(--line)}
+.ms-list button:hover{background:var(--ink-2)}
+.ms-list button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.ms-n{flex:none;display:grid;place-items:center;width:30px;height:30px;border-radius:3px;background:var(--accent);color:#fff;font:700 15px var(--f-display);box-shadow:inset 0 0 0 2px var(--accent),inset 0 0 0 3px #fff}
+:root[data-mode="dark"] .ms-n{color:var(--ink-0);box-shadow:inset 0 0 0 2px var(--accent),inset 0 0 0 3px var(--ink-0)}
+.ms-t{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1}
+.ms-t b{font:700 16px var(--f-display)}
+.ms-t small{font-size:13px;color:var(--fg-dim)}
+.ms-t em{font-style:normal;font-size:12px;color:var(--fg-faint);display:flex;align-items:center;gap:5px}
+.ms-best{flex:none;font:600 12px var(--f-display);color:var(--ok);border:1px solid color-mix(in srgb,var(--ok) 45%,transparent);border-radius:3px;padding:1px 6px}
+.ms-intro{font-size:14px;line-height:1.5;margin:0;padding:8px 12px;background:var(--ink-2);border-left:3px solid var(--accent)}
+.ms-odo{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;color:var(--fg-dim);padding:7px 10px;border:1px solid var(--line);border-radius:3px;font-variant-numeric:tabular-nums}
+.ms-odo b{font:700 15px var(--f-display);color:var(--fg)}
+.ms-zero{color:var(--fg-faint)}
+.ms-trailtxt{display:flex;flex-wrap:wrap;align-items:center;gap:2px 5px;font:600 13px var(--f-display);color:var(--fg)}
+.ms-trailtxt i{font-style:normal;color:var(--fg-faint)}
+.ms-goal{color:var(--danger);border-bottom:1.5px dashed var(--danger)}
+.ms-fb{font-size:13.5px;line-height:1.45;padding:8px 12px;border-radius:3px;border-left:4px solid}
+.ms-fb.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 8%,var(--ink-1))}
+.ms-fb.ko{border-color:var(--danger);background:color-mix(in srgb,var(--danger) 8%,var(--ink-1))}
+.ms-fb.warn{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 10%,var(--ink-1))}
+.ms-fb.hint{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--ink-1))}
+.ms-fb b{font-family:var(--f-display);margin-right:4px}
+.ms-q{font-size:14px}
+.ms-opts{display:flex;flex-direction:column;gap:6px}
+.ms-opt-btn{display:flex;align-items:center;gap:10px;text-align:left;padding:8px 10px;border:1px solid var(--line);border-radius:3px;background:var(--ink-1)}
+.ms-opt-btn:hover{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 5%,var(--ink-1))}
+.ms-opt-btn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.ms-opt-btn b{display:block;font:700 15px var(--f-display)}
+.ms-opt-btn small{font-size:12.5px;color:var(--fg-dim)}
+.ms-arrow{flex:none;width:18px;height:6px;clip-path:polygon(0 30%,70% 30%,70% 0,100% 50%,70% 100%,70% 70%,0 70%)}
+.ms-win{border:1px solid color-mix(in srgb,var(--ok) 40%,var(--line));border-top:4px solid var(--ok);border-radius:3px;padding:10px 14px}
+.ms-win h4{font:700 19px var(--f-display);margin:0 0 4px;color:var(--ok)}
+.ms-win p{margin:0 0 6px;font-size:14px}
+.ms-win ul{margin:0;padding-left:18px;font-size:13.5px;line-height:1.5}
+.ms-win li{margin:4px 0}
+@media (max-width:860px){ .mission{left:8px;right:8px;width:auto;top:auto;bottom:8px;max-height:58%} }
+.map-topbar[hidden]{display:none}
+@media (max-width:860px){ .tabs{overflow-x:auto;max-width:100%;scrollbar-width:none} .tabs::-webkit-scrollbar{display:none} .tabs button{flex:none} }
