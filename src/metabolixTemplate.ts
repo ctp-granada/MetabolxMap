@@ -9,6 +9,7 @@ export const METABOLIX_TEMPLATE = `<div class="app">
       <button role="tab" data-view="tejidos" aria-selected="false">Tejidos<span class="lx"> y rutas</span></button>
       <button role="tab" data-view="ciclos" aria-selected="false">Ciclos<span class="lx"> y lanzaderas</span></button>
       <button role="tab" data-view="balances" aria-selected="false">Balances<span class="lx"> de ATP</span></button>
+      <button role="tab" data-view="misiones" aria-selected="false">Misiones</button>
       <button role="tab" data-view="reto" aria-selected="false">Reto</button>
     </nav>
     <div class="header-actions">
@@ -36,10 +37,6 @@ export const METABOLIX_TEMPLATE = `<div class="app">
   <div class="body">
     <aside class="rail" id="rail">
       <div class="sec">
-        <div class="eyebrow">Estado fisiológico</div>
-        <div class="states" id="states"></div>
-      </div>
-      <div class="sec">
         <div class="eyebrow">Señales</div>
         <div class="meters" id="meters"></div>
       </div>
@@ -50,10 +47,6 @@ export const METABOLIX_TEMPLATE = `<div class="app">
       <div class="sec">
         <div class="eyebrow">Rutas · toca para aislar</div>
         <div class="chips" id="pw-chips"></div>
-      </div>
-      <div class="sec">
-        <div class="eyebrow">Especialización tisular · Mapa</div>
-        <div class="tissue-chips" id="tissue-chips"></div>
       </div>
       <div class="sec" id="sec-flashcard-study">
         <div class="eyebrow" style="display:flex;align-items:center;justify-content:space-between">
@@ -122,8 +115,28 @@ export const METABOLIX_TEMPLATE = `<div class="app">
 
     <main class="stage" id="stage">
       <section class="view" id="view-mapa">
+        <div class="map-controls" id="map-controls">
+          <div class="mc-states" role="radiogroup" aria-label="Estado fisiológico">
+            <span class="mc-label">Estado fisiológico</span>
+            <div class="states" id="states"></div>
+          </div>
+          <div class="mc-mode">
+            <div class="seg-mode" id="predict-toggle" role="group" aria-label="Qué pasa al elegir un estado">
+              <button type="button" data-pm="view" aria-pressed="true">Ver directamente</button>
+              <button type="button" data-pm="predict" aria-pressed="false">Predecir primero</button>
+            </div>
+            <span class="mc-mode-hint" id="mc-mode-hint" aria-live="polite">Al elegir un estado, el mapa cambia al momento.</span>
+          </div>
+        </div>
+        <div class="map-frame">
         <svg id="map" role="img" aria-label="Mapa metabólico de una célula humana"></svg>
-        <div class="map-hud" id="hud"></div>
+        <div class="map-topbar">
+          <label class="mc-tissue">
+            <span class="mc-label">Tejido</span>
+            <select id="tissue-select" aria-label="Ver el mapa de un tejido"></select>
+          </label>
+          <div class="map-hud" id="hud"></div>
+        </div>
         <div class="zoom">
           <button id="z-in" aria-label="Acercar">+</button>
           <button id="z-out" aria-label="Alejar">−</button>
@@ -132,6 +145,9 @@ export const METABOLIX_TEMPLATE = `<div class="app">
         </div>
         <div class="hint">Arrastra para moverte, usa la rueda o pellizca para acercar, y toca una carretera o un cruce para ver su ficha</div>
         <div class="quiz" id="quiz" hidden></div>
+        <section class="predict" id="predict" hidden aria-live="polite"></section>
+        <section class="predict mission" id="mission" hidden aria-live="polite"></section>
+        </div>
       </section>
       <section class="view" id="view-tejidos" hidden></section>
       <section class="view" id="view-ciclos" hidden>

@@ -129,6 +129,10 @@ Permite alternar entre cuatro condiciones fisiológicas cardinales con actualiza
 
 ---
 
+## 🧭 Misiones y «Predecir primero»
+- **Predecir primero**: al cambiar de estado fisiológico, el alumno marca antes cómo estará cada ruta (activa, poco activa o apagada) y luego lo comprueba en el mapa.
+- **Misiones**: el alumno lleva una molécula de un punto a otro del mapa eligiendo en cada cruce la carretera correcta. Las carreteras se abren o se cortan según el estado fisiológico; hay sentidos prohibidos (pasos irreversibles), desvíos y fronteras (transportadores de membrana). Las misiones se definen en `MISSIONS` (`src/metabolixEngine.js`); `window.__msCheck()` en la consola comprueba que cada una tiene camino.
+
 ## 🎨 Diseño
 
 Metabolix se lee como un **mapa de carreteras del metabolismo**:

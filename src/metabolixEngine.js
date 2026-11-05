@@ -228,13 +228,23 @@ defs.innerHTML = `
  <filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14"/></filter>
  <radialGradient id="mitoFill" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="var(--mito-fill-a)" stop-opacity=".55"/><stop offset="1" stop-color="var(--mito-fill-b)" stop-opacity=".35"/></radialGradient>
  <radialGradient id="cellFill" cx="40%" cy="35%" r="75%"><stop offset="0" stop-color="var(--cell-a)" stop-opacity=".7"/><stop offset="1" stop-color="var(--cell-b)" stop-opacity=".2"/></radialGradient>
+ <radialGradient id="cytoGrad" cx="44%" cy="40%" r="68%"><stop offset="0" stop-color="var(--cyto-1)"/><stop offset=".72" stop-color="var(--cyto-2)"/><stop offset="1" stop-color="var(--cyto-3)"/></radialGradient>
+ <radialGradient id="mitoGrad" cx="40%" cy="32%" r="78%"><stop offset="0" stop-color="var(--mito-1)"/><stop offset="1" stop-color="var(--mito-2)"/></radialGradient>
+ <radialGradient id="matrixGrad" cx="42%" cy="36%" r="72%"><stop offset="0" stop-color="var(--matrix-1)"/><stop offset="1" stop-color="var(--matrix-2)"/></radialGradient>
+ <radialGradient id="nucGrad" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="var(--nuc-1)"/><stop offset="1" stop-color="var(--nuc-2)"/></radialGradient>
+ <radialGradient id="dropGrad" cx="36%" cy="30%" r="75%"><stop offset="0" stop-color="var(--drop-1)"/><stop offset=".65" stop-color="var(--drop-2)"/><stop offset="1" stop-color="var(--drop-3)"/></radialGradient>
+ <radialGradient id="glyGrad" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="var(--gly-1)"/><stop offset="1" stop-color="var(--gly-2)"/></radialGradient>
+ <radialGradient id="shine" cx="34%" cy="26%" r="42%"><stop offset="0" stop-color="#fff" stop-opacity=".75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+ <filter id="cellShadow" x="-10%" y="-10%" width="120%" height="125%"><feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="var(--cell-shadow)" flood-opacity=".28"/></filter>
+ <filter id="orgShadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="7" stdDeviation="8" flood-color="var(--cell-shadow)" flood-opacity=".3"/></filter>
+ <filter id="edgeBlur" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="22"/></filter>
  <pattern id="chrom" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="9" stroke="var(--nuc)" stroke-width="1.2" opacity=".35"/></pattern>`;
 Object.entries(PW).forEach(([k,v])=>{
   defs.insertAdjacentHTML("beforeend",`<marker id="m-${k}" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${v.c}"/></marker>`);
 });
 
 cssify(defs);
-const gGrid = el("g",{class:"atlas-grid"},svg), gComp = el("g",{},svg), gCase=el("g",{class:"casing-g"},svg), gEdges=el("g",{filter:"url(#glow)",class:"edges-g"},svg), gHits=el("g",{},svg), gPart=el("g",{},svg), gNodes=el("g",{},svg), gFx=el("g",{},svg);
+const gGrid = el("g",{class:"atlas-grid"},svg), gComp = el("g",{},svg), gCase=el("g",{class:"casing-g"},svg), gEdges=el("g",{filter:"url(#glow)",class:"edges-g"},svg), gHits=el("g",{},svg), gPart=el("g",{class:"parts-g"},svg), gNodes=el("g",{},svg), gFx=el("g",{},svg), gFxMs=el("g",{class:"ms-fx"},svg);
 
 
 /* cuadrícula de atlas: columnas A–L, filas 1–9 */
@@ -259,21 +269,18 @@ const gridRef=(x,y)=>{ const c=Math.min(GRID.cols-1,Math.max(0,Math.floor((x-GRI
 /* compartimentos */
 gComp.innerHTML = `
  <text class="comp-lbl" x="1740" y="70" text-anchor="end">Sangre · espacio extracelular</text>
- <rect x="60" y="112" width="1690" height="1268" rx="96" fill="var(--cell-a)" stroke="var(--cell-stroke)" stroke-width="7" stroke-opacity=".22"/>
- <rect x="60" y="112" width="1690" height="1268" rx="96" fill="none" stroke="var(--cell-line)" stroke-width="1.6"/>
- <rect x="71" y="123" width="1668" height="1246" rx="86" fill="none" stroke="var(--cell-line)" stroke-width="1.1" stroke-dasharray="16 5 2 5" stroke-opacity=".7"/>
+ <g id="cell-3d"></g>
  <text class="comp-lbl comp-region" x="100" y="166">Citosol</text>
  <g opacity=".9"><rect x="540" y="98" width="40" height="28" rx="3" fill="var(--node-fill)" stroke="var(--pw-glycolysis)" stroke-width="1.6"/><text class="lbl-c" x="586" y="117">GLUT</text></g>
  <g><rect x="380" y="98" width="40" height="28" rx="3" fill="var(--node-fill)" stroke="var(--pw-gluconeogenesis)" stroke-width="1.6"/><text class="lbl-c" x="330" y="117">GLUT2</text></g>
- <ellipse cx="210" cy="1250" rx="140" ry="96" fill="url(#chrom)" stroke="var(--nuc)" stroke-opacity=".7" stroke-width="1.6"/>
- <ellipse cx="210" cy="1250" rx="140" ry="96" fill="var(--nuc)" opacity=".06"/>
+ <g id="nuc-3d"></g>
  <text class="comp-lbl comp-region" x="210" y="1256" text-anchor="middle">Núcleo</text>
- <circle cx="198" cy="858" r="74" fill="var(--pw-lipid)" fill-opacity=".09" stroke="var(--pw-lipid)" stroke-opacity=".55" stroke-width="1.4"/>
+ <g id="drop-3d"></g>
  <text class="comp-lbl comp-region" x="118" y="770" style="fill:var(--lipid-lbl)">Gota lipídica</text>
  <g id="granule" opacity=".75"></g>
  <g id="mito">
-  <rect x="770" y="700" width="945" height="645" rx="150" fill="var(--mito-fill-a)" stroke="var(--mito-stroke)" stroke-width="2" stroke-dasharray="1 5" stroke-linecap="round"/>
-  <path id="inner" d="" fill="none" stroke="var(--mito-stroke)" stroke-opacity=".8" stroke-width="1.6"/>
+  <g id="mito-3d"></g>
+  <path id="inner" d="" fill="none" style="display:none"/>
   <text class="comp-lbl comp-region" x="1112" y="760" style="fill:var(--mito-lbl)">Matriz mitocondrial</text>
   <text class="comp-lbl comp-region" x="860" y="1325" style="fill:var(--mito-lbl)">Espacio intermembrana</text>
   <text id="nomito" class="comp-lbl comp-region" x="1242" y="1030" text-anchor="middle" style="fill:var(--pw-pentose);font-size:24px" opacity="0">Sin mitocondrias en el eritrocito</text>
@@ -289,6 +296,93 @@ gComp.innerHTML = `
   </g>
  </g>`;
 cssify(gComp);
+
+/* ===== Célula con volumen: citoplasma, bicapa lipídica y orgánulos ===== */
+const CELL3D = (function(){
+  let seed = 7; const rnd = () => (seed = (seed*16807) % 2147483647) / 2147483647;
+  // recorrido de un rectángulo redondeado con normales hacia fuera
+  function perim(x0,y0,x1,y1,r,step){
+    const pts=[]; const segs=[];
+    const W=x1-x0-2*r, H=y1-y0-2*r, arc=Math.PI*r/2;
+    segs.push(["l",x0+r,y0,1,0,W],["a",x1-r,y0+r,-Math.PI/2,arc],["l",x1,y0+r,0,1,H],["a",x1-r,y1-r,0,arc],
+              ["l",x1-r,y1,-1,0,W],["a",x0+r,y1-r,Math.PI/2,arc],["l",x0,y1-r,0,-1,H],["a",x0+r,y0+r,Math.PI,arc]);
+    const total=2*W+2*H+4*arc; const n=Math.round(total/step);
+    for(let i=0;i<n;i++){
+      let d=i*total/n, k=0; while(k<segs.length-1 && d>segs[k][segs[k][0]==="l"?5:4]){ d-=segs[k][segs[k][0]==="l"?5:4]; k++; }
+      const S=segs[k];
+      if(S[0]==="l"){ const [,sx,sy,dx,dy]=S; pts.push([sx+dx*d, sy+dy*d, dy, -dx, i*total/n]); }
+      else { const [,cx,cy,a0]=S; const a=a0+d/r; pts.push([cx+Math.cos(a)*r, cy+Math.sin(a)*r, Math.cos(a), Math.sin(a), i*total/n]); }
+    }
+    return pts;
+  }
+  const off=(pts,o,wob)=>pts.map(([x,y,nx,ny,t])=>{ const w=wob?wob(t):0; return [x+nx*(o+w), y+ny*(o+w)]; });
+  const path=(P)=>"M"+P.map(p=>p[0].toFixed(1)+" "+p[1].toFixed(1)).join("L")+"Z";
+  // bicapa: cabezas polares (puntos) a ambos lados y colas (rayas) en el centro
+  function bilayer(g,pts,half,head,wob,cls){
+    const mid=path(off(pts,0,wob)), out=path(off(pts,half,wob)), inn=path(off(pts,-half,wob));
+    el("path",{d:mid,class:"bl-tail-band "+cls,"stroke-width":half*2-head*.6},g);
+    el("path",{d:mid,class:"bl-tails "+cls,"stroke-width":half*2-head*1.4,"stroke-dasharray":`1 ${(head*1.05).toFixed(2)}`},g);
+    [out,inn].forEach(d=>el("path",{d,class:"bl-heads "+cls,"stroke-width":head,"stroke-dasharray":`0 ${(head*1.18).toFixed(2)}`},g));
+    return {mid,out,inn};
+  }
+  const wobCell=t=>7*Math.sin(t*.0031)+3.2*Math.sin(t*.0117+1.3);
+
+  /* --- célula --- */
+  const gc=$("#cell-3d");
+  const cp=perim(60,112,1750,1380,96,6.2);
+  const cellD=path(off(cp,0,wobCell));
+  el("path",{d:cellD,fill:"url(#cytoGrad)",filter:"url(#cellShadow)"},gc);
+  defs.insertAdjacentHTML("beforeend",`<clipPath id="cellClip"><path d="${cellD}"/></clipPath>`);
+  const inner=el("g",{"clip-path":"url(#cellClip)"},gc);
+  el("path",{d:cellD,class:"cyto-edge",fill:"none","stroke-width":90,filter:"url(#edgeBlur)"},inner);
+  // citoesqueleto: filamentos tenues que salen del núcleo
+  for(let i=0;i<11;i++){
+    const a=-1.5+i*0.16+rnd()*.12, L1=520+rnd()*900;
+    const x0=230+Math.cos(a)*170, y0=1235+Math.sin(a)*120;
+    const x1=x0+Math.cos(a)*L1, y1=y0+Math.sin(a)*L1*.9;
+    const mx=(x0+x1)/2+(rnd()-.5)*520, my=(y0+y1)/2+(rnd()-.5)*520;
+    el("path",{d:`M${x0.toFixed(0)} ${y0.toFixed(0)} Q${mx.toFixed(0)} ${my.toFixed(0)} ${x1.toFixed(0)} ${y1.toFixed(0)}`,class:"cytoskel"},inner);
+  }
+  // ribosomas libres
+  const avoid=(x,y)=> (x>750&&x<1735&&y>680&&y<1365) || ((x-210)**2/175**2+(y-1250)**2/130**2<1) || ((x-198)**2+(y-858)**2<95**2);
+  let rib="";
+  for(let i=0;i<900;i++){ const x=70+rnd()*1670, y=120+rnd()*1250; if(avoid(x,y)) continue; rib+=`M${x.toFixed(0)} ${y.toFixed(0)}h0.01`; }
+  el("path",{d:rib,class:"ribo"},inner);
+  // retículo endoplásmico rugoso alrededor del núcleo
+  for(let k=1;k<=4;k++){
+    const rx=140+k*24, ry=96+k*19, a0=2.2, a1=4.75-k*.04; let d="";
+    for(let a=a0;a<=a1;a+=0.04){ const w=3*Math.sin(a*9+k); const x=210+Math.cos(a)*(rx+w), y=1250+Math.sin(a)*(ry+w); d+=(d?"L":"M")+x.toFixed(1)+" "+y.toFixed(1); }
+    el("path",{d,class:"er-sheet"},inner); el("path",{d,class:"er-ribo"},inner);
+  }
+  bilayer(gc,cp,8.5,6.2,wobCell,"bl-cell");
+
+  /* --- núcleo --- */
+  const gn=$("#nuc-3d");
+  el("ellipse",{cx:210,cy:1250,rx:146,ry:102,class:"nuc-env",filter:"url(#orgShadow)"},gn);
+  el("ellipse",{cx:210,cy:1250,rx:138,ry:94,fill:"url(#nucGrad)"},gn);
+  el("ellipse",{cx:210,cy:1250,rx:138,ry:94,fill:"url(#chrom)",opacity:.6},gn);
+  el("ellipse",{cx:250,cy:1228,rx:34,ry:26,class:"nucleolus"},gn);
+  el("ellipse",{cx:210,cy:1250,rx:146,ry:102,fill:"none",class:"nuc-mem"},gn);
+  el("ellipse",{cx:210,cy:1250,rx:138,ry:94,fill:"none",class:"nuc-mem"},gn);
+  for(let a=0;a<Math.PI*2;a+=Math.PI/9){ const x=210+Math.cos(a)*142, y=1250+Math.sin(a)*98; el("circle",{cx:x,cy:y,r:4.2,class:"nuc-pore"},gn); }
+  el("ellipse",{cx:210,cy:1250,rx:138,ry:94,fill:"url(#shine)",opacity:.55},gn);
+
+  /* --- gota lipídica --- */
+  const gd=$("#drop-3d");
+  el("circle",{cx:198,cy:858,r:74,fill:"url(#dropGrad)",filter:"url(#orgShadow)"},gd);
+  el("circle",{cx:198,cy:858,r:74,fill:"none",class:"drop-mono"},gd);
+  el("circle",{cx:198,cy:858,r:74,fill:"url(#shine)"},gd);
+
+  /* --- mitocondria: membrana externa (bicapa), espacio intermembrana y matriz --- */
+  const gm=$("#mito-3d");
+  const mp=perim(770,700,1715,1345,150,4.6);
+  const wobM=t=>2.2*Math.sin(t*.011+.4);
+  const mD=path(off(mp,0,wobM));
+  el("path",{d:mD,fill:"url(#mitoGrad)",filter:"url(#orgShadow)"},gm);
+  bilayer(gm,mp,5.5,3.8,wobM,"bl-mito");
+  return {gm};
+})();
+cssify(gComp); cssify(defs);
 /* membrana interna con crestas */
 (function(){
   const x0=796,y0=726,x1=1690,y1=1238,r=126; let d=`M${x0+r} ${y0} H${x1-r} A${r} ${r} 0 0 1 ${x1} ${y0+r}`;
@@ -297,8 +391,19 @@ cssify(gComp);
   for(let k=0;k<4;k++){ d+=` H${x1-62} a10 10 0 0 0 0 20 H${x1}`; y+=20; d+=` V${y+70}`; y+=70; }
   d+=` V${y1-r} A${r} ${r} 0 0 1 ${x1-r} ${y1} H${x0+r} A${r} ${r} 0 0 1 ${x0} ${y1-r} V${y0+r} A${r} ${r} 0 0 1 ${x0+r} ${y0}Z`;
   $("#inner").setAttribute("d",d);
+  const gm=CELL3D.gm;
+  el("path",{d,fill:"url(#matrixGrad)"},gm);
+  // gránulos de la matriz
+  let s2=11; const r2=()=> (s2=(s2*16807)%2147483647)/2147483647; let mg="";
+  for(let i=0;i<160;i++){ const x=830+r2()*820, y=760+r2()*460; mg+=`M${x.toFixed(0)} ${y.toFixed(0)}h0.01`; }
+  el("path",{d:mg,class:"mito-gran"},gm);
+  el("path",{d,class:"im-outer",fill:"none"},gm);
+  el("path",{d,class:"im-core",fill:"none"},gm);
+  el("path",{d,class:"im-tails",fill:"none"},gm);
+  el("rect",{x:830,y:712,width:820,height:230,rx:115,fill:"url(#shine)",opacity:.45},gm);
+  cssify(gm);
   const g=$("#granule"); const [gx,gy]=L.glycogen;
-  for(let i=0;i<34;i++){ const a=i*2.399, rr=8+Math.sqrt(i)*8.6; el("circle",{cx:gx+Math.cos(a)*rr,cy:gy+Math.sin(a)*rr,r:5.5-i*.06,fill:"var(--pw-glycogen)","fill-opacity":.16,stroke:"var(--pw-glycogen)","stroke-opacity":.35},g); }
+  for(let i=0;i<34;i++){ const a=i*2.399, rr=8+Math.sqrt(i)*8.6; el("circle",{cx:gx+Math.cos(a)*rr,cy:gy+Math.sin(a)*rr,r:5.8-i*.06,fill:"url(#glyGrad)",stroke:"var(--gly-2)","stroke-opacity":.6,"stroke-width":.8},g); }
   el("text",{class:"comp-lbl comp-region",x:gx-40,y:gy+80,style:"fill:var(--gly-lbl)"},g).textContent="Gránulo";
 })();
 
@@ -317,6 +422,57 @@ RX.forEach(r=>{
   const tt=el("title",{},h); tt.textContent=`${r.enzymeAbbreviation} · ${r.name}`;
   EDGES.push({r,g,p,cs,h,parts:[],f:0});
 });
+/* complejos de la cadena respiratoria: incrustados en la membrana interna.
+   Matriz hacia arriba (y<0), espacio intermembrana hacia abajo (y>0). */
+function drawProtein(id,g0){
+  const g=el("g",{transform:`scale(${id==="atp_synthase"?1.12:id==="coenzyme_q"?1.15:1.32})`},g0);
+  const P=(d,cls)=>el("path",{d,class:cls},g), C=(cx,cy,r,cls)=>el("circle",{cx,cy,r,class:cls},g);
+  const T=(x,y,t,cls="prot-num")=>{ const e=el("text",{x,y,"text-anchor":"middle",class:cls},g); e.textContent=t; return e; };
+  const pump=(x,lx=x+1)=>{ P(`M${x} -30 V22`,"h-pump"); P(`M${x-4} 16 L${x} 23 L${x+4} 16`,"h-pump-head"); T(lx,35,"H⁺","h-lbl"); };
+  let body;
+  if(id==="complex_1"){
+    // forma de L: brazo de membrana largo y brazo periférico hacia la matriz (NADH → FMN → Fe-S)
+    body=P("M-44 -10 Q-46 -12 -40 -12 H6 Q4 -24 6 -36 Q8 -44 18 -44 H24 Q32 -44 31 -34 L28 -6 Q28 12 18 12 H-38 Q-46 12 -46 2 Z","prot");
+    [[17,-35],[18,-26],[16,-17],[13,-8]].forEach(([x,y],i)=>C(x,y,i?2.4:3,i?"fes":"fmn"));
+    P("M-40 0 H0","prot-groove"); T(-18,4,"I");
+    pump(-32); pump(-6);
+  } else if(id==="complex_2"){
+    // anclaje de membrana y cabeza en la matriz (SDHA con FAD, SDHB con Fe-S); no bombea protones
+    body=P("M-12 -9 Q-13 -12 -9 -12 H9 Q13 -12 12 -9 V9 Q12 12 8 12 H-8 Q-12 12 -12 9 Z","prot");
+    C(-5,-27,14,"prot"); C(11,-33,10,"prot prot-b");
+    C(-5,-27,3,"fmn"); C(11,-33,2.4,"fes"); C(2,-16,2.2,"fes");
+    T(0,5,"II");
+  } else if(id==="coenzyme_q"){
+    // ubiquinona: anillo y cola de isopreno dentro de la bicapa
+    P("M-12 2 l4 -4 l4 4 l4 -4 l4 4 l4 -4 l4 4 l4 -4 l4 4","q-tail");
+    body=P("M-24 -9 L-16 -14 L-8 -9 L-8 1 L-16 6 L-24 1 Z","q-ring");
+    P("M-16 -14 V-20 M-24 1 L-29 4","q-tail");
+    C(26,-1,5,"q-dot"); C(36,4,3.5,"q-dot"); C(-34,4,3.5,"q-dot");
+  } else if(id==="complex_3"){
+    // dímero (citocromo b y c1) con la proteína de Rieske asomando al espacio intermembrana
+    body=P("M-30 -18 Q-32 -26 -22 -26 H-3 Q2 -26 1 -18 V14 Q1 20 -6 20 H-24 Q-31 20 -30 13 Z","prot");
+    P("M3 -18 Q2 -26 8 -26 H24 Q32 -26 30 -18 V13 Q31 20 24 20 H6 Q-1 20 3 14 Z","prot prot-b");
+    C(-6,24,6,"prot rieske"); C(10,24,6,"prot rieske");
+    [[-16,-8],[-16,6],[16,-8],[16,6]].forEach(([x,y])=>P(`M${x-3} ${y} l3 -3 l3 3 l-3 3Z`,"heme"));
+    pump(-24); pump(24);
+  } else if(id==="complex_4"){
+    // citocromo c oxidasa: hemos a y a3 y centros de cobre; reduce O₂ a H₂O en la matriz
+    body=P("M-24 -16 Q-26 -26 -14 -26 H14 Q26 -26 24 -16 L22 14 Q20 22 8 22 H-8 Q-20 22 -22 14 Z","prot");
+    P("M-3 -2 l3 -3 l3 3 l-3 3Z","heme"); P("M7 -2 l3 -3 l3 3 l-3 3Z","heme"); C(-12,14,2.6,"cu"); C(13,-12,2.4,"cu");
+    pump(16,30);
+  } else if(id==="atp_synthase"){
+    // F₀ (anillo c en la membrana), tallo central γ, estator b y cabeza F₁ (α₃β₃) en la matriz
+    body=el("ellipse",{rx:22,ry:12,class:"prot f0"},g);
+    for(let i=-16;i<=16;i+=5.4) P(`M${i} -10 V10`,"f0-c");
+    P("M-3 -10 V-36 H3 V-10Z","stalk");
+    P("M21 -6 Q30 -6 30 -16 V-60 Q30 -68 22 -66","stator");
+    for(let k=0;k<6;k++){ const a=k*Math.PI/3+Math.PI/6; C(Math.cos(a)*12,-52+Math.sin(a)*9,9,k%2?"prot f1-a":"prot f1-b"); }
+    C(0,-52,4,"stalk");
+    P("M-30 24 V-4","h-pump h-in"); P("M-34 2 L-30 -5 L-26 2","h-pump-head"); T(-30,36,"H⁺","h-lbl");
+  }
+  return body;
+}
+
 /* nodos */
 const NODES = {};
 D.METABOLITES.forEach(m=>{
@@ -325,11 +481,7 @@ D.METABOLITES.forEach(m=>{
   const halo=el("circle",{class:"halo",r:nodeR(m.id)+14,fill:c,opacity:.0,filter:"url(#soft)"},g);
   let body;
   if(PROTEIN.has(m.id)){
-    if(m.id==="atp_synthase"){ el("rect",{x:-11,y:-4,width:22,height:30,rx:5,fill:"var(--node-fill)",stroke:"var(--pw-etc)","stroke-opacity":.7},g); body=el("circle",{cy:-22,r:20,fill:"var(--node-fill)",stroke:"var(--pw-etc)","stroke-width":2},g);
-      el("path",{d:"M-12 -22 h24 M0 -34 v24",stroke:"var(--pw-etc)","stroke-opacity":.35},g);}
-    else if(m.id==="coenzyme_q"){ body=el("ellipse",{rx:22,ry:14,fill:"var(--node-fill)",stroke:"var(--pw-etc)","stroke-width":2},g); }
-    else { body=el("rect",{x:-26,y:-20,width:52,height:40,rx:12,fill:"var(--node-fill)",stroke:"var(--pw-etc)","stroke-width":2},g);
-      el("text",{class:"lbl-c","text-anchor":"middle",y:4,style:"font-size:12px;fill:var(--pw-etc);stroke-width:0"},g).textContent=({complex_1:"I",complex_2:"II",complex_3:"III",complex_4:"IV"})[m.id]; }
+    body = drawProtein(m.id, g);
   } else if(m.id==="proton_gradient"){
     body=el("circle",{r:18,fill:"var(--pw-etc)","fill-opacity":.05,stroke:"var(--pw-etc)","stroke-dasharray":"2 4"},g);
     [[-34,-6],[-14,6],[8,-8],[30,4],[-44,10],[48,-6]].forEach(([dx,dy])=>{ el("text",{x:dx,y:dy,class:"lbl-c",style:"fill:var(--pw-etc);font-size:11px;stroke-width:0;opacity:.6"},g).textContent="H⁺"; });
@@ -337,11 +489,13 @@ D.METABOLITES.forEach(m=>{
     const R=nodeR(m.id);
     body=el("circle",{r:R,fill:"var(--node-fill)",stroke:c,"stroke-width":m.isBranchPoint?3:2},g);
     if(m.isBranchPoint) el("circle",{r:R+5,fill:"none",stroke:c,"stroke-opacity":.35,"stroke-dasharray":"2 4"},g);
-    el("circle",{r:R*.38,fill:c,opacity:.85},g);
+    if(m.id==="cytochrome_c"){ body.setAttribute("class","prot"); body.style.fill=""; body.style.stroke=""; el("path",{d:"M-5 0 L0 -5 L5 0 L0 5Z",class:"heme"},g); }
+    else el("circle",{r:R*.38,fill:c,opacity:.85},g);
+    el("circle",{r:R-1.5,fill:"url(#shine)",class:"bead-shine"},g);
   }
   const R=nodeR(m.id)+(PROTEIN.has(m.id)?2:0);
   const pos = {b:[0,R+16,"middle"],t:[0,-R-18,"middle"],l:[-R-8,4,"end"],r:[R+8,4,"start"]}[lp||"b"];
-  const t=el("text",{class:"lbl",x:pos[0],y:pos[1]+(lp==="t"&&m.id==="atp_synthase"?-26:0),"text-anchor":pos[2]},g); t.textContent=m.abbreviation;
+  const t=el("text",{class:"lbl",x:pos[0],y:pos[1]+(lp==="t"?({atp_synthase:-33,complex_1:-18,complex_3:-8,complex_4:-8,complex_2:-16})[m.id]||0:0),"text-anchor":pos[2]},g); t.textContent=m.abbreviation;
   if(m.carbons>0){ const c2=el("text",{class:"lbl-c",x:pos[0],y:pos[1]+13+(lp==="t"?-30:0),"text-anchor":pos[2]},g); c2.textContent="C"+m.carbons; if(lp==="t") c2.setAttribute("y",pos[1]-15); }
   g.addEventListener("click",()=>{ if(dragMoved) return; onPick("node",m.id); });
   g.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); onPick("node",m.id);} });
@@ -489,7 +643,15 @@ const TISSUE_COLORS = {
 function buildRail(){
   const sb=$("#states");
   STATES.forEach(s=>{ const b=document.createElement("button"); b.className="state"; b.style.setProperty("--sc",s.c); b.setAttribute("aria-pressed",s===ST);
-    b.innerHTML=`<b>${esc(s.name)}</b><small>${esc(s.tissue)}</small>`; b.onclick=()=>setState(s.id); sb.appendChild(b); });
+    b.setAttribute("role","radio"); b.setAttribute("aria-checked",String(s===ST)); b.title=`${s.name} · ${s.tissue}`;
+    b.innerHTML=`<b>${esc(s.name)}</b><small>${esc(s.tissue)}</small>`; b.onclick=()=>onStateClick(s.id); sb.appendChild(b); });
+  const tsel=$("#tissue-select");
+  if(tsel){
+    const opts=[["all","Organismo completo"],["universal","Rutas universales"]].concat(Object.values(TISSUES_DATA).map(t=>[t.id,t.name]));
+    tsel.innerHTML=opts.map(([v,l])=>`<option value="${v}">${esc(l)}</option>`).join("");
+    tsel.value=tissueFilter||"all";
+    tsel.onchange=()=>{ tissueFilter = tsel.value==="all" ? null : tsel.value; syncTissueChips(); apply(); };
+  }
   const pc=$("#pw-chips");
   Object.entries(PW).filter(([k])=>MAP_PW.includes(k)).forEach(([k,v])=>{ const b=document.createElement("button"); b.className="chip"; b.style.color=v.c; b.dataset.pw=k; b.setAttribute("aria-pressed","false");
     b.innerHTML=`<span class="dot"></span><span style="color:var(--fg)">${esc(v.name)}</span>`; b.onclick=()=>{ focusPw = focusPw===k? null : k; syncChips(); apply(); }; pc.appendChild(b); });
@@ -662,6 +824,7 @@ function syncChips(){
   document.querySelectorAll("#stats-bars-list .stats-row").forEach(r=>r.classList.toggle("active", r.dataset.statPw===focusPw));
 }
 function syncTissueChips(){
+  const tsel=document.getElementById("tissue-select"); if(tsel){ tsel.value=tissueFilter||"all"; tsel.parentElement.classList.toggle("on",!!tissueFilter); }
   document.querySelectorAll("#tissue-chips .tissue-chip").forEach(b => {
     const isAll = b.dataset.tissue === "all";
     if (isAll) {
@@ -671,23 +834,338 @@ function syncTissueChips(){
     }
   });
 }
-function setState(id){ ST=STATES.find(s=>s.id===id); document.querySelectorAll(".state").forEach((b,i)=>b.setAttribute("aria-pressed",String(STATES[i]===ST))); renderStateInfo(); apply(); }
+
+
+/* ======================= Misiones: sigue la molécula ======================= */
+const MISSIONS = [
+  { id:"cori", title:"Operación Cori", goal:"Del lactato a la glucosa de la sangre", state:"fast", from:"lactate_cyt", to:"glucose_ext",
+    intro:"Tras el ejercicio, el lactato del músculo llega al hígado. Es de noche y llevas horas sin comer: convierte ese lactato en glucosa y devuélvela a la sangre.",
+    hints:{
+      rx_pdh:"En ayuno la PDH está casi apagada: la PDH quinasa la fosforila y el acetil-CoA y el NADH de la β-oxidación la frenan. El piruvato se reserva para fabricar glucosa.",
+      rx_pk:"La piruvato quinasa es irreversible. Para subir de piruvato a PEP hay que dar un rodeo por la mitocondria.",
+      rx_pfk1:"La PFK-1 es irreversible. El camino de vuelta lo hace otra enzima que en ayuno está activa porque ha bajado la fructosa-2,6-bisfosfato.",
+      rx_hk:"La glucoquinasa no funciona al revés. Para liberar la glucosa hace falta otra enzima, en el retículo endoplásmico."
+    },
+    takeaways:["Tres rodeos esquivan los pasos irreversibles de la glucólisis: piruvato carboxilasa + PEPCK, FBPasa-1 y glucosa-6-fosfatasa.","El oxalacetato no atraviesa la membrana mitocondrial: sale al citosol como malato.","Fabricar una glucosa a partir de dos lactatos cuesta 6 enlaces de alta energía (4 ATP y 2 GTP)."] },
+  { id:"grasa", title:"Fábrica de grasa", goal:"De la glucosa al palmitato", state:"fed", from:"glucose_ext", to:"palmitate",
+    intro:"Acabas de comer y sobra glucosa. Lleva sus carbonos desde la sangre hasta el palmitato, el ácido graso que fabrica el hígado.",
+    hints:{
+      rx_aconitase:"Si sigues por el ciclo de Krebs, el carbono acabará como CO₂. Para fabricar grasa tiene que salir de la mitocondria.",
+      rx_pyruvate_carboxylase:"Después de comer la piruvato carboxilasa trabaja poco: el piruvato se dirige a acetil-CoA.",
+      rx_g6pdh:"La vía de las pentosas aporta el NADPH que necesita la síntesis de ácidos grasos, pero no lleva los carbonos al palmitato.",
+      rx_pgm_glycogen:"Por ahí guardas la glucosa como glucógeno, no como grasa."
+    },
+    takeaways:["El acetil-CoA no atraviesa la membrana mitocondrial: sale como citrato y la ATP-citrato liasa lo libera en el citosol.","La acetil-CoA carboxilasa es el paso limitante; la activan el citrato y la insulina.","El malonil-CoA que fabrica bloquea la CPT-1, así que la grasa recién hecha no se quema."] },
+  { id:"galactosa", title:"La ruta de la leche", goal:"De la galactosa al glucógeno", state:"fed", from:"galactose", to:"glycogen",
+    intro:"La lactosa de la leche ha liberado galactosa. Llévala al hígado y guárdala como glucógeno.",
+    hints:{
+      rx_aldose_reductase_gal:"La aldosa reductasa convierte la galactosa en galactitol, que no se metaboliza y se acumula en el cristalino: así aparecen las cataratas de la galactosemia.",
+      rx_pgm_glycogen:"Por ahí vas hacia la glucosa-6-fosfato y la glucólisis. Para guardar glucógeno hay que activar antes la glucosa-1-fosfato."
+    },
+    takeaways:["La GALT es la enzima que falta en la galactosemia clásica: se acumulan galactosa-1-fosfato y galactitol.","La glucosa-1-fosfato se activa como UDP-glucosa antes de unirse al glucógeno."] },
+  { id:"cetonas", title:"Combustible de emergencia", goal:"Del palmitato a los cuerpos cetónicos", state:"keto", from:"palmitate", to:"ketone_bodies",
+    intro:"Llevas más de tres días sin comer. El tejido adiposo libera ácidos grasos: convierte el palmitato en cuerpos cetónicos para alimentar al cerebro.",
+    hints:{
+      rx_cs:"En ayuno prolongado el oxalacetato se gasta en gluconeogénesis y el ciclo de Krebs no da abasto con tanto acetil-CoA: el exceso se desvía.",
+      rx_tag_synth:"Esterificar el ácido graso lo guardaría otra vez como triglicérido."
+    },
+    takeaways:["Sin insulina no hay malonil-CoA, así que la CPT-1 queda libre y los ácidos grasos entran en la mitocondria.","Los cuerpos cetónicos se fabrican en el hígado pero el hígado no los usa: son para el cerebro, el corazón y el músculo."] },
+  { id:"sprint", title:"Sprint final", goal:"Del glucógeno muscular al lactato", state:"run", from:"glycogen", to:"lactate_cyt",
+    intro:"Últimos 100 metros. El músculo necesita ATP ya y la mitocondria no da abasto: rompe el glucógeno muscular y llega hasta lactato.",
+    hints:{
+      rx_g6pase:"El músculo no tiene glucosa-6-fosfatasa: su glucógeno no puede salir como glucosa, es solo para él.",
+      rx_mpc:"En un sprint la mitocondria no puede oxidar todo el piruvato al ritmo de la glucólisis.",
+      rx_g6pdh:"La vía de las pentosas no produce ATP. Ahora lo que hace falta es energía rápida."
+    },
+    takeaways:["La glucógeno fosforilasa libera glucosa-1-fosfato sin gastar ATP: el glucógeno rinde un ATP más que la glucosa libre.","La LDH regenera el NAD⁺ que necesita la GAPDH para que la glucólisis no se detenga."] },
+  { id:"glicerol", title:"Reciclar la grasa", goal:"Del glicerol-3-fosfato a la glucosa", state:"fast", from:"glycerol_3p", to:"glucose_ext",
+    intro:"La lipólisis del tejido adiposo libera glicerol, que el hígado fosforila. Conviértelo en glucosa para la sangre.",
+    hints:{
+      rx_pfk1:"La PFK-1 es irreversible. El camino de vuelta lo hace la FBPasa-1, activa en ayuno.",
+      rx_hk:"La glucoquinasa no funciona al revés. La glucosa se libera en el retículo endoplásmico."
+    },
+    takeaways:["El glicerol entra en la gluconeogénesis a la altura de las triosas: se salta el rodeo de la piruvato carboxilasa y la PEPCK.","Los ácidos grasos de número par no pueden dar glucosa; el glicerol de los triglicéridos sí."] }
+];
+const MS_SKIP = new Set(["complex_1","complex_2","coenzyme_q","complex_3","cytochrome_c","complex_4","atp_synthase","proton_gradient"]);
+const MS_RX = RX.filter(r=>L[r.fromNodeId]&&L[r.toNodeId]&&!MS_SKIP.has(r.fromNodeId)&&!MS_SKIP.has(r.toNodeId));
+function signedIn(S,r){
+  let f=(r.id in S.rx)? S.rx[r.id] : (S.pw[r.pathway] ?? 0);
+  if(S.noMito && (r.compartment!=="cytosol" || ["rx_mpc","rx_citrate_export","rx_oaa_export","rx_malate_aspartate_shuttle"].includes(r.id))) f=0;
+  return f;
+}
+const MS_OPEN=.05;
+/* reacciones en equilibrio: funcionan en ambos sentidos si la ruta está encendida */
+const MS_EQ=new Set(["rx_tpi"]);
+const msOpen=(S,r,dir)=> MS_EQ.has(r.id) ? Math.abs(signedIn(S,r))>MS_OPEN : signedIn(S,r)*dir>MS_OPEN;
+function msMoves(S,A){
+  const out=[];
+  MS_RX.forEach(r=>{
+    if(r.fromNodeId===A) out.push({r,dir:1,next:r.toNodeId});
+    else if(r.toNodeId===A) out.push({r,dir:-1,next:r.fromNodeId});
+  });
+  out.forEach(m=>{ m.kind = (m.dir<0 && !m.r.reversible) ? "oneway" : (msOpen(S,m.r,m.dir) ? "open" : "closed"); });
+  return out;
+}
+function msDist(S,target){
+  const d={[target]:0}, q=[target];
+  while(q.length){ const n=q.shift();
+    MS_RX.forEach(r=>{ [[r.fromNodeId,r.toNodeId,1],[r.toNodeId,r.fromNodeId,-1]].forEach(([a,b,dir])=>{
+      if(b!==n || a in d) return; if(dir<0 && !r.reversible) return; if(!msOpen(S,r,dir)) return;
+      d[a]=d[n]+1; q.push(a); }); }); }
+  return d;
+}
+function msUndist(target){
+  const d={[target]:0}, q=[target];
+  while(q.length){ const n=q.shift(); MS_RX.forEach(r=>{ [[r.fromNodeId,r.toNodeId],[r.toNodeId,r.fromNodeId]].forEach(([a,b])=>{ if(b===n && !(a in d)){ d[a]=d[n]+1; q.push(a);} }); }); }
+  return d;
+}
+const COF_KEYS=[["ATP",/^(\d+)?\s*(ATP|GTP)\b/],["NADH",/^(\d+)?\s*NADH\b/],["NADPH",/^(\d+)?\s*NADPH\b/],["FADH₂",/^(\d+)?\s*FADH/],["CO₂",/^(\d+)?\s*CO₂/]];
+function cofDelta(r,dir){
+  const d={}; const add=(list,sgn)=>(list||[]).forEach(t=>{ COF_KEYS.forEach(([k,re])=>{ const m=String(t).trim().match(re); if(m) d[k]=(d[k]||0)+sgn*(+(m[1]||1)); }); });
+  add(r.cofactorsConsumed,-dir); add(r.cofactorsProduced,dir);
+  return d;
+}
+let ms=null; // partida en curso
+let msPrevState=null;
+const msBest=id=>{ try{ return JSON.parse(localStorage.getItem("metabolix_mission_"+id)||"null"); }catch(e){ return null; } };
+const msSaveBest=(id,res)=>{ try{ const b=msBest(id); if(!b || res.errors<b.errors) localStorage.setItem("metabolix_mission_"+id,JSON.stringify(res)); }catch(e){} };
+const stName=id=>STATES.find(s=>s.id===id);
+const nodeName=id=>(MET[id]?.abbreviation||MET[id]?.name||id);
+
+function enterMissions(){
+  if(!msPrevState) msPrevState=ST.id;
+  svg.classList.add("ms"); { const tb=document.querySelector(".map-topbar"); if(tb) tb.hidden=true; }
+  if(ms && !ms.done) renderMission(); else renderMissionList();
+}
+function leaveMissions(){
+  svg.classList.remove("ms"); clearMsMarks(); gFxMs.innerHTML=""; { const tb=document.querySelector(".map-topbar"); if(tb) tb.hidden=false; }
+  $("#mission").hidden=true;
+  if(msPrevState && ST.id!==msPrevState) setState(msPrevState);
+  msPrevState=null;
+}
+function clearMsMarks(){ svg.querySelectorAll(".ms-opt,.ms-trail,.ms-cur,.ms-target").forEach(e=>e.classList.remove("ms-opt","ms-trail","ms-cur","ms-target")); }
+function renderMissionList(){
+  ms=null; clearMsMarks(); gFxMs.innerHTML="";
+  const box=$("#mission"); box.hidden=false;
+  box.innerHTML=`<div class="ms-head"><div><div class="pr-step">Misiones</div><h3>Sigue la molécula</h3>
+    <p>Lleva una molécula de un punto a otro del mapa eligiendo en cada cruce la carretera correcta. Cada misión ocurre en un estado fisiológico: algunas carreteras estarán cortadas.</p></div></div>
+    <ol class="ms-list">${MISSIONS.map((M,i)=>{ const b=msBest(M.id), S=stName(M.state);
+      return `<li><button type="button" data-ms="${M.id}"><span class="ms-n">${i+1}</span><span class="ms-t"><b>${esc(M.title)}</b><small>${esc(M.goal)}</small><em><i style="background:${S?.c||"var(--accent)"}"></i>${esc(S?.name||"")} · ${esc(S?.tissue||"")}</em></span>${b?`<span class="ms-best" title="Tu mejor resultado">${b.errors===0?"Sin fallos":b.errors+(b.errors===1?" fallo":" fallos")}</span>`:""}</button></li>`; }).join("")}</ol>`;
+  box.querySelectorAll("[data-ms]").forEach(b=>b.onclick=()=>startMission(b.dataset.ms));
+  Object.assign(VB, fitBox()); setVB();
+}
+function startMission(id){
+  const M=MISSIONS.find(m=>m.id===id); if(!M) return;
+  setState(M.state);
+  ms={M,cur:M.from,trail:[M.from],edges:[],errors:0,hints:0,tally:{},fb:null,done:false,started:false,dist:msDist(ST,M.to),und:msUndist(M.to)};
+  renderMission();
+}
+function msOptions(){
+  const {cur,M,und}=ms;
+  return msMoves(ST,cur).filter(m=> m.kind!=="oneway" || (und[m.next]??99) < (und[cur]??99));
+}
+function msChoose(opt){
+  if(!ms||ms.done) return;
+  const {M}=ms, S=ST, en=opt.r.enzymeAbbreviation||opt.r.enzymeName, hint=M.hints[opt.r.id];
+  const toName=nodeName(opt.next);
+  if(opt.kind==="oneway"){ ms.errors++; ms.fb={t:"ko",h:"Sentido prohibido",b:hint||`La ${en} es irreversible dentro de la célula. Busca otra forma de llegar a ${toName}.`}; }
+  else if(opt.kind==="closed"){ ms.errors++; ms.fb={t:"ko",h:"Carretera cortada",b:hint||`En ${S.name.toLowerCase()} la ${en} no funciona en ese sentido.`}; }
+  else if((ms.dist[opt.next]??99) >= (ms.dist[ms.cur]??99)){ ms.errors++; ms.fb={t:"warn",h:"Desvío",b:hint||`La carretera está abierta, pero por ahí te alejas de ${nodeName(M.to)}.`}; }
+  else {
+    const d=cofDelta(opt.r,opt.dir); Object.entries(d).forEach(([k,v])=>ms.tally[k]=(ms.tally[k]||0)+v);
+    const cross = opt.r.compartment==="mitochondria_membrane" || opt.r.id==="rx_glut" || opt.r.id==="rx_glut_out";
+    const cof = Object.entries(d).filter(([,v])=>v).map(([k,v])=>`${v>0?"+":"−"}${Math.abs(v)} ${k}`).join(", ");
+    ms.fb={t:"ok",h:cross?`Frontera cruzada: ${en}`:`${en}`,b:`${nodeName(ms.cur)} → ${toName}${cof?` · ${cof}`:""}`};
+    ms.cur=opt.next; ms.trail.push(opt.next); ms.edges.push(opt.r.id);
+    if(ms.cur===M.to){ ms.done=true; msSaveBest(M.id,{errors:ms.errors,hints:ms.hints}); }
+  }
+  renderMission();
+}
+function msHint(){
+  if(!ms||ms.done) return; ms.hints++;
+  const good=msOptions().find(o=>o.kind==="open" && (ms.dist[o.next]??99) < (ms.dist[ms.cur]??99));
+  if(good) ms.fb={t:"hint",h:"Pista",b:`Busca la enzima ${good.r.enzymeAbbreviation||good.r.enzymeName}.`};
+  renderMission();
+}
+function renderMission(){
+  const box=$("#mission"); if(!ms){ renderMissionList(); return; }
+  const {M,cur,trail,errors,hints,tally,fb,done}=ms, S=ST;
+  clearMsMarks(); gFxMs.innerHTML="";
+  const opts = done? [] : msOptions();
+  // marcas en el mapa
+  ms.edges.forEach(id=>{ const E=EDGES.find(e=>e.r.id===id); if(E){ E.p.classList.add("ms-trail"); E.cs.classList.add("ms-trail"); E.pill&&E.pill.classList.add("ms-trail"); } });
+  trail.forEach(n=>NODES[n]?.g.classList.add("ms-trail"));
+  opts.forEach(o=>{ const E=EDGES.find(e=>e.r.id===o.r.id); if(E){ E.p.classList.add("ms-opt"); E.cs.classList.add("ms-opt"); E.pill&&E.pill.classList.add("ms-opt"); } NODES[o.next]?.g.classList.add("ms-opt"); });
+  NODES[cur]?.g.classList.add("ms-cur"); NODES[M.to]?.g.classList.add("ms-target");
+  [[cur,"ms-ring"],[M.to,"ms-flag"]].forEach(([n,c])=>{ const P=L[n]; if(!P) return; el("circle",{cx:P[0],cy:P[1],r:nodeR(n)+12,class:c},gFxMs); });
+  requestAnimationFrame(()=>{ const P=L[cur]; if(P){ const w=innerWidth<860?620:1000, r=svg.clientHeight/svg.clientWidth||.7, h=w*r;
+      // deja el nodo en la parte del mapa que no tapa la tarjeta
+      const card=box.getBoundingClientRect(), sv=svg.getBoundingClientRect();
+      const side = innerWidth>=860 ? ((card.right-sv.left)/sv.width)*w*.5 : 0;
+      const down = innerWidth<860 ? ((sv.bottom-card.top)/sv.height)*h*.5 : 0;
+      animVB({x:P[0]-w/2-side, y:P[1]-h/2+down, w, h}); } });
+  const tallyTxt=["ATP","NADH","NADPH","FADH₂","CO₂"].filter(k=>tally[k]).map(k=>`<span><b>${tally[k]>0?"+":"−"}${Math.abs(tally[k])}</b> ${k==="ATP"?"ATP/GTP":k}</span>`).join("") || `<span class="ms-zero">Aún sin gasto ni ganancia</span>`;
+  const optBtns = opts.map((o,i)=>{ const cross=o.r.compartment==="mitochondria_membrane"||o.r.id==="rx_glut"||o.r.id==="rx_glut_out";
+    return `<button type="button" class="ms-opt-btn" data-i="${i}"><span class="ms-arrow" style="background:${PW[o.r.pathway]?.c||"var(--fg)"}"></span><span><b>${esc(nodeName(o.next))}</b><small>${esc(o.r.enzymeAbbreviation||o.r.enzymeName)}${cross?" · cruza una membrana":""}</small></span></button>`; }).join("");
+  box.hidden=false;
+  box.innerHTML = `
+    <div class="ms-head">
+      <div><div class="pr-step">Misión ${MISSIONS.indexOf(M)+1} · ${esc(M.title)}</div>
+        <h3>${esc(M.goal)}</h3>
+        <p class="ms-state"><i style="background:${S.c}"></i>${esc(S.name)} · ${esc(S.tissue)}</p></div>
+      <button type="button" class="close ms-exit" aria-label="Volver a la lista de misiones">✕</button>
+    </div>
+    ${trail.length===1 && !fb && !done ? `<p class="ms-intro">${esc(M.intro)}</p>`:""}
+    <div class="ms-odo" aria-label="Cuentakilómetros">
+      <span><b>${trail.length-1}</b> pasos</span><span><b>${errors}</b> ${errors===1?"fallo":"fallos"}</span>${tallyTxt}
+    </div>
+    <div class="ms-trailtxt">${trail.map(n=>`<span>${esc(nodeName(n))}</span>`).join('<i>›</i>')}${done?"":`<i>›</i><span class="ms-goal">${esc(nodeName(M.to))}</span>`}</div>
+    ${fb?`<div class="ms-fb ${fb.t}" role="status"><b>${esc(fb.h)}</b> ${esc(fb.b)}</div>`:""}
+    ${done ? `<div class="ms-win"><h4>Misión cumplida</h4><p>Has llegado en ${trail.length-1} pasos con ${errors} ${errors===1?"fallo":"fallos"}${hints?` y ${hints} ${hints===1?"pista":"pistas"}`:""}.</p><ul>${M.takeaways.map(t=>`<li>${esc(t)}</li>`).join("")}</ul></div>`
+           : `<div class="ms-q">Estás en <b>${esc(MET[cur]?.name||cur)}</b>. ¿Por qué carretera sigues?</div><div class="ms-opts">${optBtns}</div>`}
+    <div class="pr-foot">
+      ${done? `<button type="button" class="btn ms-again">Repetir</button><button type="button" class="btn primary ms-list-btn">Otra misión</button>`
+            : `<button type="button" class="btn ms-hint">Pista</button><button type="button" class="btn ms-again">Empezar de nuevo</button>`}
+    </div>`;
+  box.querySelectorAll(".ms-opt-btn").forEach(b=>b.onclick=()=>msChoose(opts[+b.dataset.i]));
+  if(innerWidth<860){ const f=box.querySelector(".ms-fb")||box.querySelector(".ms-q"); if(f) box.scrollTop=Math.max(0,f.offsetTop-12); }
+  box.querySelector(".ms-exit").onclick=renderMissionList;
+  const a=box.querySelector(".ms-again"); if(a) a.onclick=()=>startMission(M.id);
+  const h=box.querySelector(".ms-hint"); if(h) h.onclick=msHint;
+  const l=box.querySelector(".ms-list-btn"); if(l) l.onclick=renderMissionList;
+}
+function msPick(kind,id){
+  if(!ms||ms.done) return;
+  const opts=msOptions();
+  const o = kind==="rx" ? opts.find(x=>x.r.id===id) : opts.find(x=>x.next===id);
+  if(o) msChoose(o); else toast("Elige una de las carreteras que salen de tu posición");
+}
+/* comprobación para quien escriba misiones nuevas: window.__msCheck() devuelve el camino de cada una */
+if(typeof window!=="undefined") window.__msCheck=()=>MISSIONS.map(M=>{ const S=stName(M.state); const d=msDist(S,M.to); let cur=M.from, path=[cur], guard=0;
+  while(cur!==M.to && guard++<40){ const n=msMoves(S,cur).find(m=>m.kind==="open" && (d[m.next]??99)<(d[cur]??99)); if(!n) break; cur=n.next; path.push(cur+"("+n.r.id+")"); }
+  return M.id+": "+(d[M.from]===undefined?"SIN CAMINO":path.join(" → ")); });
+
+/* ======================= Predecir antes de ver ======================= */
+/* Procesos que el alumno predice al cambiar de estado; cada uno se mide con
+   una reacción representativa (irreversible o con un sentido claro). */
+const PRED_ITEMS = [
+  {id:"glyc",  name:"Glucólisis",                 rx:"rx_pfk1",            pw:"glycolysis"},
+  {id:"gng",   name:"Gluconeogénesis",            rx:"rx_fbpase1",         pw:"gluconeogenesis"},
+  {id:"gs",    name:"Síntesis de glucógeno",      rx:"rx_gs",              pw:"glycogen_metabolism"},
+  {id:"gp",    name:"Degradación de glucógeno",   rx:"rx_gp",              pw:"glycogen_metabolism"},
+  {id:"ppp",   name:"Vía de las pentosas fosfato",rx:"rx_g6pdh",           pw:"pentose_phosphate"},
+  {id:"ldh",   name:"Producción de lactato",      rx:"rx_ldh",             pw:"mitochondrial_fate"},
+  {id:"krebs", name:"Ciclo de Krebs",             rx:"rx_cs",              pw:"krebs_cycle"},
+  {id:"fas",   name:"Síntesis de ácidos grasos",  rx:"rx_fas",             pw:"lipid_metabolism"},
+  {id:"box",   name:"β-oxidación",                rx:"rx_beta_oxidation",  pw:"lipid_metabolism"},
+  {id:"keto",  name:"Cetogénesis",                rx:"rx_ketogenesis",     pw:"lipid_metabolism"}
+].filter(it=>RXM[it.rx]);
+function levelIn(S,rxId){
+  const r=RXM[rxId]; if(!r) return 0;
+  let f=(r.id in S.rx)? S.rx[r.id] : (S.pw[r.pathway] ?? 0);
+  if(S.noMito && (r.compartment!=="cytosol" || ["rx_mpc","rx_citrate_export","rx_oaa_export","rx_malate_aspartate_shuttle"].includes(r.id))) f=0;
+  return Math.max(0,f);
+}
+const PRED_T=.15;
+/* nivel absoluto en el estado de destino: así la pregunta tiene sentido aunque cambie el tejido */
+const lvl=v=> v>=.55?"high": v>=.12?"low":"off";
+function predTruth(from,to,it){ return lvl(levelIn(to,it.rx)); }
+const PRED_KEYS=["high","low","off"];
+const PRED_LBL={high:"Activa",low:"Poco activa",off:"Apagada"};
+const _lv=(inner)=>`<svg class="lv" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><circle cx="6" cy="6" r="4.6" fill="none" stroke="currentColor" stroke-width="1.6"/>${inner}</svg>`;
+const PRED_ICON={high:_lv('<circle cx="6" cy="6" r="4.6" fill="currentColor"/>'),low:_lv('<path d="M6 1.4a4.6 4.6 0 0 1 0 9.2Z" fill="currentColor"/>'),off:_lv("")};
+let predictMode = (()=>{ try{ return localStorage.getItem("metabolix_predict_mode")==="predict"; }catch(e){ return false; } })();
+let pred=null; // {from,to,answers,checked}
+
+function syncPredictToggle(){
+  document.querySelectorAll("#predict-toggle button").forEach(b=>b.setAttribute("aria-pressed",String((b.dataset.pm==="predict")===predictMode)));
+  const h=document.getElementById("mc-mode-hint");
+  if(h) h.textContent = predictMode ? "Al elegir un estado, primero predices qué rutas cambian y luego lo compruebas en el mapa." : "Al elegir un estado, el mapa cambia al momento.";
+}
+function setPredictMode(on){
+  predictMode=on; try{ localStorage.setItem("metabolix_predict_mode",on?"predict":"view"); }catch(e){}
+  if(!on && pred) closePredict();
+  syncPredictToggle();
+}
+function onStateClick(id){
+  const to=STATES.find(s=>s.id===id);
+  if(!predictMode){ if(pred) closePredict(); setState(id); return; }
+  if(to===ST && !pred) return;
+  if(pred && pred.to===to) return;
+  openPredict(ST,to);
+}
+function markPending(to){
+  document.querySelectorAll(".map-controls .state").forEach((b,i)=>b.classList.toggle("pending", !!to && STATES[i]===to));
+}
+function openPredict(from,to){
+  pred={from,to,answers:{},checked:false};
+  markPending(to);
+  renderPredict();
+}
+function closePredict(){
+  pred=null; markPending(null);
+  const box=document.getElementById("predict"); if(box){ box.hidden=true; box.innerHTML=""; }
+}
+function renderPredict(){
+  const box=document.getElementById("predict"); if(!box||!pred) return;
+  const {from,to,answers,checked}=pred;
+  const n=PRED_ITEMS.length, nAns=Object.keys(answers).length;
+  let ok=0;
+  const rows=PRED_ITEMS.map(it=>{
+    const truth=predTruth(from,to,it), a=answers[it.id];
+    if(checked && a===truth) ok++;
+    const before=PRED_LBL[lvl(levelIn(from,it.rx))];
+    const res = !checked ? "" : `<span class="pr-res ${a===truth?"ok":"ko"}">${a===truth?"✓":(a?"✕":"–")}</span><span class="pr-before">Antes: ${before.toLowerCase()}</span>`;
+    const btns=PRED_KEYS.map(k=>`<button type="button" data-it="${it.id}" data-v="${k}" aria-pressed="${a===k}" ${checked?"disabled":""} title="${PRED_LBL[k]}" class="${checked&&k===truth?"truth":""}">${PRED_ICON[k]}<span>${PRED_LBL[k]}</span></button>`).join("");
+    return `<div class="pr-row ${checked?(a===truth?"is-ok":"is-ko"):""}">
+      <button type="button" class="pr-name" data-pw="${it.pw}" title="Aislar esta ruta en el mapa"><i style="background:${PW[it.pw]?.c||"var(--fg)"}"></i>${esc(it.name)}</button>
+      <div class="pr-seg" role="group" aria-label="${esc(it.name)}">${btns}</div>${res}</div>`;
+  }).join("");
+  box.hidden=false;
+  box.innerHTML = `
+    <div class="pr-head">
+      <div>
+        <div class="pr-step">${checked?"Resultado":"Tu predicción"}</div>
+        <h3>De ${esc(from.name)} a ${esc(to.name)}</h3>
+        <p>${checked
+          ? `Has acertado <b>${ok} de ${n}</b>. El mapa ya muestra ${esc(to.name.toLowerCase())}; toca una ruta para aislarla.`
+          : `¿Cómo estará cada ruta en ${esc(to.name.toLowerCase())} (${esc(to.tissue)})? Piensa en las hormonas y en la energía de la célula antes de comprobarlo.`}</p>
+      </div>
+      <button type="button" class="close pr-close" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="pr-rows">${rows}</div>
+    ${checked && to.notes?.length ? `<div class="pr-why"><b>Por qué</b><ul>${to.notes.slice(0,3).map(t=>`<li>${esc(t)}</li>`).join("")}</ul></div>`:""}
+    <div class="pr-foot">
+      ${checked
+        ? `<button type="button" class="btn pr-again">Repetir</button><button type="button" class="btn primary pr-done">Cerrar</button>`
+        : `<button type="button" class="btn pr-skip">Ver sin predecir</button><button type="button" class="btn primary pr-check" ${nAns?"":"disabled"}>Comprobar (${nAns}/${n})</button>`}
+    </div>`;
+  box.querySelectorAll(".pr-seg button").forEach(b=>b.onclick=()=>{ pred.answers[b.dataset.it]=b.dataset.v; renderPredict(); });
+  box.querySelectorAll(".pr-name").forEach(b=>b.onclick=()=>{ if(!pred.checked) return; focusPw = focusPw===b.dataset.pw? null : b.dataset.pw; syncChips(); apply(); });
+  box.querySelector(".pr-close").onclick=closePredict;
+  const sk=box.querySelector(".pr-skip"); if(sk) sk.onclick=()=>{ const t=pred.to; closePredict(); setState(t.id); };
+  const ck=box.querySelector(".pr-check"); if(ck) ck.onclick=()=>{ pred.checked=true; markPending(null); setState(pred.to.id); renderPredict(); };
+  const ag=box.querySelector(".pr-again"); if(ag) ag.onclick=()=>{ const {from,to}=pred; setState(from.id); openPredict(from,to); };
+  const dn=box.querySelector(".pr-done"); if(dn) dn.onclick=closePredict;
+}
+
+function setState(id){ ST=STATES.find(s=>s.id===id); document.querySelectorAll(".state").forEach((b,i)=>{ b.setAttribute("aria-pressed",String(STATES[i]===ST)); b.setAttribute("aria-checked",String(STATES[i]===ST)); }); renderStateInfo(); apply(); }
 function renderStateInfo(){
   $("#meters").innerHTML = Object.entries(ST.sig).map(([k,v])=>`<div class="meter" style="--mc:${k==="Insulina"?"var(--pw-glycolysis)":k==="Glucagón"?"var(--pw-gluconeogenesis)":k==="Adrenalina"?"var(--pw-glycogen)":k==="AMP/ATP"?"var(--pw-krebs)":"var(--pw-pentose)"}"><span>${k}</span><i><u style="width:${Math.round(v*100)}%"></u></i><em>${Math.round(v*100)}</em></div>`).join("");
   $("#st-title").textContent = `${ST.name} · ${ST.tissue}`;
   const n=$("#st-notes"); n.style.setProperty("--sc",ST.c); n.innerHTML=ST.notes.map(t=>`<li>${esc(t)}</li>`).join("");
 }
 function drawHud(){
-  $("#hud").hidden = currentView==="reto"; gEnz.style.display = currentView==="reto" ? "none" : "";
-  const tName = tissueFilter === "universal" ? "Rutas Universales" : (TISSUES_DATA[tissueFilter]?.name || tissueFilter);
+  $("#hud").hidden = currentView==="reto"||currentView==="misiones"; { const mc=document.getElementById("map-controls"); if(mc) mc.hidden = currentView==="reto"||currentView==="misiones"; if((currentView==="reto"||currentView==="misiones") && pred) closePredict(); } gEnz.style.display = currentView==="reto" ? "none" : "";
+  const tName = tissueFilter === "universal" ? "Rutas universales" : (TISSUES_DATA[tissueFilter]?.name || tissueFilter);
   const tColor = TISSUE_COLORS[tissueFilter] || "var(--accent)";
   const tBadge = tissueFilter ? `<button class="pill" id="hud-tf" style="border-color:${tColor};background:color-mix(in srgb,${tColor} 12%,var(--ink-1))"><span class="dot" style="color:${tColor}"></span><b>Filtro:</b> ${esc(tName)} <span style="color:var(--fg-faint);margin-left:4px">✕</span></button>` : "";
   const fcBadge = flashcardMode
     ? `<button class="pill active" id="hud-fc" style="border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 15%,var(--ink-1));pointer-events:auto" title="Modo Flashcard activo: clic para desactivar"><span class="dot" style="background:var(--accent)"></span><b>Flashcards: Activo</b> <span style="margin-left:4px">✓</span></button>`
     : `<button class="pill" id="hud-fc" style="border-color:var(--line);background:var(--ink-1);color:var(--fg-dim);pointer-events:auto" title="Activar Modo Estudio Flashcard (oculta nombres para memorizar)"><span class="dot" style="background:var(--fg-faint)"></span><b>Modo Flashcards</b> <span style="font-size:10px;opacity:0.8;margin-left:4px">Iniciar</span></button>`;
 
-  $("#hud").innerHTML = `<span class="pill"><span class="dot" style="color:${ST.c}"></span><b>${esc(ST.name)}</b><span style="color:var(--fg-dim)">${esc(ST.tissue)}</span></span>` +
-   tBadge +
+  $("#hud").innerHTML = "" +
+   "" +
    fcBadge +
    (focusPw? `<button class="pill" id="hud-pw"><span class="dot" style="color:${PW[focusPw].c}"></span>${esc(PW[focusPw].name)} <span style="color:var(--fg-faint)">✕</span></button>`:"");
   $("#hud").insertAdjacentHTML("beforeend",`<span class="pill seg-mini" role="group" aria-label="Etiquetas de enzimas"><button data-enz="key" aria-pressed="${enzMode==="key"}"><span class="star">★</span> Reguladoras</button><button data-enz="all" aria-pressed="${enzMode==="all"}">Todas las enzimas</button></span>`);
@@ -1281,6 +1759,7 @@ function closePanel(){ panel.classList.remove("open"); $(".body").classList.remo
 document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ closePanel(); $("#results").hidden=true; } if(e.key==="/" && document.activeElement!==$("#q")){ e.preventDefault(); $("#q").focus(); } });
 
 function onPick(kind,id){
+  if(currentView==="misiones"){ msPick(kind,id); return; }
   if(quiz && !quiz.done && !quiz.reveal && currentView==="reto"){ answer(kind,id); return; }
   if(kind==="rx") openRx(id); else openNode(id);
 }
@@ -3241,7 +3720,7 @@ function renderTissues(){
 }
 
 function go(v){
-  if(!["mapa","balances","reto","ciclos","tejidos"].includes(v)) v="mapa";
+  if(!["mapa","balances","reto","ciclos","tejidos","misiones"].includes(v)) v="mapa";
   const prev=currentView; currentView=v;
   document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.view===v)));
   const isFullFlow = v==="balances"||v==="ciclos"||v==="tejidos";
@@ -3257,6 +3736,7 @@ function go(v){
   if(v==="tejidos"){ renderTissues(); }
   if(v==="reto"){ if(!quiz||quiz.done) newQuiz(); else renderQuiz(); }
   else { $("#quiz").hidden=true; if(quiz){ quiz=null; drawFx(); } }
+  if(v==="misiones") enterMissions(); else if(prev==="misiones") leaveMissions();
   drawHud();
   if(location.hash.slice(1)!==v) history.replaceState(null,"","#"+v);
 }
@@ -3294,6 +3774,7 @@ if (hdrFcBtn) {
 }
 syncFlashcardBtn();
 buildRail(); renderStateInfo(); setMode(m0);
+document.querySelectorAll("#predict-toggle button").forEach(b=>b.onclick=()=>setPredictMode(b.dataset.pm==="predict")); syncPredictToggle();
 go(location.hash.slice(1)||"mapa");
 Object.assign(VB, fitBox()); setVB();
 
