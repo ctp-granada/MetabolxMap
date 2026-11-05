@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "Si usas o adaptas Metabolix, cítalo así."
+title: "Metabolix: mapa interactivo del metabolismo humano"
+type: software
+authors:
+  - name: "Departamento de Bioquímica y Biología Molecular III e Inmunología, Facultad de Medicina, Universidad de Granada"
+license: Apache-2.0
+repository-code: "https://github.com/ctp-granada/MetabolxMap"
+url: "https://metabolxmap.vercel.app"
+notes: "Proyecto de Innovación Docente. Los contenidos docentes se distribuyen bajo CC BY 4.0."
+keywords:
+  - bioquímica
+  - metabolismo
+  - innovación docente
+  - Universidad de Granada

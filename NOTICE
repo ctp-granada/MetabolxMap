@@ -1,0 +1,20 @@
+Metabolix
+Mapa interactivo del metabolismo humano
+
+Copyright 2026 Departamento de Bioquímica y Biología Molecular III e Inmunología,
+Facultad de Medicina, Universidad de Granada.
+Proyecto de Innovación Docente.
+
+El código se distribuye bajo la licencia Apache 2.0 (archivo LICENSE).
+Los contenidos docentes (textos, fichas, explicaciones, preguntas, misiones
+y diseño del mapa) se distribuyen bajo Creative Commons Atribución 4.0
+Internacional (CC BY 4.0): https://creativecommons.org/licenses/by/4.0/deed.es
+
+Cualquier uso, copia o adaptación de este trabajo debe citar su origen así:
+
+  Metabolix: mapa interactivo del metabolismo humano. Departamento de
+  Bioquímica y Biología Molecular III e Inmunología, Facultad de Medicina,
+  Universidad de Granada. Proyecto de Innovación Docente.
+  https://github.com/ctp-granada/MetabolxMap
+
+Este aviso debe conservarse en cualquier redistribución o trabajo derivado.

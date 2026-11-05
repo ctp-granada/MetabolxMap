@@ -2,6 +2,8 @@
 
 Mapa interactivo del metabolismo humano para enseñar Bioquímica en los grados de Ciencias de la Salud. El metabolismo se lee como un mapa de carreteras: cada ruta es una carretera, las enzimas son las señales y el tráfico cambia según el estado fisiológico.
 
+Proyecto de Innovación Docente del Departamento de Bioquímica y Biología Molecular III e Inmunología, Facultad de Medicina, Universidad de Granada.
+
 **App:** [metabolxmap.vercel.app](https://metabolxmap.vercel.app)
 
 ![El mapa en ayuno nocturno](docs/mapa.jpg)
@@ -99,10 +101,21 @@ Todo se guarda primero en el navegador (`localStorage`): retos, encuestas, visit
 - **Modo oscuro**: incluido.
 - **Célula con volumen**: la célula y la cadena respiratoria se dibujan con relieve para que se reconozcan las estructuras reales sin tapar las rutas.
 
+## Cómo citar
+
+Si usas, adaptas o difundes Metabolix, cita su origen:
+
+> Metabolix: mapa interactivo del metabolismo humano. Departamento de Bioquímica y Biología Molecular III e Inmunología, Facultad de Medicina, Universidad de Granada. Proyecto de Innovación Docente. https://github.com/ctp-granada/MetabolxMap
+
+GitHub también ofrece la cita con el botón «Cite this repository», a partir de `CITATION.cff`.
+
 ## Licencia
 
-Apache 2.0, según la cabecera de los archivos fuente.
+- **Código:** [Apache 2.0](LICENSE). Quien lo redistribuya o lo adapte debe conservar el aviso de autoría del archivo [NOTICE](NOTICE).
+- **Contenidos docentes** (textos, fichas, explicaciones, preguntas, misiones y diseño del mapa): [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.es). Se pueden reutilizar y adaptar siempre que se cite la autoría.
 
 ---
 
-Universidad de Granada · Bioquímica, grados de Medicina y Enfermería.
+**Departamento de Bioquímica y Biología Molecular III e Inmunología**<br>
+Facultad de Medicina · Universidad de Granada<br>
+Proyecto de Innovación Docente
