@@ -61,6 +61,38 @@ export const METABOLIX_TEMPLATE = `<div class="app">
         <div class="eyebrow">Especialización tisular · Mapa</div>
         <div class="tissue-chips" id="tissue-chips"></div>
       </div>
+      <div class="sec" id="sec-flashcard-study">
+        <div class="eyebrow" style="display:flex;align-items:center;justify-content:space-between">
+          <span>Estudio Flashcards · Ocultamiento</span>
+          <span class="fc-state-badge" id="rail-fc-state-badge">DESACTIVADO</span>
+        </div>
+        <div class="rail-fc-container">
+          <div class="rail-fc-switch-card">
+            <div class="rfc-switch-label">
+              <span class="rfc-switch-icon">🎴</span>
+              <div class="rfc-switch-texts">
+                <b>Ocultar términos clave</b>
+                <small>Memoria activa para deducir enzimas y sustratos</small>
+              </div>
+            </div>
+            <button type="button" class="fc-ios-toggle" id="rail-fc-toggle" role="switch" aria-checked="false" title="Activar o desactivar ocultamiento de términos metabólicos clave">
+              <span class="fc-ios-thumb"></span>
+            </button>
+          </div>
+
+          <div class="rail-fc-pws" id="rail-fc-pws">
+            <button type="button" class="rfc-pw-btn active" data-fc-pw="all">Todas</button>
+            <button type="button" class="rfc-pw-btn" data-fc-pw="glycolysis" style="--pc:var(--pw-glycolysis)">Glucólisis</button>
+            <button type="button" class="rfc-pw-btn" data-fc-pw="krebs_cycle" style="--pc:var(--pw-krebs)">Krebs</button>
+            <button type="button" class="rfc-pw-btn" data-fc-pw="gluconeogenesis" style="--pc:var(--pw-gluconeogenesis)">Gluconeogénesis</button>
+            <button type="button" class="rfc-pw-btn" data-fc-pw="lipid_metabolism" style="--pc:var(--pw-lipid)">Lípidos</button>
+            <button type="button" class="rfc-pw-btn" data-fc-pw="glycogen_metabolism" style="--pc:var(--pw-glycogen)">Glucógeno</button>
+          </div>
+
+          <div class="rail-fc-card" id="rail-fc-card"></div>
+        </div>
+      </div>
+
       <div class="sec" id="sec-learning-stats">
         <div class="eyebrow" style="display:flex;align-items:center;justify-content:space-between">
           <span>Estadísticas de Aprendizaje</span>
