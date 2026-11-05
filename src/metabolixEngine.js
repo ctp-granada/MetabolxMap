@@ -511,6 +511,13 @@ function buildRail(){
   const tAccuracy = document.getElementById("tab-stat-accuracy");
   if(tAccuracy) tAccuracy.onclick = () => { learningStatsTab = "accuracy"; renderLearningStatsRail(); };
 
+  const btnRailFc = document.getElementById("btn-rail-flashcard");
+  if(btnRailFc) {
+    btnRailFc.onclick = () => {
+      toggleFlashcardMode(true);
+    };
+  }
+
   renderLearningStatsRail();
 }
 
@@ -630,7 +637,9 @@ function drawHud(){
   const tName = tissueFilter === "universal" ? "Rutas Universales" : (TISSUES_DATA[tissueFilter]?.name || tissueFilter);
   const tColor = TISSUE_COLORS[tissueFilter] || "var(--accent)";
   const tBadge = tissueFilter ? `<button class="pill" id="hud-tf" style="border-color:${tColor};background:color-mix(in srgb,${tColor} 12%,var(--ink-1))"><span class="dot" style="color:${tColor}"></span><b>Filtro:</b> ${esc(tName)} <span style="color:var(--fg-faint);margin-left:4px">✕</span></button>` : "";
-  const fcBadge = flashcardMode ? `<button class="pill" id="hud-fc" style="border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--ink-1))" title="Modo Flashcard activo en el panel de detalle"><span class="dot" style="color:var(--accent)"></span><b>🎴 Flashcard activo</b> <span style="color:var(--fg-faint);margin-left:4px">✕</span></button>` : "";
+  const fcBadge = flashcardMode
+    ? `<button class="pill active" id="hud-fc" style="border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 15%,var(--ink-1));pointer-events:auto" title="Modo Flashcard activo: clic para desactivar"><span class="dot" style="background:var(--accent)"></span><b>🎴 Flashcards: ACTIVO</b> <span style="margin-left:4px">✓</span></button>`
+    : `<button class="pill" id="hud-fc" style="border-color:var(--line);background:var(--ink-1);color:var(--fg-dim);pointer-events:auto" title="Activar Modo Estudio Flashcard (oculta nombres para memorizar)"><span class="dot" style="background:var(--fg-faint)"></span><b>🎴 Modo Flashcards</b> <span style="font-size:10px;opacity:0.8;margin-left:4px">Iniciar</span></button>`;
 
   $("#hud").innerHTML = `<span class="pill"><span class="dot" style="color:${ST.c}"></span><b>${esc(ST.name)}</b><span style="color:var(--fg-dim)">${esc(ST.tissue)}</span></span>` +
    tBadge +
@@ -650,27 +659,85 @@ let flashcardMode = (function() {
 })();
 let currentPanelItem = null; // { kind: 'rx' | 'node', id: string, fromDisease?: boolean }
 
-function syncFlashcardBtn() {
-  const btn = document.getElementById("panel-flashcard-btn");
-  if (!btn) return;
-  btn.classList.toggle("active", flashcardMode);
-  btn.setAttribute("aria-pressed", String(flashcardMode));
-  const txt = btn.querySelector(".fc-txt");
-  if (txt) txt.textContent = flashcardMode ? "Flashcard ✓" : "Flashcard";
+const FLASHCARD_DECK = [
+  "rx_pfk1", "rx_hk", "rx_pk", "rx_pdh", "rx_g6pdh", "rx_cs", "rx_idh",
+  "rx_akgdh", "rx_pyruvate_carboxylase", "rx_pepck", "rx_fbpase1", "rx_g6pase",
+  "rx_gp", "rx_gs", "rx_acc", "rx_cpt1", "rx_ketogenesis", "rx_aldose_reductase_gal",
+  "rx_gapdh", "rx_pgk", "rx_scs", "rx_sdh", "rx_mdh", "rx_acly", "rx_fas"
+];
+let deckIndex = 0;
+
+function openNextFlashcard() {
+  if (currentView !== "mapa") {
+    go("mapa");
+  }
+  const nextRxId = FLASHCARD_DECK[deckIndex % FLASHCARD_DECK.length];
+  deckIndex++;
+  openRx(nextRxId);
+  const E = EDGES.find(e => e.r.id === nextRxId);
+  if (E) {
+    const pt = pointAt(E.g, E.g.len / 2);
+    focusXY(pt[0], pt[1], 820);
+  }
+  toast(`🎴 Ficha ${deckIndex} de ${FLASHCARD_DECK.length}: Deduce la enzima y autoevalúate`);
 }
 
-function toggleFlashcardMode() {
-  flashcardMode = !flashcardMode;
+function syncFlashcardBtn() {
+  const btn = document.getElementById("panel-flashcard-btn");
+  if (btn) {
+    btn.classList.toggle("active", flashcardMode);
+    btn.setAttribute("aria-pressed", String(flashcardMode));
+    const txt = btn.querySelector(".fc-txt");
+    if (txt) txt.textContent = flashcardMode ? "Flashcard ✓" : "Flashcard";
+  }
+
+  const hdrBtn = document.getElementById("btn-hdr-flashcard");
+  if (hdrBtn) {
+    hdrBtn.classList.toggle("active", flashcardMode);
+    hdrBtn.setAttribute("aria-pressed", String(flashcardMode));
+    const stateEl = document.getElementById("hdr-fc-state");
+    if (stateEl) {
+      stateEl.textContent = flashcardMode ? "ON" : "OFF";
+    }
+  }
+
+  const railBtn = document.getElementById("btn-rail-flashcard");
+  if (railBtn) {
+    railBtn.classList.toggle("active", flashcardMode);
+    railBtn.setAttribute("aria-pressed", String(flashcardMode));
+    const badge = document.getElementById("rail-fc-badge");
+    if (badge) {
+      badge.textContent = flashcardMode ? "Sesión activa ✓" : "Abrir tarjeta →";
+    }
+  }
+}
+
+function toggleFlashcardMode(forceState) {
+  if (typeof forceState === "boolean") {
+    flashcardMode = forceState;
+  } else {
+    flashcardMode = !flashcardMode;
+  }
   try { localStorage.setItem("metabolix_flashcard_mode", String(flashcardMode)); } catch(e) {}
   syncFlashcardBtn();
   drawHud();
-  if (currentPanelItem) {
-    if (currentPanelItem.kind === "rx") openRx(currentPanelItem.id, currentPanelItem.fromDisease);
-    else openNode(currentPanelItem.id);
+
+  if (flashcardMode) {
+    if (currentPanelItem) {
+      if (currentPanelItem.kind === "rx") openRx(currentPanelItem.id, currentPanelItem.fromDisease);
+      else openNode(currentPanelItem.id);
+    } else {
+      // Abre de inmediato una ficha de alto impacto pedagógico en el mapa celular
+      openNextFlashcard();
+    }
+    toast("🎴 Modo Estudio Flashcard ACTIVADO: Nombres ocultos. ¡Toca para revelar!");
+  } else {
+    if (currentPanelItem) {
+      if (currentPanelItem.kind === "rx") openRx(currentPanelItem.id, currentPanelItem.fromDisease);
+      else openNode(currentPanelItem.id);
+    }
+    toast("Modo Flashcard desactivado: Nombres visibles.");
   }
-  toast(flashcardMode
-    ? "🎴 Modo Estudio Flashcard ACTIVADO: Nombres ocultos. ¡Toca para revelar!"
-    : "Modo Flashcard desactivado: Nombres visibles.");
 }
 
 function setupFlashcardInteractions(container) {
@@ -680,11 +747,11 @@ function setupFlashcardInteractions(container) {
       if (el.classList.contains("revealed")) {
         const nodeId = el.getAttribute("data-node");
         const rxId = el.getAttribute("data-rx");
-        if (nodeId && (e.target.closest(".fc-eq-secret") || e.target.classList.contains("fc-eq-secret"))) {
+        if (nodeId && (e.target.closest(".fc-eq-secret") || e.target.classList.contains(".fc-eq-secret"))) {
           openNode(nodeId);
           return;
         }
-        if (rxId && (e.target.closest(".fc-rx-secret") || e.target.classList.contains("fc-rx-secret"))) {
+        if (rxId && (e.target.closest(".fc-rx-secret") || e.target.classList.contains(".fc-rx-secret"))) {
           openRx(rxId);
           return;
         }
@@ -692,6 +759,14 @@ function setupFlashcardInteractions(container) {
       el.classList.toggle("revealed");
     });
   });
+
+  const btnNext = container.querySelector("#fc-next-card");
+  if (btnNext) {
+    btnNext.onclick = (e) => {
+      e.stopPropagation();
+      openNextFlashcard();
+    };
+  }
 
   const btnRevealAll = container.querySelector("#fc-reveal-all");
   if (btnRevealAll) {
@@ -770,6 +845,7 @@ function openRx(id, fromDisease){
         <div class="fc-banner-top">
           <div class="fc-badge"><span class="fc-dot"></span><b>Modo Estudio Flashcard</b></div>
           <div class="fc-banner-actions">
+            <button type="button" class="fc-action-btn primary" id="fc-next-card" title="Practicar con la siguiente tarjeta flashcard">🎲 Siguiente Flashcard ▶</button>
             <button type="button" class="fc-action-btn" id="fc-reveal-all" title="Revelar todos los nombres de esta ficha">👁️ Revelar todo</button>
             <button type="button" class="fc-action-btn" id="fc-hide-all" title="Ocultar de nuevo para volver a memorizar">🔒 Ocultar</button>
           </div>
@@ -947,6 +1023,7 @@ function openNode(id){
         <div class="fc-banner-top">
           <div class="fc-badge"><span class="fc-dot"></span><b>Modo Estudio Flashcard</b></div>
           <div class="fc-banner-actions">
+            <button type="button" class="fc-action-btn primary" id="fc-next-card" title="Practicar con la siguiente tarjeta flashcard">🎲 Siguiente Flashcard ▶</button>
             <button type="button" class="fc-action-btn" id="fc-reveal-all" title="Revelar todos los nombres de esta ficha">👁️ Revelar todo</button>
             <button type="button" class="fc-action-btn" id="fc-hide-all" title="Ocultar de nuevo para volver a memorizar">🔒 Ocultar</button>
           </div>
@@ -2687,8 +2764,12 @@ cssify(document.querySelector(".app"));
 const fcBtn = document.getElementById("panel-flashcard-btn");
 if (fcBtn) {
   fcBtn.onclick = () => toggleFlashcardMode();
-  syncFlashcardBtn();
 }
+const hdrFcBtn = document.getElementById("btn-hdr-flashcard");
+if (hdrFcBtn) {
+  hdrFcBtn.onclick = () => toggleFlashcardMode();
+}
+syncFlashcardBtn();
 buildRail(); renderStateInfo(); setMode(m0);
 go(location.hash.slice(1)||"mapa");
 Object.assign(VB, fitBox()); setVB();

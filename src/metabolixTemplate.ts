@@ -12,6 +12,11 @@ export const METABOLIX_TEMPLATE = `<div class="app">
       <button role="tab" data-view="reto" aria-selected="false">Reto</button>
     </nav>
     <div class="header-actions" style="display:flex;align-items:center;gap:6px">
+      <button type="button" class="hdr-btn fc-hdr-btn" id="btn-hdr-flashcard" title="Modo Estudio Flashcard: Oculta nombres de enzimas y metabolitos para memorizar y autoevaluarte">
+        <span style="font-size:13px">🎴</span>
+        <span>Flashcards</span>
+        <span class="fc-state-pill" id="hdr-fc-state">OFF</span>
+      </button>
       <button type="button" class="hdr-btn" id="btn-guide" title="Paseo interactivo y tutorial guiado por Metabolix" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600;background:var(--ink-2);border:1px solid var(--line);color:var(--fg);cursor:pointer">
         <span style="font-size:13px">🧭</span>
         <span>Paseo<span class="lx"> / Tutorial</span></span>
@@ -62,6 +67,13 @@ export const METABOLIX_TEMPLATE = `<div class="app">
           <span class="stats-badge-pill" id="stats-summary-pill">0 repasos</span>
         </div>
         <div class="learning-stats-widget" id="learning-stats-widget">
+          <button type="button" class="rail-flashcard-cta" id="btn-rail-flashcard" title="Comenzar sesión de estudio con tarjetas Flashcards interactivas">
+            <span class="rfc-cta-left">
+              <span class="rfc-icon">🎴</span>
+              <span class="rfc-title">Estudiar con Flashcards</span>
+            </span>
+            <span class="rfc-badge" id="rail-fc-badge">Abrir tarjeta →</span>
+          </button>
           <div class="stats-tabs-pill">
             <button type="button" class="stats-tab active" data-stat-tab="practiced" id="tab-stat-practiced">📊 Más practicadas</button>
             <button type="button" class="stats-tab" data-stat-tab="accuracy" id="tab-stat-accuracy">🎯 % Aciertos</button>
