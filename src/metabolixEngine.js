@@ -422,6 +422,57 @@ RX.forEach(r=>{
   const tt=el("title",{},h); tt.textContent=`${r.enzymeAbbreviation} · ${r.name}`;
   EDGES.push({r,g,p,cs,h,parts:[],f:0});
 });
+/* complejos de la cadena respiratoria: incrustados en la membrana interna.
+   Matriz hacia arriba (y<0), espacio intermembrana hacia abajo (y>0). */
+function drawProtein(id,g0){
+  const g=el("g",{transform:`scale(${id==="atp_synthase"?1.12:id==="coenzyme_q"?1.15:1.32})`},g0);
+  const P=(d,cls)=>el("path",{d,class:cls},g), C=(cx,cy,r,cls)=>el("circle",{cx,cy,r,class:cls},g);
+  const T=(x,y,t,cls="prot-num")=>{ const e=el("text",{x,y,"text-anchor":"middle",class:cls},g); e.textContent=t; return e; };
+  const pump=(x,lx=x+1)=>{ P(`M${x} -30 V22`,"h-pump"); P(`M${x-4} 16 L${x} 23 L${x+4} 16`,"h-pump-head"); T(lx,35,"H⁺","h-lbl"); };
+  let body;
+  if(id==="complex_1"){
+    // forma de L: brazo de membrana largo y brazo periférico hacia la matriz (NADH → FMN → Fe-S)
+    body=P("M-44 -10 Q-46 -12 -40 -12 H6 Q4 -24 6 -36 Q8 -44 18 -44 H24 Q32 -44 31 -34 L28 -6 Q28 12 18 12 H-38 Q-46 12 -46 2 Z","prot");
+    [[17,-35],[18,-26],[16,-17],[13,-8]].forEach(([x,y],i)=>C(x,y,i?2.4:3,i?"fes":"fmn"));
+    P("M-40 0 H0","prot-groove"); T(-18,4,"I");
+    pump(-32); pump(-6);
+  } else if(id==="complex_2"){
+    // anclaje de membrana y cabeza en la matriz (SDHA con FAD, SDHB con Fe-S); no bombea protones
+    body=P("M-12 -9 Q-13 -12 -9 -12 H9 Q13 -12 12 -9 V9 Q12 12 8 12 H-8 Q-12 12 -12 9 Z","prot");
+    C(-5,-27,14,"prot"); C(11,-33,10,"prot prot-b");
+    C(-5,-27,3,"fmn"); C(11,-33,2.4,"fes"); C(2,-16,2.2,"fes");
+    T(0,5,"II");
+  } else if(id==="coenzyme_q"){
+    // ubiquinona: anillo y cola de isopreno dentro de la bicapa
+    P("M-12 2 l4 -4 l4 4 l4 -4 l4 4 l4 -4 l4 4 l4 -4 l4 4","q-tail");
+    body=P("M-24 -9 L-16 -14 L-8 -9 L-8 1 L-16 6 L-24 1 Z","q-ring");
+    P("M-16 -14 V-20 M-24 1 L-29 4","q-tail");
+    C(26,-1,5,"q-dot"); C(36,4,3.5,"q-dot"); C(-34,4,3.5,"q-dot");
+  } else if(id==="complex_3"){
+    // dímero (citocromo b y c1) con la proteína de Rieske asomando al espacio intermembrana
+    body=P("M-30 -18 Q-32 -26 -22 -26 H-3 Q2 -26 1 -18 V14 Q1 20 -6 20 H-24 Q-31 20 -30 13 Z","prot");
+    P("M3 -18 Q2 -26 8 -26 H24 Q32 -26 30 -18 V13 Q31 20 24 20 H6 Q-1 20 3 14 Z","prot prot-b");
+    C(-6,24,6,"prot rieske"); C(10,24,6,"prot rieske");
+    [[-16,-8],[-16,6],[16,-8],[16,6]].forEach(([x,y])=>P(`M${x-3} ${y} l3 -3 l3 3 l-3 3Z`,"heme"));
+    pump(-24); pump(24);
+  } else if(id==="complex_4"){
+    // citocromo c oxidasa: hemos a y a3 y centros de cobre; reduce O₂ a H₂O en la matriz
+    body=P("M-24 -16 Q-26 -26 -14 -26 H14 Q26 -26 24 -16 L22 14 Q20 22 8 22 H-8 Q-20 22 -22 14 Z","prot");
+    P("M-3 -2 l3 -3 l3 3 l-3 3Z","heme"); P("M7 -2 l3 -3 l3 3 l-3 3Z","heme"); C(-12,14,2.6,"cu"); C(13,-12,2.4,"cu");
+    pump(16,30);
+  } else if(id==="atp_synthase"){
+    // F₀ (anillo c en la membrana), tallo central γ, estator b y cabeza F₁ (α₃β₃) en la matriz
+    body=el("ellipse",{rx:22,ry:12,class:"prot f0"},g);
+    for(let i=-16;i<=16;i+=5.4) P(`M${i} -10 V10`,"f0-c");
+    P("M-3 -10 V-36 H3 V-10Z","stalk");
+    P("M21 -6 Q30 -6 30 -16 V-60 Q30 -68 22 -66","stator");
+    for(let k=0;k<6;k++){ const a=k*Math.PI/3+Math.PI/6; C(Math.cos(a)*12,-52+Math.sin(a)*9,9,k%2?"prot f1-a":"prot f1-b"); }
+    C(0,-52,4,"stalk");
+    P("M-30 24 V-4","h-pump h-in"); P("M-34 2 L-30 -5 L-26 2","h-pump-head"); T(-30,36,"H⁺","h-lbl");
+  }
+  return body;
+}
+
 /* nodos */
 const NODES = {};
 D.METABOLITES.forEach(m=>{
@@ -430,11 +481,7 @@ D.METABOLITES.forEach(m=>{
   const halo=el("circle",{class:"halo",r:nodeR(m.id)+14,fill:c,opacity:.0,filter:"url(#soft)"},g);
   let body;
   if(PROTEIN.has(m.id)){
-    if(m.id==="atp_synthase"){ el("rect",{x:-11,y:-4,width:22,height:30,rx:5,fill:"var(--node-fill)",stroke:"var(--pw-etc)","stroke-opacity":.7},g); body=el("circle",{cy:-22,r:20,fill:"var(--node-fill)",stroke:"var(--pw-etc)","stroke-width":2},g);
-      el("path",{d:"M-12 -22 h24 M0 -34 v24",stroke:"var(--pw-etc)","stroke-opacity":.35},g);}
-    else if(m.id==="coenzyme_q"){ body=el("ellipse",{rx:22,ry:14,fill:"var(--node-fill)",stroke:"var(--pw-etc)","stroke-width":2},g); }
-    else { body=el("rect",{x:-26,y:-20,width:52,height:40,rx:12,fill:"var(--node-fill)",stroke:"var(--pw-etc)","stroke-width":2},g);
-      el("text",{class:"lbl-c","text-anchor":"middle",y:4,style:"font-size:12px;fill:var(--pw-etc);stroke-width:0"},g).textContent=({complex_1:"I",complex_2:"II",complex_3:"III",complex_4:"IV"})[m.id]; }
+    body = drawProtein(m.id, g);
   } else if(m.id==="proton_gradient"){
     body=el("circle",{r:18,fill:"var(--pw-etc)","fill-opacity":.05,stroke:"var(--pw-etc)","stroke-dasharray":"2 4"},g);
     [[-34,-6],[-14,6],[8,-8],[30,4],[-44,10],[48,-6]].forEach(([dx,dy])=>{ el("text",{x:dx,y:dy,class:"lbl-c",style:"fill:var(--pw-etc);font-size:11px;stroke-width:0;opacity:.6"},g).textContent="H⁺"; });
@@ -442,12 +489,13 @@ D.METABOLITES.forEach(m=>{
     const R=nodeR(m.id);
     body=el("circle",{r:R,fill:"var(--node-fill)",stroke:c,"stroke-width":m.isBranchPoint?3:2},g);
     if(m.isBranchPoint) el("circle",{r:R+5,fill:"none",stroke:c,"stroke-opacity":.35,"stroke-dasharray":"2 4"},g);
-    el("circle",{r:R*.38,fill:c,opacity:.85},g);
+    if(m.id==="cytochrome_c"){ body.setAttribute("class","prot"); body.style.fill=""; body.style.stroke=""; el("path",{d:"M-5 0 L0 -5 L5 0 L0 5Z",class:"heme"},g); }
+    else el("circle",{r:R*.38,fill:c,opacity:.85},g);
     el("circle",{r:R-1.5,fill:"url(#shine)",class:"bead-shine"},g);
   }
   const R=nodeR(m.id)+(PROTEIN.has(m.id)?2:0);
   const pos = {b:[0,R+16,"middle"],t:[0,-R-18,"middle"],l:[-R-8,4,"end"],r:[R+8,4,"start"]}[lp||"b"];
-  const t=el("text",{class:"lbl",x:pos[0],y:pos[1]+(lp==="t"&&m.id==="atp_synthase"?-26:0),"text-anchor":pos[2]},g); t.textContent=m.abbreviation;
+  const t=el("text",{class:"lbl",x:pos[0],y:pos[1]+(lp==="t"?({atp_synthase:-33,complex_1:-18,complex_3:-8,complex_4:-8,complex_2:-16})[m.id]||0:0),"text-anchor":pos[2]},g); t.textContent=m.abbreviation;
   if(m.carbons>0){ const c2=el("text",{class:"lbl-c",x:pos[0],y:pos[1]+13+(lp==="t"?-30:0),"text-anchor":pos[2]},g); c2.textContent="C"+m.carbons; if(lp==="t") c2.setAttribute("y",pos[1]-15); }
   g.addEventListener("click",()=>{ if(dragMoved) return; onPick("node",m.id); });
   g.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); onPick("node",m.id);} });

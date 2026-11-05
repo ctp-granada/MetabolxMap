@@ -3984,3 +3984,29 @@ select{width:100%;background:var(--ink-2);color:var(--fg);border:1px solid var(-
 :root[data-mode="dark"] [fill="url(#shine)"],:root[data-mode="dark"] ellipse[fill="url(#shine)"]{opacity:.12!important}
 .bead-shine{pointer-events:none;opacity:.9}
 :root[data-mode="dark"] .bead-shine{opacity:.18}
+
+/* Cadena respiratoria: complejos proteicos en la membrana interna */
+:root{ --prot-1:#e8ecf7; --prot-2:#b9c3dd; --prot-b:#d3dbef; --prot-edge:#38455c; --heme:#c8102e; --fes:#c98a12; --fmn:#d9a900; --cu:#1f8a8a; --q:#9a6a00; }
+:root[data-mode="dark"]{ --prot-1:#3a4560; --prot-2:#222a3c; --prot-b:#2c3550; --prot-edge:#c9d3ef; --heme:#ff5a6e; --fes:#ffc65c; --fmn:#ffe066; --cu:#4fe3d0; --q:#ffd166; }
+.prot{fill:var(--prot-1);stroke:var(--prot-edge);stroke-width:1.4;stroke-linejoin:round}
+.prot-b{fill:var(--prot-b)}
+.rieske{fill:var(--prot-b)}
+.prot-groove{fill:none;stroke:var(--prot-edge);stroke-width:1;opacity:.25}
+.prot-num{font-family:var(--f-display);font-weight:700;font-size:12px;fill:var(--prot-edge)}
+.prot-num-top{font-size:12px}
+.fmn{fill:var(--fmn);stroke:var(--prot-edge);stroke-width:.6}
+.fes{fill:var(--fes);stroke:var(--prot-edge);stroke-width:.6}
+.heme{fill:var(--heme)}
+.cu{fill:var(--cu)}
+.q-ring{fill:var(--q);fill-opacity:.25;stroke:var(--q);stroke-width:1.8;stroke-linejoin:round}
+.q-tail{fill:none;stroke:var(--q);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.q-dot{fill:var(--q);opacity:.55}
+.f0{fill:var(--prot-b)}
+.f0-c{stroke:var(--prot-edge);stroke-width:1;opacity:.5}
+.stalk{fill:var(--prot-2);stroke:var(--prot-edge);stroke-width:1}
+.stator{fill:none;stroke:var(--prot-edge);stroke-width:3.5;stroke-linecap:round;opacity:.7}
+.f1-a{fill:var(--prot-1)} .f1-b{fill:#e7c86e}
+:root[data-mode="dark"] .f1-b{fill:#7a6420}
+.h-pump{fill:none;stroke:var(--danger);stroke-width:1.3;stroke-dasharray:2.5 2.5;opacity:.75}
+.h-pump-head{fill:none;stroke:var(--danger);stroke-width:1.4;opacity:.8;stroke-linejoin:round}
+.h-lbl{font-family:var(--f-display);font-weight:600;font-size:10.5px;fill:var(--danger)}
