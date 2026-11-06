@@ -541,6 +541,13 @@ drawEnz();
 /* ======================= Aplicar estado ======================= */
 function apply(){
   const act={};
+  /* al aislar una ruta, lo que conecta con ella (lanzaderas, cetogénesis, otras rutas que parten de sus
+     metabolitos) queda atenuado pero visible; el resto del mapa, más tenue aún */
+  const focusNodes = new Set(), related = new Set();
+  if(focusPw){
+    RX.forEach(r=>{ if(inPw(r,focusPw)){ focusNodes.add(r.fromNodeId); focusNodes.add(r.toNodeId); } });
+    RX.forEach(r=>{ if(!inPw(r,focusPw) && (focusNodes.has(r.fromNodeId)||focusNodes.has(r.toNodeId))) related.add(r.id); });
+  }
   const isRbc = tissueFilter === "rbc" || ST.noMito;
   EDGES.forEach(E=>{
     const f=flux(E.r); E.f=f; const a=Math.abs(f);
@@ -549,9 +556,10 @@ function apply(){
     const on = a>0.02 && isTissueIn;
     const sw = on ? 1.8+a*5.8 : 1.3;
     E.p.setAttribute("stroke-width", sw.toFixed(2));
-    E.p.style.opacity = (!inFocus? .05 : on ? (.45+.55*a) : .3);
+    const near = !inFocus && related.has(E.r.id);
+    E.p.style.opacity = (!inFocus? (near? (on? .32 : .2) : .12) : on ? (.45+.55*a) : .3);
     E.cs.setAttribute("stroke-width", on ? (sw+2.8).toFixed(2) : 0);
-    E.cs.style.opacity = (!inFocus? .04 : on ? (.35+.6*a) : 0);
+    E.cs.style.opacity = (!inFocus? (near && on ? .2 : .04) : on ? (.35+.6*a) : 0);
     E.p.setAttribute("stroke-dasharray", E.r.id==="rx_malate_aspartate_shuttle" ? "2 9" : on? "" : "3 6");
     E.p.style.stroke = block===E.r.id ? "var(--danger)" : PW[E.r.pathway].c;
     const mk = `url(#m-${E.r.pathway})`;
@@ -563,14 +571,15 @@ function apply(){
     while(E.parts.length>want){ E.parts.pop().c.remove(); }
     E.parts.forEach((P,i)=>{ P.s=(i/want + Math.random()*.15)%1; });
     [E.r.fromNodeId,E.r.toNodeId].forEach(n=>{ act[n]=Math.max(act[n]||0, inFocus?a:0); });
-    if(E.pill) E.pill.style.opacity = inFocus? 1 : .12;
+    if(E.pill) E.pill.style.opacity = inFocus? 1 : near? .45 : .15;
   });
   Object.values(NODES).forEach(N=>{
     const a=act[N.m.id]||0;
     const isTissueNode = !tissueFilter || N.m.pathways.some(p => TISSUE_PW_MAP[tissueFilter]?.includes(p));
     const inFocus = (!focusPw || N.m.pathways.includes(focusPw) || pwNodeIn(N.m.id, focusPw)) && isTissueNode;
     N.halo.style.opacity = (a*(document.documentElement.dataset.mode==="dark"?.5:0)).toFixed(2);
-    N.g.style.opacity = inFocus ? (a>0.02? 1 : .5) : .14;
+    const nearN = !inFocus && focusPw && RX.some(r=>related.has(r.id) && (r.fromNodeId===N.m.id||r.toNodeId===N.m.id));
+    N.g.style.opacity = inFocus ? (a>0.02? 1 : .5) : nearN ? .45 : .22;
   });
   $("#nomito").setAttribute("opacity", isRbc ? 1 : 0);
   $("#mito").style.opacity = isRbc ? .25 : 1;
