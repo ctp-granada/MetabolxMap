@@ -113,7 +113,7 @@ export const METABOLIX_TEMPLATE = `<div class="app">
       </div>
       <div class="sec cite-box" id="cite-box">
         <div class="eyebrow">Cómo citar Metabolix</div>
-        <p class="cite-ref" id="cite-ref">Torres de Pinedo, J. M., Martinez, S., Ortuno, F. M., &amp; Torres, C. (2026). <i>Metabolix: conduce por el metabolismo humano</i> (Version v1.0) [Computer software]. Zenodo. <a href="https://doi.org/10.5281/zenodo.23990015" target="_blank" rel="noopener">https://doi.org/10.5281/zenodo.23990015</a></p>
+        <p class="cite-ref" id="cite-ref">Torres de Pinedo, J. M., Martinez, S., Ortuno, F. M., &amp; Torres, C. (2026). <i>Metabolix: conduce por el metabolismo humano</i> [Computer software]. Zenodo. <a href="https://doi.org/10.5281/zenodo.23990014" target="_blank" rel="noopener">https://doi.org/10.5281/zenodo.23990014</a></p>
         <p class="cite-org">Proyecto de Innovación Docente PID 26-15 · Departamento de Bioquímica y Biología Molecular III e Inmunología · Facultad de Medicina · Universidad de Granada</p>
         <button type="button" class="btn cite-copy" id="cite-copy">Copiar cita</button>
       </div>
