@@ -1097,6 +1097,7 @@ function markPending(to){
   document.querySelectorAll(".map-controls .state").forEach((b,i)=>b.classList.toggle("pending", !!to && STATES[i]===to));
 }
 function openPredict(from,to){
+  closePanel(); /* la tarjeta de predicción no debe quedar debajo de una ficha */
   pred={from,to,answers:{},checked:false};
   markPending(to);
   renderPredict();

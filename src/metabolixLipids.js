@@ -514,7 +514,7 @@ function renderLipidSVG(sc) {
   const mcadColor = isMCAD ? '#ef4444' : (isBetaOx ? '#10b981' : '#94a3b8');
 
   return `
-  <svg viewBox="0 0 940 440" width="100%" height="auto" class="lipid-svg-root" preserveAspectRatio="xMidYMid meet">
+  <svg viewBox="0 0 940 440" width="100%" class="lipid-svg-root" preserveAspectRatio="xMidYMid meet">
     <defs>
       <!-- Gradientes Clínicos -->
       <linearGradient id="grad-cyto" x1="0" y1="0" x2="0" y2="1">
