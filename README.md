@@ -137,7 +137,7 @@ service cloud.firestore {
 
 Si usas, adaptas o difundes Metabolix, cita su origen:
 
-> Torres de Pinedo, J. M., Martinez, S., Ortuno, F. M., & Torres, C. (2026). *Metabolix: conduce por el metabolismo humano* (Version v1.0) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.23990015
+> Torres de Pinedo, J. M., Martinez, S., Ortuno, F. M., & Torres, C. (2026). *Metabolix: conduce por el metabolismo humano* [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.23990014
 
 GitHub también ofrece la cita con el botón «Cite this repository», a partir de `CITATION.cff`.
 
