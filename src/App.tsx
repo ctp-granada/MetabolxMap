@@ -15,7 +15,7 @@ import {
 } from './services/storageService';
 import { StudentAccessModal } from './components/StudentAccessModal';
 import { SatisfactionSurveyModal } from './components/SatisfactionSurveyModal';
-import { PlatformGuideAssistant, TOUR_HIDDEN_KEY } from './components/PlatformGuideAssistant';
+import { GuidedTour, TOUR_HIDDEN_KEY } from './components/GuidedTour';
 
 export default function App() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -164,14 +164,13 @@ export default function App() {
         onSubmitted={handleSurveySubmitted}
       />
 
-      <PlatformGuideAssistant
+      <GuidedTour
         isOpen={isGuideOpen}
         onClose={() => {
           setIsGuideOpen(false);
           setIsAutoTriggeredTour(false);
         }}
         onNavigateToView={handleNavigateView}
-        isAutoTriggered={isAutoTriggeredTour}
       />
     </div>
   );
