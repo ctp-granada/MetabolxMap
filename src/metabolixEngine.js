@@ -119,12 +119,21 @@ const STATES = [
 ];
 let ST = STATES[0];
 let focusPw = null;      // ruta aislada
-/* al aislar una ruta se ve el camino completo: la gluconeogénesis reutiliza los pasos reversibles
-   de la glucólisis, parte del lactato o del glicerol y termina con la glucosa saliendo a la sangre */
+/* al aislar una ruta se ve el camino completo, también los pasos que comparte con otras: la gluconeogénesis
+   reutiliza los pasos reversibles de la glucólisis, parte del lactato o del glicerol y termina en la sangre */
 const PW_EXTRA = {
   gluconeogenesis: ["rx_ldh","rx_mpc","rx_eno","rx_pgm_glyc","rx_pgk","rx_gapdh","rx_tpi","rx_aldo_a","rx_pgi","rx_gpd1","rx_glut_out"],
+  /* el glucógeno se forma desde la glucosa (GLUT, HK/GCK) y en el hígado se libera como glucosa (G6Pasa, GLUT2) */
+  glycogen_metabolism: ["rx_glut","rx_hk","rx_g6pase","rx_glut_out"],
+  /* la galactosa llega a G-6-P por la fosfoglucomutasa; la DHAP de la fructosa pasa a GAP por la TPI */
+  monosaccharide_entry: ["rx_pgm_glycogen","rx_tpi"],
+  /* el piruvato tiene tres destinos: lactato (LDH), acetil-CoA (PDH) y oxalacetato (PC) */
+  mitochondrial_fate: ["rx_ldh","rx_pyruvate_carboxylase"],
 };
-const inPw = (r, pw) => r.pathway===pw || (PW_EXTRA[pw]||[]).includes(r.id);
+/* y fuera lo que no es de la ruta aunque los datos lo agrupen con ella: la lanzadera malato-aspartato
+   lleva NADH, no es un destino del piruvato */
+const PW_EXCLUDE = { mitochondrial_fate: ["rx_malate_aspartate_shuttle"] };
+const inPw = (r, pw) => (r.pathway===pw && !(PW_EXCLUDE[pw]||[]).includes(r.id)) || (PW_EXTRA[pw]||[]).includes(r.id);
 function pwNodeIn(id, pw){ return RX.some(r => inPw(r,pw) && (r.fromNodeId===id || r.toNodeId===id)); }
 let block = null;        // reacción bloqueada (enfermedad)
 let blockAcc = new Set(), blockDef = new Set();
@@ -576,7 +585,8 @@ function apply(){
   Object.values(NODES).forEach(N=>{
     const a=act[N.m.id]||0;
     const isTissueNode = !tissueFilter || N.m.pathways.some(p => TISSUE_PW_MAP[tissueFilter]?.includes(p));
-    const inFocus = (!focusPw || N.m.pathways.includes(focusPw) || pwNodeIn(N.m.id, focusPw)) && isTissueNode;
+    /* un metabolito se resalta si alguna carretera de la ruta pasa por él */
+    const inFocus = (!focusPw || pwNodeIn(N.m.id, focusPw)) && isTissueNode;
     N.halo.style.opacity = (a*(document.documentElement.dataset.mode==="dark"?.5:0)).toFixed(2);
     const nearN = !inFocus && focusPw && RX.some(r=>related.has(r.id) && (r.fromNodeId===N.m.id||r.toNodeId===N.m.id));
     N.g.style.opacity = inFocus ? (a>0.02? 1 : .5) : nearN ? .45 : .22;
