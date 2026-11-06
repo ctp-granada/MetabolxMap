@@ -4127,3 +4127,38 @@ select{width:100%;background:var(--ink-2);color:var(--fg);border:1px solid var(-
 @media (max-width:860px){ .mission{left:8px;right:8px;width:auto;top:auto;bottom:8px;max-height:58%} }
 .map-topbar[hidden]{display:none}
 @media (max-width:860px){ .tabs{overflow-x:auto;max-width:100%;scrollbar-width:none} .tabs::-webkit-scrollbar{display:none} .tabs button{flex:none} }
+
+/* las partículas y los efectos no deben robar clics a carreteras y nodos */
+.parts-g,.parts-g *,.fx-g,.fx-g *{pointer-events:none}
+
+/* ===== Reto: veredicto, puntos y ranking ===== */
+.qz-verdict{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding:8px 12px;border-radius:4px;border-left:4px solid;font-size:13.5px}
+.qz-verdict b{font-family:var(--f-display);font-size:19px;font-weight:700}
+.qz-verdict.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 10%,transparent)}
+.qz-verdict.ok b{color:var(--ok)}
+.qz-verdict.ko{border-color:var(--danger);background:color-mix(in srgb,var(--danger) 9%,transparent)}
+.qz-verdict.ko b{color:var(--danger)}
+.qz-verdict span{color:var(--fg-dim)}
+.quiz-top .score b{color:var(--fg);font-variant-numeric:tabular-nums}
+.qz-rank-btn{font:600 12.5px var(--f-body,inherit);color:var(--accent);padding:4px 10px;border:1px solid var(--line);border-radius:4px;background:var(--ink-1)}
+.qz-rank-btn:hover{border-color:var(--accent)}
+.qz-pts-sum{font-size:14px;color:var(--fg-dim);padding-bottom:8px}
+.qz-pts-sum b{font-family:var(--f-display);font-size:22px;color:var(--accent)}
+.qz-record{color:var(--ok);font-weight:700}
+.qz-rank{display:grid;gap:8px;border-top:1px solid var(--line);padding-top:10px}
+.qz-rank:empty{display:none}
+.qz-rank-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.qz-rank-tabs{flex:0 0 auto}
+.qz-rank-tabs button{flex:0 0 auto;padding:4px 10px}
+.qz-rank-list{list-style:none;margin:0;padding:0;display:grid;gap:2px;max-height:min(46vh,340px);overflow:auto}
+.qz-rank-list li{display:grid;grid-template-columns:2em 1fr auto;align-items:center;gap:10px;padding:6px 8px;border-radius:4px;font-size:13.5px}
+.qz-rank-list li:nth-child(odd){background:var(--ink-2)}
+.qz-rank-list li.me{background:color-mix(in srgb,var(--accent) 14%,transparent);outline:1px solid var(--accent)}
+.qz-rank-list .pos{font-family:var(--f-display);font-weight:700;color:var(--fg-dim);text-align:right}
+.qz-rank-list li:nth-child(-n+3) .pos{color:var(--accent)}
+.qz-rank-list .nm{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.qz-rank-list .nm small{display:block;font-weight:400;font-size:11.5px;color:var(--fg-faint)}
+.qz-rank-list .pt{font-family:var(--f-display);font-weight:700;font-variant-numeric:tabular-nums}
+.qz-rank-msg,.qz-rank-me{margin:0;font-size:12.5px;color:var(--fg-dim)}
+.qz-link{color:var(--accent);font-weight:600;text-decoration:underline;padding:0}
+@media (max-width:860px){.quiz{max-height:calc(100% - 24px);overflow:auto}}

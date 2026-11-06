@@ -4,7 +4,7 @@
  */
 
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore, collection, addDoc, serverTimestamp, doc, setDoc } from "firebase/firestore";
+import { getFirestore, collection, addDoc, serverTimestamp, doc, setDoc, increment, query, orderBy, limit, getDocs, getDoc, where, getCountFromServer } from "firebase/firestore";
 
 export type DegreeType =
   | "Grado en Medicina"
@@ -70,6 +70,7 @@ const STORAGE_KEYS = {
   CHALLENGES_COMPLETED: "metabolix_completed_challenges_count",
   SURVEY_COMPLETED: "metabolix_survey_completed",
   FLASHCARD_STATS: "metabolix_flashcard_stats",
+  QUIZ_POINTS: "metabolix_quiz_points",
 };
 
 export interface PathwayFlashcardStat {
@@ -525,4 +526,110 @@ export function exportAllDataAsJSON() {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+}
+
+/* --- Puntos de los retos y ranking ---
+ * Cada acierto da 100 puntos más un bonus de racha (25 por cada acierto seguido, hasta 100).
+ * El total se guarda en el navegador y, si el alumno está registrado, en Firestore
+ * (colección "ranking"). El documento se identifica con un resumen SHA-256 del correo,
+ * de modo que el ranking, que es público para los alumnos, no muestra correos. */
+export interface QuizPoints { points: number; answered: number; correct: number; best: number; }
+export interface RankingRow { id: string; name: string; degree: string | null; course: string | null; points: number; answered: number; correct: number; me: boolean; }
+
+export const POINTS_PER_HIT = 100;
+export function pointsFor(isCorrect: boolean, streak: number): number {
+  if (!isCorrect) return 0;
+  return POINTS_PER_HIT + Math.min(100, 25 * Math.max(0, streak - 1));
+}
+
+export function getQuizPoints(): QuizPoints {
+  try {
+    const raw = JSON.parse(localStorage.getItem(STORAGE_KEYS.QUIZ_POINTS) || "null");
+    if (raw && typeof raw.points === "number") return { points: raw.points, answered: raw.answered || 0, correct: raw.correct || 0, best: raw.best || 0 };
+  } catch { /* datos corruptos: se empieza de cero */ }
+  return { points: 0, answered: 0, correct: 0, best: 0 };
+}
+
+function shortName(full: string): string {
+  const parts = (full || "").trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "Estudiante";
+  const first = parts[0].slice(0, 20);
+  return parts[1] ? `${first} ${parts[1][0].toUpperCase()}.` : first;
+}
+
+async function rankingId(email: string): Promise<string | null> {
+  try {
+    const data = new TextEncoder().encode("metabolix:" + email.trim().toLowerCase());
+    const hash = await crypto.subtle.digest("SHA-256", data);
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 32);
+  } catch { return null; }
+}
+
+export function recordQuizPoints(points: number, isCorrect: boolean): QuizPoints {
+  const cur = getQuizPoints();
+  const next: QuizPoints = { points: cur.points + points, answered: cur.answered + 1, correct: cur.correct + (isCorrect ? 1 : 0), best: cur.best };
+  try { localStorage.setItem(STORAGE_KEYS.QUIZ_POINTS, JSON.stringify(next)); } catch { /* sin almacenamiento */ }
+  const profile = getStudentProfile();
+  if (firestoreDb && profile?.email) {
+    rankingId(profile.email).then(id => {
+      if (!id) return;
+      setDoc(doc(firestoreDb, "ranking", id), {
+        name: shortName(profile.name),
+        degree: profile.degree || null,
+        course: profile.course || null,
+        points: increment(points),
+        answered: increment(1),
+        correct: increment(isCorrect ? 1 : 0),
+        updatedAt: serverTimestamp(),
+      }, { merge: true }).catch((err: any) => console.warn("Firestore ranking error:", err));
+    });
+  }
+  return next;
+}
+
+export function recordQuizBest(score: number): QuizPoints {
+  const cur = getQuizPoints();
+  if (score > cur.best) {
+    cur.best = score;
+    try { localStorage.setItem(STORAGE_KEYS.QUIZ_POINTS, JSON.stringify(cur)); } catch { /* sin almacenamiento */ }
+  }
+  return cur;
+}
+
+/** Los 10 mejores y la posición del alumno, en total o dentro de una titulación.
+ *  Se filtra por titulación en el navegador para no necesitar índices compuestos en Firestore.
+ *  Devuelve null si no hay conexión con Firestore. */
+export async function getRanking(degree?: string | null): Promise<{ rows: RankingRow[]; myRank: number | null; myRow: RankingRow | null } | null> {
+  if (!firestoreDb) return null;
+  try {
+    const col = collection(firestoreDb, "ranking");
+    const snap = await getDocs(query(col, orderBy("points", "desc"), limit(300)));
+    const profile = getStudentProfile();
+    const myId = profile?.email ? await rankingId(profile.email) : null;
+    const toRow = (d: any): RankingRow => {
+      const x = d.data() || {};
+      return { id: d.id, name: String(x.name || "Estudiante"), degree: x.degree || null, course: x.course || null,
+        points: Number(x.points) || 0, answered: Number(x.answered) || 0, correct: Number(x.correct) || 0, me: d.id === myId };
+    };
+    const all = snap.docs.map(toRow).filter(r => r.points > 0 && (!degree || r.degree === degree));
+    const idx = all.findIndex(r => r.me);
+    let myRank: number | null = idx >= 0 ? idx + 1 : null;
+    let myRow: RankingRow | null = idx >= 0 ? all[idx] : null;
+    if (!myRow && myId && !degree) {
+      const mine = await getDoc(doc(firestoreDb, "ranking", myId));
+      if (mine.exists()) {
+        myRow = toRow(mine);
+        const above = await getCountFromServer(query(col, where("points", ">", myRow.points)));
+        myRank = above.data().count + 1;
+      }
+    }
+    return { rows: all.slice(0, 10), myRank, myRow };
+  } catch (err) {
+    console.warn("Firestore ranking read error:", err);
+    return null;
+  }
+}
+
+export function isRegisteredStudent(): boolean {
+  return !!getStudentProfile()?.email;
 }

@@ -118,16 +118,8 @@ export default function App() {
         explanation: d.explanation,
       });
 
-      // Check if student reached 3 challenges without completing the survey
-      if (isSurveyRequiredForQuiz()) {
-        // Refresh quiz view to show blocker if needed
-        if ((window as any).metabolixRefreshQuiz) {
-          (window as any).metabolixRefreshQuiz();
-        }
-        // Open mandatory survey
-        setIsSurveyMandatory(true);
-        setIsSurveyOpen(true);
-      }
+      // Tras la 3.ª respuesta sin encuesta, el alumno ve primero si ha acertado;
+      // la encuesta obligatoria se abre al pulsar «Siguiente pregunta» (lo hace el motor).
     };
     window.addEventListener('metabolix:quiz_answered', handleQuizAnswered);
 
