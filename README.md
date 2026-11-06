@@ -19,7 +19,7 @@ Proyecto de Innovación Docente PID 26-15 del Departamento de Bioquímica y Biol
 
 **Estados fisiológicos.** Encima del mapa: postprandial, ayuno nocturno, ayuno prolongado, sprint, estrés oxidativo y sobrecarga de fructosa. Cada estado cambia las señales hormonales (insulina, glucagón, adrenalina, AMP/ATP, demanda de NADPH) y con ellas el flujo de todas las rutas. El selector de tejido muestra qué rutas tiene el hígado, el músculo, el corazón, el cerebro, el tejido adiposo, el eritrocito o el riñón.
 
-**Paseo por la app.** Se abre al entrar, salvo que el alumno marque «No volver a mostrar al entrar». Siempre se puede volver a abrir desde «Guía».
+**Paseo por la app.** Un recorrido guiado que oscurece la pantalla, resalta cada parte (el mapa, los estados, el buscador, las pestañas…) y la señala con una flecha mientras la explica. Se abre al entrar, salvo que el alumno marque «No volver a mostrar al entrar». Siempre se puede volver a abrir desde «Guía».
 
 **Predecir primero.** Con el interruptor «Predecir primero», al cambiar de estado el alumno marca antes cada proceso como activo, poco activo o apagado, y después lo comprueba con la explicación de cada caso. Con «Ver directamente», el mapa cambia al momento. La elección se recuerda.
 
@@ -79,7 +79,7 @@ src/
 ├── metabolixLipids.js      Vista de lípidos
 ├── index.css               Diseño: colores, tipografía y estilos del mapa
 ├── App.tsx, main.tsx       Arranque de React y modales
-├── components/             Guía, encuesta y acceso del alumno
+├── components/             Recorrido guiado, encuesta y acceso del alumno
 └── services/
     └── storageService.ts   Guardado local y sincronización opcional con Firestore
 ```
@@ -91,6 +91,7 @@ src/
 - **Estados fisiológicos**: `STATES` en `metabolixEngine.js`. Cada estado tiene sus señales (`sig`), la actividad de cada ruta (`pw`) y de cada reacción (`rx`), y las notas que aparecen en el panel.
 - **Procesos de Predecir primero**: `PRED_ITEMS`. Los umbrales están en `levelIn`: activa ≥ 0,55, poco activa ≥ 0,12, y apagada por debajo.
 - **Misiones**: `MISSIONS`. Cada misión tiene estado, origen, destino, introducción, pistas por reacción e ideas clave. Escribe `__msCheck()` en la consola del navegador para comprobar que todas tienen camino.
+- **Recorrido guiado**: `STEPS` en `src/components/GuidedTour.tsx`. Cada paso tiene el selector del elemento que se resalta, la vista donde está, un título y un texto. Si el elemento no se ve en esa pantalla (por ejemplo, en móvil), el paso se salta solo.
 - **Colores y tipografía**: variables al principio de `index.css`. Los colores de las rutas (`--pw-*`) llevan información, así que conviene no cambiarlos a la ligera.
 
 ### Datos y privacidad

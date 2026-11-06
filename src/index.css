@@ -3636,3 +3636,33 @@ select{width:100%;background:var(--ink-2);color:var(--fg);border:1px solid var(-
 .qz-link{color:var(--accent);font-weight:600;text-decoration:underline;padding:0}
 @media (max-width:860px){.quiz{max-height:calc(100% - 24px);overflow:auto}}
 .qz-pts-sum.neg b{color:var(--danger)}
+
+/* ===== Recorrido guiado: resalta cada parte de la app y la señala con una flecha ===== */
+.tour{position:fixed;inset:0;z-index:200}
+.tour-veil{position:absolute;inset:0;background:rgba(8,16,32,.55)}
+.tour-hole{position:absolute;border-radius:6px;box-shadow:0 0 0 9999px rgba(8,16,32,.55);outline:3px solid var(--accent);outline-offset:0;pointer-events:none;transition:left .3s ease,top .3s ease,width .3s ease,height .3s ease}
+.tour-hole::after{content:"";position:absolute;inset:-3px;border-radius:7px;border:3px solid var(--accent);animation:tour-pulse 1.6s ease-out infinite}
+@keyframes tour-pulse{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(1.06)}}
+.tour-arrow{position:absolute;pointer-events:none;transition:left .3s ease,top .3s ease;filter:drop-shadow(0 2px 6px rgba(0,0,0,.35))}
+.tour-arrow-g{fill:none;stroke:#ffd23f;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;animation:tour-nudge .9s ease-in-out infinite alternate}
+@keyframes tour-nudge{from{transform:translateX(0)}to{transform:translateX(-7px)}}
+.tour-card{position:absolute;width:min(360px,calc(100vw - 24px));background:var(--ink-1);color:var(--fg);border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:6px;padding:14px 16px 12px;box-shadow:0 18px 50px -10px rgba(0,0,0,.45);display:grid;gap:8px;transition:left .3s ease,top .3s ease;outline:none}
+.tour-top{display:flex;align-items:center;justify-content:space-between}
+.tour-count{font-size:12px;font-weight:600;color:var(--fg-faint);font-variant-numeric:tabular-nums}
+.tour-x{width:28px;height:28px;border-radius:4px;color:var(--fg-dim);font-size:14px}
+.tour-x:hover{background:var(--ink-2);color:var(--fg)}
+.tour-title{margin:0;font-family:var(--f-display);font-size:19px;font-weight:700;line-height:1.2}
+.tour-text{margin:0;font-size:14px;line-height:1.5;color:var(--fg-dim)}
+.tour-dots{display:flex;gap:4px;margin-top:2px}
+.tour-dots i{height:4px;flex:1;border-radius:2px;background:var(--ink-3)}
+.tour-dots i.done{background:color-mix(in srgb,var(--accent) 45%,var(--ink-3))}
+.tour-dots i.on{background:var(--accent)}
+.tour-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:4px}
+.tour-check{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--fg-dim);cursor:pointer}
+.tour-btns{display:flex;gap:6px;margin-left:auto}
+.tour-btn{padding:7px 14px;border-radius:4px;font-size:13px;font-weight:600;border:1px solid var(--line);background:var(--ink-1);color:var(--fg)}
+.tour-btn:hover{background:var(--ink-2)}
+.tour-btn.ghost{border-color:transparent;color:var(--fg-faint)}
+.tour-btn.pri{background:var(--fg);border-color:var(--fg);color:var(--ink-0)}
+.tour-btn.pri:hover{opacity:.9;background:var(--fg)}
+@media (prefers-reduced-motion:reduce){.tour-hole,.tour-arrow,.tour-card{transition:none}.tour-hole::after,.tour-arrow-g{animation:none}}
