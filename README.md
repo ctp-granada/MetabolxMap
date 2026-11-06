@@ -95,7 +95,7 @@ src/
 
 ### Datos y privacidad
 
-Todo se guarda primero en el navegador (`localStorage`): retos, encuestas, visitas, resultados de las misiones y preferencias. Si hay una configuración de Firebase, las respuestas se copian también en Firestore para analizarlas.
+Todo se guarda primero en el navegador (`localStorage`): retos, encuestas, visitas, resultados de las misiones y preferencias. El registro del alumno, las respuestas de los retos y las encuestas se envían además a Firestore (proyecto `metabolix-4ce49`), en las colecciones `student_sessions`, `quiz_responses` y `satisfaction_surveys`. La configuración está en `src/services/storageService.ts`; las variables `VITE_FIREBASE_*` de Vercel, si existen, tienen prioridad. Los datos se protegen con las reglas de Firestore, que solo permiten escribir.
 
 ## Diseño
 

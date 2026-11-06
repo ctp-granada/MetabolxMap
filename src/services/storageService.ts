@@ -193,14 +193,17 @@ export function resetSurveyForTesting(): void {
 /* --- Firebase Initialization (Optional / Graceful) --- */
 let firestoreDb: any = null;
 try {
-  // If Vite env vars or window config exists
+  // Configuración web pública del proyecto metabolix-4ce49. No es secreta:
+  // la protección de los datos está en las reglas de Firestore.
+  // Las variables VITE_FIREBASE_* de Vercel, si existen, tienen prioridad.
+  const env = import.meta.env;
   const firebaseConfig = (window as any).__FIREBASE_CONFIG__ || {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-    appId: import.meta.env.VITE_FIREBASE_APP_ID,
+    apiKey: env.VITE_FIREBASE_API_KEY || "AIzaSyAVwdYD8FEr_8Mhe6BXgjAhB2MvAaRXPNk",
+    authDomain: env.VITE_FIREBASE_AUTH_DOMAIN || "metabolix-4ce49.firebaseapp.com",
+    projectId: env.VITE_FIREBASE_PROJECT_ID || "metabolix-4ce49",
+    storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET || "metabolix-4ce49.firebasestorage.app",
+    messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID || "226712218203",
+    appId: env.VITE_FIREBASE_APP_ID || "1:226712218203:web:a69a0115628da535f46d7e",
   };
 
   if (firebaseConfig && firebaseConfig.apiKey && firebaseConfig.projectId) {
