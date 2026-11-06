@@ -3679,3 +3679,4 @@ select{width:100%;background:var(--ink-2);color:var(--fg);border:1px solid var(-
 
 /* móvil: la ficha sube como hoja por encima de la cabecera, para que su botón de cerrar siempre se pueda pulsar */
 @media (max-width:860px){ .panel{z-index:45} }
+.hdr-visits[hidden]{display:none}
