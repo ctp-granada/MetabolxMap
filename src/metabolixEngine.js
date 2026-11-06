@@ -119,6 +119,13 @@ const STATES = [
 ];
 let ST = STATES[0];
 let focusPw = null;      // ruta aislada
+/* al aislar una ruta se ve el camino completo: la gluconeogénesis reutiliza los pasos reversibles
+   de la glucólisis, parte del lactato o del glicerol y termina con la glucosa saliendo a la sangre */
+const PW_EXTRA = {
+  gluconeogenesis: ["rx_ldh","rx_mpc","rx_eno","rx_pgm_glyc","rx_pgk","rx_gapdh","rx_tpi","rx_aldo_a","rx_pgi","rx_gpd1","rx_glut_out"],
+};
+const inPw = (r, pw) => r.pathway===pw || (PW_EXTRA[pw]||[]).includes(r.id);
+function pwNodeIn(id, pw){ return RX.some(r => inPw(r,pw) && (r.fromNodeId===id || r.toNodeId===id)); }
 let block = null;        // reacción bloqueada (enfermedad)
 let blockAcc = new Set(), blockDef = new Set();
 let playing = !RM;
@@ -538,7 +545,7 @@ function apply(){
   EDGES.forEach(E=>{
     const f=flux(E.r); E.f=f; const a=Math.abs(f);
     const isTissueIn = !tissueFilter || (TISSUE_PW_MAP[tissueFilter] && TISSUE_PW_MAP[tissueFilter].includes(E.r.pathway) && !isRxAbsentInTissue(E.r, tissueFilter));
-    const inFocus = (!focusPw || E.r.pathway===focusPw) && isTissueIn;
+    const inFocus = (!focusPw || inPw(E.r, focusPw)) && isTissueIn;
     const on = a>0.02 && isTissueIn;
     const sw = on ? 1.8+a*5.8 : 1.3;
     E.p.setAttribute("stroke-width", sw.toFixed(2));
@@ -561,7 +568,7 @@ function apply(){
   Object.values(NODES).forEach(N=>{
     const a=act[N.m.id]||0;
     const isTissueNode = !tissueFilter || N.m.pathways.some(p => TISSUE_PW_MAP[tissueFilter]?.includes(p));
-    const inFocus = (!focusPw || N.m.pathways.includes(focusPw)) && isTissueNode;
+    const inFocus = (!focusPw || N.m.pathways.includes(focusPw) || pwNodeIn(N.m.id, focusPw)) && isTissueNode;
     N.halo.style.opacity = (a*(document.documentElement.dataset.mode==="dark"?.5:0)).toFixed(2);
     N.g.style.opacity = inFocus ? (a>0.02? 1 : .5) : .14;
   });
