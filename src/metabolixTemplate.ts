@@ -23,7 +23,7 @@ export const METABOLIX_TEMPLATE = `<div class="app">
         <svg class="ic" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h6"/></svg><span>Encuesta</span>
       </button>
       <button type="button" class="hdr-btn hdr-student" id="btn-student" title="Identificación del estudiante">
-        <svg class="ic" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span id="hdr-student-name">Acceso alumno</span><span id="hdr-visits-badge" class="hdr-visits">0</span>
+        <svg class="ic" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span id="hdr-student-name">Acceso alumno</span><span id="hdr-visits-badge" class="hdr-visits" hidden></span>
       </button>
     </div>
     <button class="modebtn" id="mode" aria-label="Cambiar a modo oscuro"></button>

@@ -63,7 +63,8 @@ export interface QuizResponseRecord {
 
 const STORAGE_KEYS = {
   PROFILE: "metabolix_student_profile",
-  VISITS_TOTAL: "metabolix_total_visits",
+  // último total leído del contador común de Firestore (la clave antigua era un contador local ficticio)
+  VISITS_TOTAL: "metabolix_global_visits",
   VISITS_SESSION: "metabolix_session_counted",
   SURVEYS: "metabolix_satisfaction_surveys",
   QUIZ_RESPONSES: "metabolix_quiz_responses",
@@ -218,21 +219,9 @@ try {
 
 /* --- Visits Counter --- */
 export function recordAndGetVisits(): { totalVisits: number; studentVisits: number } {
-  const INITIAL_SEED = 128; // realistic pedagogical baseline
-  let total = parseInt(localStorage.getItem(STORAGE_KEYS.VISITS_TOTAL) || "0", 10);
-  if (!total || total < INITIAL_SEED) {
-    total = INITIAL_SEED;
-  }
-
-  // Count once per browser session
+  // Visitas de ESTE alumno: se cuentan en su navegador, una por sesión.
   const sessionCounted = sessionStorage.getItem(STORAGE_KEYS.VISITS_SESSION);
-  if (!sessionCounted) {
-    total += 1;
-    localStorage.setItem(STORAGE_KEYS.VISITS_TOTAL, String(total));
-    sessionStorage.setItem(STORAGE_KEYS.VISITS_SESSION, "1");
-  }
-
-  // Track student visits
+  if (!sessionCounted) sessionStorage.setItem(STORAGE_KEYS.VISITS_SESSION, "1");
   const profile = getStudentProfile();
   let studentVisits = 1;
   if (profile) {
@@ -243,8 +232,29 @@ export function recordAndGetVisits(): { totalVisits: number; studentVisits: numb
     }
     studentVisits = profile.sessionVisitsCount || 1;
   }
+  // Visitas totales: el contador común de Firestore (último valor conocido; 0 si aún no se ha leído).
+  const totalVisits = parseInt(localStorage.getItem(STORAGE_KEYS.VISITS_TOTAL) || "0", 10) || 0;
+  return { totalVisits, studentVisits };
+}
 
-  return { totalVisits: total, studentVisits };
+/** Suma esta visita al contador común (una vez por sesión) y devuelve el total real.
+ *  null si no hay conexión con Firestore: entonces no se muestra ningún número. */
+export async function syncGlobalVisits(): Promise<number | null> {
+  if (!firestoreDb) return null;
+  try {
+    const ref = doc(firestoreDb, "stats", "visits");
+    if (!sessionStorage.getItem("metabolix_visit_sent")) {
+      await setDoc(ref, { total: increment(1) }, { merge: true });
+      sessionStorage.setItem("metabolix_visit_sent", "1");
+    }
+    const snap = await getDoc(ref);
+    const total = Number(snap.data()?.total) || 0;
+    if (total > 0) localStorage.setItem(STORAGE_KEYS.VISITS_TOTAL, String(total));
+    return total || null;
+  } catch (err) {
+    console.warn("Firestore visits error:", err);
+    return null;
+  }
 }
 
 /* --- Student Profile --- */

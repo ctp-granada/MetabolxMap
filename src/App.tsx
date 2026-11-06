@@ -8,6 +8,7 @@ import { METABOLIX_TEMPLATE } from './metabolixTemplate';
 import { initMetabolix } from './metabolixEngine.js';
 import {
   recordAndGetVisits,
+  syncGlobalVisits,
   getStudentProfile,
   saveQuizResponse,
   isSurveyRequiredForQuiz,
@@ -46,11 +47,17 @@ export default function App() {
       }
     }
 
-    const visitsEl = document.getElementById('hdr-visits-badge');
-    if (visitsEl) {
-      visitsEl.textContent = `${v.totalVisits}`;
-      visitsEl.title = `Visitas totales registradas a la plataforma: ${v.totalVisits} (Sesión #${v.studentVisits})`;
-    }
+    const showVisits = (total: number) => {
+      const visitsEl = document.getElementById('hdr-visits-badge');
+      if (!visitsEl) return;
+      visitsEl.hidden = !(total > 0);
+      visitsEl.textContent = total > 0 ? total.toLocaleString('es-ES') : '';
+      visitsEl.title = `Visitas totales a Metabolix: ${total.toLocaleString('es-ES')}`;
+    };
+    showVisits(v.totalVisits);
+    syncGlobalVisits().then(total => {
+      if (total) { showVisits(total); setVisitsData(prev => ({ ...prev, totalVisits: total })); }
+    });
   }, []);
 
   useEffect(() => {

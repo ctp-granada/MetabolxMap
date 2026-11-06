@@ -43,7 +43,7 @@ Proyecto de Innovación Docente PID 26-15 del Departamento de Bioquímica y Biol
 - *Reto*: preguntas de razonamiento que se responden tocando el mapa. Cada acierto vale 100 puntos y la racha suma 25 más por acierto seguido (hasta +100); cada fallo resta 25. Los puntos se acumulan y los alumnos registrados aparecen en un ranking, general o por titulación, que solo muestra nombre e inicial. Tras completar tres retos de 8 preguntas se pide la encuesta antes de empezar el siguiente.
 - *Flashcards*: oculta los nombres del mapa para repasar, con autoevaluación y estadísticas por ruta.
 
-**Para el profesorado.** La encuesta de satisfacción (Likert 1–5, con titulación y curso) se exporta en CSV o JSON. Hay un registro opcional del alumno y un contador de visitas.
+**Para el profesorado.** La encuesta de satisfacción (Likert 1–5, con titulación y curso) se exporta en CSV o JSON. Hay un registro opcional del alumno y un contador común de visitas (una por sesión de navegador), guardado en Firestore.
 
 ## Desarrollo
 
@@ -96,7 +96,7 @@ src/
 
 ### Datos y privacidad
 
-Todo se guarda primero en el navegador (`localStorage`): retos, encuestas, visitas, resultados de las misiones y preferencias. El registro del alumno, las respuestas de los retos y las encuestas se envían además a Firestore (proyecto `metabolix-4ce49`), en las colecciones `student_sessions`, `quiz_responses` y `satisfaction_surveys`. La configuración está en `src/services/storageService.ts`; las variables `VITE_FIREBASE_*` de Vercel, si existen, tienen prioridad. Los puntos de los retos se guardan en la colección `ranking`, identificada por un resumen del correo, de modo que el ranking no expone correos.
+Todo se guarda primero en el navegador (`localStorage`): retos, encuestas, visitas, resultados de las misiones y preferencias. El registro del alumno, las respuestas de los retos y las encuestas se envían además a Firestore (proyecto `metabolix-4ce49`), en las colecciones `student_sessions`, `quiz_responses` y `satisfaction_surveys`. La configuración está en `src/services/storageService.ts`; las variables `VITE_FIREBASE_*` de Vercel, si existen, tienen prioridad. Los puntos de los retos se guardan en la colección `ranking`, identificada por un resumen del correo, de modo que el ranking no expone correos. El contador de visitas es el documento `stats/visits`.
 
 Reglas de Firestore recomendadas: los alumnos solo pueden escribir, salvo el ranking, que pueden leer y que solo admite cambios de entre −25 y +200 puntos por respuesta.
 
@@ -118,6 +118,11 @@ service cloud.firestore {
       allow update: if valid(request.resource.data)
         && request.resource.data.points >= resource.data.points - 25
         && request.resource.data.points <= resource.data.points + 200;
+    }
+    match /stats/visits {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasOnly(['total']) && request.resource.data.total == 1;
+      allow update: if request.resource.data.keys().hasOnly(['total']) && request.resource.data.total == resource.data.total + 1;
     }
     match /{document=**}             { allow read, write: if false; }
   }

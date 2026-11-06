@@ -129,9 +129,11 @@ export const StudentAccessModal: React.FC<StudentAccessModalProps> = ({
           <span>
             Sesión activa: <b className="text-[var(--accent)] font-semibold">#{stats.studentVisits}</b>
           </span>
-          <span>
-            Visitas totales a Metabolix: <b className="text-[var(--ok)] font-semibold">{stats.totalVisits}</b>
-          </span>
+          {stats.totalVisits > 0 && (
+            <span>
+              Visitas totales a Metabolix: <b className="text-[var(--ok)] font-semibold">{stats.totalVisits.toLocaleString('es-ES')}</b>
+            </span>
+          )}
         </div>
 
         {/* Form Body */}
