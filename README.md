@@ -19,6 +19,8 @@ Proyecto de Innovación Docente PID 26-15 del Departamento de Bioquímica y Biol
 
 **Estados fisiológicos.** Encima del mapa: postprandial, ayuno nocturno, ayuno prolongado, sprint, estrés oxidativo y sobrecarga de fructosa. Cada estado cambia las señales hormonales (insulina, glucagón, adrenalina, AMP/ATP, demanda de NADPH) y con ellas el flujo de todas las rutas. El selector de tejido muestra qué rutas tiene el hígado, el músculo, el corazón, el cerebro, el tejido adiposo, el eritrocito o el riñón.
 
+**Paseo por la app.** Se abre al entrar, salvo que el alumno marque «No volver a mostrar al entrar». Siempre se puede volver a abrir desde «Guía».
+
 **Predecir primero.** Con el interruptor «Predecir primero», al cambiar de estado el alumno marca antes cada proceso como activo, poco activo o apagado, y después lo comprueba con la explicación de cada caso. Con «Ver directamente», el mapa cambia al momento. La elección se recuerda.
 
 **Misiones.** El alumno lleva una molécula de un punto del mapa a otro eligiendo la carretera en cada cruce. Las carreteras se abren o se cortan según el estado fisiológico, los pasos irreversibles son de sentido único y los transportadores son fronteras. Un cuentakilómetros suma ATP, NADH y CO₂ por el camino.
@@ -38,7 +40,7 @@ Proyecto de Innovación Docente PID 26-15 del Departamento de Bioquímica y Biol
 - *Tejidos*: rutas universales frente a especialización tisular.
 - *Ciclos*: ciclo de Cori, ciclo de la urea, cuerpos cetónicos, lanzaderas malato-aspartato y glicerol-3-P, β-oxidación frente a síntesis de palmitato.
 - *Balances*: ATP de cada sustrato, paso a paso.
-- *Reto*: preguntas de razonamiento. A partir del tercer reto se pide la encuesta.
+- *Reto*: preguntas de razonamiento que se responden tocando el mapa. Cada acierto vale 100 puntos y la racha suma 25 más por acierto seguido (hasta +100); cada fallo resta 25. Los puntos se acumulan y los alumnos registrados aparecen en un ranking, general o por titulación, que solo muestra nombre e inicial. Tras completar tres retos de 8 preguntas se pide la encuesta antes de empezar el siguiente.
 - *Flashcards*: oculta los nombres del mapa para repasar, con autoevaluación y estadísticas por ruta.
 - *Galactosemia*: el bloqueo de la GALT y la vía del galactitol en el cristalino.
 
@@ -95,7 +97,33 @@ src/
 
 ### Datos y privacidad
 
-Todo se guarda primero en el navegador (`localStorage`): retos, encuestas, visitas, resultados de las misiones y preferencias. El registro del alumno, las respuestas de los retos y las encuestas se envían además a Firestore (proyecto `metabolix-4ce49`), en las colecciones `student_sessions`, `quiz_responses` y `satisfaction_surveys`. La configuración está en `src/services/storageService.ts`; las variables `VITE_FIREBASE_*` de Vercel, si existen, tienen prioridad. Los datos se protegen con las reglas de Firestore, que solo permiten escribir.
+Todo se guarda primero en el navegador (`localStorage`): retos, encuestas, visitas, resultados de las misiones y preferencias. El registro del alumno, las respuestas de los retos y las encuestas se envían además a Firestore (proyecto `metabolix-4ce49`), en las colecciones `student_sessions`, `quiz_responses` y `satisfaction_surveys`. La configuración está en `src/services/storageService.ts`; las variables `VITE_FIREBASE_*` de Vercel, si existen, tienen prioridad. Los puntos de los retos se guardan en la colección `ranking`, identificada por un resumen del correo, de modo que el ranking no expone correos.
+
+Reglas de Firestore recomendadas: los alumnos solo pueden escribir, salvo el ranking, que pueden leer y que solo admite cambios de entre −25 y +200 puntos por respuesta.
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /quiz_responses/{id}       { allow create: if true; }
+    match /satisfaction_surveys/{id} { allow create: if true; }
+    match /student_sessions/{id}     { allow create, update: if true; }
+    match /ranking/{id} {
+      function valid(d) {
+        return d.keys().hasOnly(['name','degree','course','points','answered','correct','updatedAt'])
+          && d.name is string && d.name.size() <= 40 && d.points is int;
+      }
+      allow read: if true;
+      allow create: if valid(request.resource.data)
+        && request.resource.data.points >= -25 && request.resource.data.points <= 200;
+      allow update: if valid(request.resource.data)
+        && request.resource.data.points >= resource.data.points - 25
+        && request.resource.data.points <= resource.data.points + 200;
+    }
+    match /{document=**}             { allow read, write: if false; }
+  }
+}
+```
 
 ## Diseño
 

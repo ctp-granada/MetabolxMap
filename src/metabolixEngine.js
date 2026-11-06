@@ -2,7 +2,7 @@ import { D } from "./metabolixData.js";
 import { isGalactoseEntity, renderGalactoseClinicalSuite, setupGalactoseClinicalSuite } from "./metabolixGalactose.js";
 import { isLipidEntity, renderLipidClinicalSuite, setupLipidClinicalSuite } from "./metabolixLipids.js";
 import { renderTissueSuite, setupTissueSuite, TISSUES_DATA, UNIVERSAL_PATHWAYS } from "./metabolixTissues.js";
-import { getFlashcardStats, recordFlashcardPractice, resetFlashcardStats } from "./services/storageService";
+import { getFlashcardStats, recordFlashcardPractice, resetFlashcardStats, pointsFor, recordQuizPoints, recordQuizBest, getQuizPoints, getRanking, isRegisteredStudent, getStudentProfile, incrementCompletedChallenges } from "./services/storageService";
 
 export function initMetabolix() {
 
@@ -244,7 +244,7 @@ Object.entries(PW).forEach(([k,v])=>{
 });
 
 cssify(defs);
-const gGrid = el("g",{class:"atlas-grid"},svg), gComp = el("g",{},svg), gCase=el("g",{class:"casing-g"},svg), gEdges=el("g",{filter:"url(#glow)",class:"edges-g"},svg), gHits=el("g",{},svg), gPart=el("g",{class:"parts-g"},svg), gNodes=el("g",{},svg), gFx=el("g",{},svg), gFxMs=el("g",{class:"ms-fx"},svg);
+const gGrid = el("g",{class:"atlas-grid"},svg), gComp = el("g",{},svg), gCase=el("g",{class:"casing-g"},svg), gEdges=el("g",{filter:"url(#glow)",class:"edges-g"},svg), gHits=el("g",{},svg), gPart=el("g",{class:"parts-g"},svg), gNodes=el("g",{},svg), gFx=el("g",{class:"fx-g"},svg), gFxMs=el("g",{class:"ms-fx"},svg);
 
 
 /* cuadrícula de atlas: columnas A–L, filas 1–9 */
@@ -415,7 +415,7 @@ RX.forEach(r=>{
   const cs=el("path",{d:g.d,class:"casing",fill:"none","stroke-linecap":"round"},gCase);
   const p=el("path",{d:g.d,class:"edge",fill:"none",stroke:c,"stroke-linecap":"round"},gEdges);
   if(r.id==="rx_malate_aspartate_shuttle") p.setAttribute("stroke-dasharray","2 9");
-  const h=el("path",{d:g.d,class:"hit"},gHits);
+  const h=el("path",{d:g.d,class:"hit","data-rx":r.id},gHits);
   h.addEventListener("click",e=>{ if(dragMoved) return; onPick("rx",r.id); });
   h.addEventListener("mouseenter",()=>p.classList.add("edge-hover"));
   h.addEventListener("mouseleave",()=>p.classList.remove("edge-hover"));
@@ -477,7 +477,7 @@ function drawProtein(id,g0){
 const NODES = {};
 D.METABOLITES.forEach(m=>{
   const P=L[m.id]; if(!P) return; const [x,y,lp]=P; const c=PW[m.pathways[0]]?.c||"var(--fg)";
-  const g=el("g",{class:"node",transform:`translate(${x.toFixed(1)} ${y.toFixed(1)})`,tabindex:"0",role:"button","aria-label":m.name},gNodes);
+  const g=el("g",{class:"node",transform:`translate(${x.toFixed(1)} ${y.toFixed(1)})`,tabindex:"0",role:"button","aria-label":m.name,"data-id":m.id},gNodes);
   const halo=el("circle",{class:"halo",r:nodeR(m.id)+14,fill:c,opacity:.0,filter:"url(#soft)"},g);
   let body;
   if(PROTEIN.has(m.id)){
@@ -2406,21 +2406,68 @@ const BIOCHEM_QUESTIONS = [
   }
 ];
 
+/* comprobación para quien escriba preguntas nuevas: window.__quizCheck() lista las que no se pueden responder en el mapa */
+if(typeof window!=="undefined") window.__quizCheck=()=>BIOCHEM_QUESTIONS.map((q,i)=>{
+  const exists = q.kind==="rx" ? !!RXM[q.id] : !!MET[q.id];
+  const onMap = q.kind==="rx" ? EDGES.some(E=>E.r.id===q.id) : !!NODES[q.id];
+  return {i, kind:q.kind, id:q.id, exists, onMap};
+}).filter(r=>!r.exists||!r.onMap);
+const fmtPts = n => { n=Number(n||0); return (n<0?"−":"")+Math.abs(n).toLocaleString("es-ES"); };
+const shortDegree = d => (d||"").replace(/^Grado en /,"");
+let rankScope = "all";
+function rankTable(res, max){
+  if(!res) return `<p class="qz-rank-msg">El ranking no está disponible ahora mismo. Tus puntos se siguen guardando.</p>`;
+  if(!res.rows.length) return `<p class="qz-rank-msg">Todavía no hay nadie en este ranking. ¡Sé el primero!</p>`;
+  const rows = res.rows.slice(0,max);
+  let html = `<ol class="qz-rank-list">${rows.map((r,i)=>`<li class="${r.me?"me":""}"><span class="pos">${i+1}</span><span class="nm">${esc(r.name)}${r.me?" (tú)":""}<small>${esc([shortDegree(r.degree), r.course].filter(Boolean).join(" · "))}</small></span><span class="pt">${fmtPts(r.points)}</span></li>`).join("")}</ol>`;
+  if(res.myRow && !rows.some(r=>r.me)) html += `<p class="qz-rank-me">Tu posición: <b>${res.myRank ? res.myRank+"º" : "fuera del top"}</b> con ${fmtPts(res.myRow.points)} puntos.</p>`;
+  return html;
+}
+function fillRanking(box, max){
+  if(!box) return;
+  const reg = isRegisteredStudent();
+  const prof = reg ? getStudentProfile() : null;
+  const deg = prof && prof.degree ? prof.degree : null;
+  if(rankScope==="deg" && !deg) rankScope="all";
+  const tabs = deg ? `<div class="seg qz-rank-tabs" role="group" aria-label="Ámbito del ranking">
+      <button type="button" data-sc="all" aria-pressed="${rankScope==="all"}">Todos</button>
+      <button type="button" data-sc="deg" aria-pressed="${rankScope==="deg"}">${esc(shortDegree(deg))}</button></div>` : "";
+  const note = reg ? "" : `<p class="qz-rank-msg">Tus puntos se guardan en este navegador. Para entrar en el ranking, <button type="button" class="qz-link" id="qz-reg">regístrate en Acceso alumno</button>.</p>`;
+  box.innerHTML = `<div class="qz-rank-head"><span class="eyebrow">Ranking · mejores puntuaciones</span>${tabs}</div><div class="qz-rank-body"><p class="qz-rank-msg">Cargando…</p></div>${note}`;
+  box.querySelectorAll("[data-sc]").forEach(b=>b.onclick=()=>{ rankScope=b.dataset.sc; fillRanking(box,max); });
+  const rg = box.querySelector("#qz-reg"); if(rg) rg.onclick=()=>{ const b=$("#btn-student"); if(b) b.click(); };
+  const scope = rankScope;
+  /* window.__rankMock permite ver el ranking con datos de ejemplo al probar sin conexión */
+  (window.__rankMock ? Promise.resolve(window.__rankMock) : getRanking(scope==="deg"?deg:null)).then(res=>{ if(scope!==rankScope) return; const body=box.querySelector(".qz-rank-body"); if(body) body.innerHTML=rankTable(res,max); });
+}
+function renderRankCard(Q){
+  const tot=getQuizPoints();
+  Q.innerHTML=`<div class="quiz-top"><span class="eyebrow">Tu puntuación</span><span class="score">Tienes <b>${fmtPts(tot.points)}</b> puntos · ${tot.correct} aciertos de ${tot.answered}</span></div>
+  <p class="qz-rank-msg" style="margin:0">Cada acierto vale 100 puntos, y la racha suma 25 más por cada acierto seguido (hasta +100). Cada fallo resta 25.</p>
+  <div class="qz-rank" id="qz-rank"></div>
+  <div class="row"><button class="btn pri" id="qz-rank-back">${quiz && !quiz.done ? "Volver a la pregunta" : "Volver"}</button></div>`;
+  fillRanking($("#qz-rank"), 10);
+  $("#qz-rank-back").onclick=()=>{ quiz.showRank=false; renderQuiz(); };
+}
 function newQuiz(){
   if(window.metabolixIsSurveyBlocked && window.metabolixIsSurveyBlocked()){
-    renderQuiz();
+    quiz=null; renderQuiz();
     if(window.metabolixOpenSurvey) window.metabolixOpenSurvey(true);
     return;
   }
   const nodeQs = shuffle(BIOCHEM_QUESTIONS.filter(q => q.kind === "node"));
   const rxQs = shuffle(BIOCHEM_QUESTIONS.filter(q => q.kind === "rx"));
   const selected = shuffle(nodeQs.slice(0, 4).concat(rxQs.slice(0, 4)));
-  quiz={qs:selected,i:0,score:0,res:[],reveal:false,done:false,streak:0};
+  quiz={qs:selected,i:0,score:0,pts:0,lastPts:0,res:[],reveal:false,done:false,streak:0,showRank:false,bestSaved:false};
   focusPw=null; syncChips(); setBlock(null); closePanel(); animVB(fitBox()); renderQuiz();
 }
 function renderQuiz(){
-  const Q=$("#quiz"); if(!quiz){ Q.hidden=true; return; } Q.hidden=false;
-  if(window.metabolixIsSurveyBlocked && window.metabolixIsSurveyBlocked()){
+  const Q=$("#quiz");
+  const blocked = !!(window.metabolixIsSurveyBlocked && window.metabolixIsSurveyBlocked());
+  if(!quiz && !blocked){ Q.hidden=true; return; } Q.hidden=false;
+  if(quiz && quiz.showRank){ renderRankCard(Q); return; }
+  /* la encuesta se pide antes de empezar un reto nuevo, nunca a mitad ni tapando el resultado final */
+  if(blocked && (!quiz || (!quiz.done && quiz.i===0 && !quiz.reveal && !quiz.res.length))){
     Q.innerHTML=`<div class="quiz-top">
       <span class="eyebrow" style="color:var(--warn);font-weight:700">Encuesta requerida</span>
       <span class="score" style="color:var(--warn);font-weight:700">3 Retos completados</span>
@@ -2442,22 +2489,20 @@ function renderQuiz(){
     return;
   }
   if(quiz.done){ const pct=Math.round(quiz.score/quiz.qs.length*100);
-    Q.innerHTML=`<div class="quiz-top"><span class="eyebrow">Reto de bioquímica general</span></div>
+    if(!quiz.bestSaved){ recordQuizBest(quiz.pts); quiz.bestSaved=true; }
+    const tot=getQuizPoints();
+    Q.innerHTML=`<div class="quiz-top"><span class="eyebrow">Reto de bioquímica general</span><span class="score">${fmtPts(tot.points)} puntos en total</span></div>
     <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap">
       <span class="big-score">${quiz.score}<span style="font-size:24px;color:var(--fg-faint)">/${quiz.qs.length}</span></span>
-      <p style="margin:0;color:var(--fg-dim);max-width:44ch">
+      <div class="qz-pts-sum${quiz.pts<0?" neg":""}"><b>${quiz.pts>=0?"+":"−"}${fmtPts(Math.abs(quiz.pts))}</b> puntos en este reto${quiz.pts>0 && quiz.pts>=tot.best?` · <span class="qz-record">tu mejor reto</span>`:""}</div>
+      <p style="margin:0;color:var(--fg-dim);max-width:44ch;flex-basis:100%">
         ${pct>=80 ? "¡Excelente razonamiento metabólico! Dominas las consecuencias de bloqueos, acumulaciones y marcapasos." : pct>=50 ? "Buen nivel. Repasa en el mapa las encrucijadas y enzimas donde dudaste." : "Explora el mapa celular y las fichas de regulación antes de volver a intentarlo."}
       </p>
     </div>
-    <div class="row" style="margin-top:12px"><button class="btn pri" id="qz-again">Nuevo reto</button><button class="btn" id="qz-exit">Volver al mapa</button></div>`;
-    $("#qz-again").onclick=()=>{
-      if(window.metabolixIsSurveyBlocked && window.metabolixIsSurveyBlocked()){
-        renderQuiz();
-        if(window.metabolixOpenSurvey) window.metabolixOpenSurvey(true);
-        return;
-      }
-      newQuiz();
-    };
+    <div class="qz-rank" id="qz-rank"></div>
+    <div class="row" style="margin-top:4px"><button class="btn pri" id="qz-again">Nuevo reto</button><button class="btn" id="qz-exit">Volver al mapa</button></div>`;
+    fillRanking($("#qz-rank"), 5);
+    $("#qz-again").onclick=()=>newQuiz();
     $("#qz-exit").onclick=()=>go("mapa");
     return;
   }
@@ -2467,34 +2512,43 @@ function renderQuiz(){
   if(quiz.reveal){
     const name = q.kind==="rx"? RXM[q.id].enzymeName : MET[q.id].name;
     const expl = q.explanation ? `<div style="margin-top:5px;font-size:12.5px;color:var(--fg-dim);line-height:1.45">${esc(q.explanation)}</div>` : "";
-    fb=`<div class="fb">${quiz.lastOk?`<b class="ok">¡Correcto!</b> `:`<b class="ko">Respuesta correcta:</b> `}<b>${esc(name)}</b>.${expl}</div>
-    <div class="row" style="margin-top:8px"><button class="btn pri" id="qz-next">${quiz.i+1<quiz.qs.length?"Siguiente pregunta →":"Ver resultado final"}</button></div>`;
+    const verdict = quiz.lastOk
+      ? `<div class="qz-verdict ok"><b>¡Acierto!</b><span>+${quiz.lastPts} puntos${quiz.streak>1?` · racha de ${quiz.streak}`:""}</span></div>`
+      : `<div class="qz-verdict ko"><b>Fallo</b><span>${quiz.lastPick?`Has marcado ${esc(quiz.lastPick)}. `:""}−${Math.abs(quiz.lastPts)} puntos</span></div>`;
+    fb=`${verdict}<div class="fb">${quiz.lastOk?"":"Respuesta correcta: "}<b>${esc(name)}</b>.${expl}</div>
+    <div class="row" style="margin-top:8px"><button class="btn pri" id="qz-next">${quiz.i+1<quiz.qs.length?"Siguiente pregunta →":"Ver resultado final"}</button><button class="btn" id="qz-ficha">Ver ficha</button></div>`;
   }
   Q.innerHTML=`<div class="quiz-top">
     <span class="eyebrow">${esc(q.concept || "Bioquímica General")} · Pregunta ${quiz.i+1} de ${quiz.qs.length}</span>
     <span class="prog">${prog}</span>
-    <span class="score">${quiz.score} aciertos${quiz.streak>1?` · racha ${quiz.streak}`:""}</span>
+    <span class="score"><b>${fmtPts(quiz.pts)}</b> pts${quiz.streak>1?` · racha ${quiz.streak}`:""}</span>
+    <button class="qz-rank-btn" id="qz-rank-open" type="button">Ranking</button>
   </div>
   <q style="display:block;margin:6px 0 8px;font-size:16.5px;line-height:1.35;font-weight:700">${esc(q.prompt)}</q>
   ${fb}`;
+  const ro=$("#qz-rank-open"); if(ro) ro.onclick=()=>{ quiz.showRank=true; renderQuiz(); };
+  const fi=$("#qz-ficha"); if(fi) fi.onclick=()=>{ try{ q.kind==="rx"?openRx(q.id):openNode(q.id); }catch(e){ console.warn(e); } };
   const n=$("#qz-next"); if(n) n.onclick=()=>{
     quiz.reveal=false;
     quiz.i++;
-    if(quiz.i>=quiz.qs.length) quiz.done=true;
-    if(window.metabolixIsSurveyBlocked && window.metabolixIsSurveyBlocked()){
-      renderQuiz();
-      if(window.metabolixOpenSurvey) window.metabolixOpenSurvey(true);
-      return;
-    }
+    if(quiz.i>=quiz.qs.length){ quiz.done=true; try { incrementCompletedChallenges(); } catch(e){} }
     closePanel(); animVB(fitBox()); drawFx(); renderQuiz();
   };
 }
 function answer(kind,id){
   const q=quiz.qs[quiz.i]; const ok = kind===q.kind && id===q.id;
   quiz.lastOk=ok; quiz.res.push(ok); if(ok){quiz.score++;quiz.streak++;} else quiz.streak=0; quiz.reveal=true;
-  if(q.kind==="rx"){ openRx(q.id); const E=EDGES.find(e=>e.r.id===q.id); if(E){ const pt=pointAt(E.g,E.g.len/2); focusXY(pt[0],pt[1],900); } }
-  else { openNode(q.id); if(L[q.id]){ const [x,y]=L[q.id]; focusXY(x,y,900); } }
-  drawFx(); renderQuiz(); toast(ok?"¡Acierto!":"Fallo: mira dónde estaba");
+  quiz.lastPts=pointsFor(ok,quiz.streak); quiz.pts+=quiz.lastPts;
+  try { quiz.lastPick = kind==="rx" ? (RXM[id]?.enzymeName || "") : (MET[id]?.name || ""); } catch(e){ quiz.lastPick=""; }
+  try { recordQuizPoints(quiz.lastPts, ok); } catch(e){ console.warn(e); }
+  /* primero el veredicto, para que nunca se pierda aunque falle algo después */
+  renderQuiz(); toast(ok?`¡Acierto! +${quiz.lastPts} puntos`:`Fallo: −${Math.abs(quiz.lastPts)} puntos`);
+  const wide = !window.matchMedia || matchMedia("(min-width: 861px)").matches;
+  try {
+    if(q.kind==="rx"){ if(wide) openRx(q.id); const E=EDGES.find(e=>e.r.id===q.id); if(E){ const pt=pointAt(E.g,E.g.len/2); focusXY(pt[0],pt[1],900); } }
+    else { if(wide) openNode(q.id); if(L[q.id]){ const [x,y]=L[q.id]; focusXY(x,y,900); } }
+  } catch(e){ console.warn("Reto: no se pudo abrir la ficha", e); }
+  try { drawFx(); } catch(e){}
   try {
     const selName = kind==="rx"? (RXM[id]?.enzymeName || id) : (MET[id]?.name || id);
     const tgtName = q.kind==="rx"? (RXM[q.id]?.enzymeName || q.id) : (MET[q.id]?.name || q.id);

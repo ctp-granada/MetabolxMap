@@ -805,5 +805,5 @@ export function setupGalactoseClinicalSuite(container, contextId, actions) {
   }
 
   // Initial render
-  updateView(defaultVariant);
+  updateView(root.dataset.activeVar || 'clasica');
 }
