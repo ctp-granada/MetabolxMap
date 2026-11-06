@@ -40,7 +40,7 @@ Proyecto de Innovación Docente PID 26-15 del Departamento de Bioquímica y Biol
 - *Tejidos*: rutas universales frente a especialización tisular.
 - *Ciclos*: ciclo de Cori, ciclo de la urea, cuerpos cetónicos, lanzaderas malato-aspartato y glicerol-3-P, β-oxidación frente a síntesis de palmitato.
 - *Balances*: ATP de cada sustrato, paso a paso.
-- *Reto*: preguntas de razonamiento que se responden tocando el mapa. Cada acierto vale 100 puntos y la racha suma 25 más por acierto seguido (hasta +100). Los puntos se acumulan y los alumnos registrados aparecen en un ranking, general o por titulación, que solo muestra nombre e inicial. Tras completar tres retos de 8 preguntas se pide la encuesta antes de empezar el siguiente.
+- *Reto*: preguntas de razonamiento que se responden tocando el mapa. Cada acierto vale 100 puntos y la racha suma 25 más por acierto seguido (hasta +100); cada fallo resta 25. Los puntos se acumulan y los alumnos registrados aparecen en un ranking, general o por titulación, que solo muestra nombre e inicial. Tras completar tres retos de 8 preguntas se pide la encuesta antes de empezar el siguiente.
 - *Flashcards*: oculta los nombres del mapa para repasar, con autoevaluación y estadísticas por ruta.
 - *Galactosemia*: el bloqueo de la GALT y la vía del galactitol en el cristalino.
 
@@ -99,7 +99,7 @@ src/
 
 Todo se guarda primero en el navegador (`localStorage`): retos, encuestas, visitas, resultados de las misiones y preferencias. El registro del alumno, las respuestas de los retos y las encuestas se envían además a Firestore (proyecto `metabolix-4ce49`), en las colecciones `student_sessions`, `quiz_responses` y `satisfaction_surveys`. La configuración está en `src/services/storageService.ts`; las variables `VITE_FIREBASE_*` de Vercel, si existen, tienen prioridad. Los puntos de los retos se guardan en la colección `ranking`, identificada por un resumen del correo, de modo que el ranking no expone correos.
 
-Reglas de Firestore recomendadas: los alumnos solo pueden escribir, salvo el ranking, que pueden leer y que solo admite sumar como mucho 200 puntos por respuesta.
+Reglas de Firestore recomendadas: los alumnos solo pueden escribir, salvo el ranking, que pueden leer y que solo admite cambios de entre −25 y +200 puntos por respuesta.
 
 ```
 rules_version = '2';
@@ -115,9 +115,9 @@ service cloud.firestore {
       }
       allow read: if true;
       allow create: if valid(request.resource.data)
-        && request.resource.data.points >= 0 && request.resource.data.points <= 200;
+        && request.resource.data.points >= -25 && request.resource.data.points <= 200;
       allow update: if valid(request.resource.data)
-        && request.resource.data.points >= resource.data.points
+        && request.resource.data.points >= resource.data.points - 25
         && request.resource.data.points <= resource.data.points + 200;
     }
     match /{document=**}             { allow read, write: if false; }

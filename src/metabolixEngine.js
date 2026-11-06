@@ -2412,7 +2412,7 @@ if(typeof window!=="undefined") window.__quizCheck=()=>BIOCHEM_QUESTIONS.map((q,
   const onMap = q.kind==="rx" ? EDGES.some(E=>E.r.id===q.id) : !!NODES[q.id];
   return {i, kind:q.kind, id:q.id, exists, onMap};
 }).filter(r=>!r.exists||!r.onMap);
-const fmtPts = n => Number(n||0).toLocaleString("es-ES");
+const fmtPts = n => { n=Number(n||0); return (n<0?"−":"")+Math.abs(n).toLocaleString("es-ES"); };
 const shortDegree = d => (d||"").replace(/^Grado en /,"");
 let rankScope = "all";
 function rankTable(res, max){
@@ -2443,7 +2443,7 @@ function fillRanking(box, max){
 function renderRankCard(Q){
   const tot=getQuizPoints();
   Q.innerHTML=`<div class="quiz-top"><span class="eyebrow">Tu puntuación</span><span class="score">Tienes <b>${fmtPts(tot.points)}</b> puntos · ${tot.correct} aciertos de ${tot.answered}</span></div>
-  <p class="qz-rank-msg" style="margin:0">Cada acierto vale 100 puntos, y la racha suma 25 más por cada acierto seguido (hasta +100).</p>
+  <p class="qz-rank-msg" style="margin:0">Cada acierto vale 100 puntos, y la racha suma 25 más por cada acierto seguido (hasta +100). Cada fallo resta 25.</p>
   <div class="qz-rank" id="qz-rank"></div>
   <div class="row"><button class="btn pri" id="qz-rank-back">${quiz && !quiz.done ? "Volver a la pregunta" : "Volver"}</button></div>`;
   fillRanking($("#qz-rank"), 10);
@@ -2494,7 +2494,7 @@ function renderQuiz(){
     Q.innerHTML=`<div class="quiz-top"><span class="eyebrow">Reto de bioquímica general</span><span class="score">${fmtPts(tot.points)} puntos en total</span></div>
     <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap">
       <span class="big-score">${quiz.score}<span style="font-size:24px;color:var(--fg-faint)">/${quiz.qs.length}</span></span>
-      <div class="qz-pts-sum"><b>+${fmtPts(quiz.pts)}</b> puntos en este reto${quiz.pts>0 && quiz.pts>=tot.best?` · <span class="qz-record">tu mejor reto</span>`:""}</div>
+      <div class="qz-pts-sum${quiz.pts<0?" neg":""}"><b>${quiz.pts>=0?"+":"−"}${fmtPts(Math.abs(quiz.pts))}</b> puntos en este reto${quiz.pts>0 && quiz.pts>=tot.best?` · <span class="qz-record">tu mejor reto</span>`:""}</div>
       <p style="margin:0;color:var(--fg-dim);max-width:44ch;flex-basis:100%">
         ${pct>=80 ? "¡Excelente razonamiento metabólico! Dominas las consecuencias de bloqueos, acumulaciones y marcapasos." : pct>=50 ? "Buen nivel. Repasa en el mapa las encrucijadas y enzimas donde dudaste." : "Explora el mapa celular y las fichas de regulación antes de volver a intentarlo."}
       </p>
@@ -2514,7 +2514,7 @@ function renderQuiz(){
     const expl = q.explanation ? `<div style="margin-top:5px;font-size:12.5px;color:var(--fg-dim);line-height:1.45">${esc(q.explanation)}</div>` : "";
     const verdict = quiz.lastOk
       ? `<div class="qz-verdict ok"><b>¡Acierto!</b><span>+${quiz.lastPts} puntos${quiz.streak>1?` · racha de ${quiz.streak}`:""}</span></div>`
-      : `<div class="qz-verdict ko"><b>Fallo</b><span>${quiz.lastPick?`Has marcado ${esc(quiz.lastPick)}. `:""}0 puntos</span></div>`;
+      : `<div class="qz-verdict ko"><b>Fallo</b><span>${quiz.lastPick?`Has marcado ${esc(quiz.lastPick)}. `:""}−${Math.abs(quiz.lastPts)} puntos</span></div>`;
     fb=`${verdict}<div class="fb">${quiz.lastOk?"":"Respuesta correcta: "}<b>${esc(name)}</b>.${expl}</div>
     <div class="row" style="margin-top:8px"><button class="btn pri" id="qz-next">${quiz.i+1<quiz.qs.length?"Siguiente pregunta →":"Ver resultado final"}</button><button class="btn" id="qz-ficha">Ver ficha</button></div>`;
   }
@@ -2542,7 +2542,7 @@ function answer(kind,id){
   try { quiz.lastPick = kind==="rx" ? (RXM[id]?.enzymeName || "") : (MET[id]?.name || ""); } catch(e){ quiz.lastPick=""; }
   try { recordQuizPoints(quiz.lastPts, ok); } catch(e){ console.warn(e); }
   /* primero el veredicto, para que nunca se pierda aunque falle algo después */
-  renderQuiz(); toast(ok?`¡Acierto! +${quiz.lastPts} puntos`:"Fallo: mira dónde estaba");
+  renderQuiz(); toast(ok?`¡Acierto! +${quiz.lastPts} puntos`:`Fallo: −${Math.abs(quiz.lastPts)} puntos`);
   const wide = !window.matchMedia || matchMedia("(min-width: 861px)").matches;
   try {
     if(q.kind==="rx"){ if(wide) openRx(q.id); const E=EDGES.find(e=>e.r.id===q.id); if(E){ const pt=pointAt(E.g,E.g.len/2); focusXY(pt[0],pt[1],900); } }

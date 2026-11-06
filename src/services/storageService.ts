@@ -531,6 +531,7 @@ export function exportAllDataAsJSON() {
 
 /* --- Puntos de los retos y ranking ---
  * Cada acierto da 100 puntos más un bonus de racha (25 por cada acierto seguido, hasta 100).
+ * Cada fallo resta 25 puntos (como el −0,25 de los exámenes tipo test).
  * El total se guarda en el navegador y, si el alumno está registrado, en Firestore
  * (colección "ranking"). El documento se identifica con un resumen SHA-256 del correo,
  * de modo que el ranking, que es público para los alumnos, no muestra correos. */
@@ -538,8 +539,9 @@ export interface QuizPoints { points: number; answered: number; correct: number;
 export interface RankingRow { id: string; name: string; degree: string | null; course: string | null; points: number; answered: number; correct: number; me: boolean; }
 
 export const POINTS_PER_HIT = 100;
+export const POINTS_PER_MISS = -25;
 export function pointsFor(isCorrect: boolean, streak: number): number {
-  if (!isCorrect) return 0;
+  if (!isCorrect) return POINTS_PER_MISS;
   return POINTS_PER_HIT + Math.min(100, 25 * Math.max(0, streak - 1));
 }
 
