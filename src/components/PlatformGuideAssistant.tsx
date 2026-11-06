@@ -16,7 +16,6 @@ import {
   Activity,
   Award,
   Zap,
-  HelpCircle,
   Map as MapIcon,
   Play,
   RotateCcw,
@@ -105,18 +104,8 @@ const GUIDE_STEPS: GuideStep[] = [
   },
   {
     step: 6,
-    viewId: "mapa",
-    kicker: "Paso 6 · Genética y cataratas",
-    title: "Patología molecular: Galactosemias y galactitol",
-    icon: <HelpCircle className="w-5 h-5 text-[var(--pw-mono)]" />,
-    content:
-      "Al pulsar sobre la vía de la galactosa o la enzima GALT, se analizan las implicaciones del déficit enzimático congénito: la acumulación de galactosa-1-P lesiona órganos diana y desvía el sustrato hacia la aldosa reductasa, sintetizando galactitol. Al ser impermeable y quedar atrapado en el cristalino, el galactitol retiene agua por ósmosis y precipita cataratas precoces.",
-    tips: "La suite clínica incluye las pautas dietéticas de exclusión estricta de lactosa y fórmulas de soja/elementales.",
-  },
-  {
-    step: 7,
     viewId: "reto",
-    kicker: "Paso 7 · autoevaluación y feedback",
+    kicker: "Paso 6 · Autoevaluación y feedback",
     title: "Modo reto de bioquímica general y encuesta",
     icon: <Award className="w-5 h-5 text-[var(--ok)]" />,
     content:
