@@ -111,6 +111,12 @@ export const METABOLIX_TEMPLATE = `<div class="app">
           <div><svg width="44" height="20"><rect x="8" y="2" width="28" height="16" rx="3" fill="none" stroke="var(--accent)"/><text x="22" y="14.5" font-size="11" font-weight="700" text-anchor="middle" fill="var(--accent)" font-family="Barlow Semi Condensed">D5</text></svg>Casilla: búscala en los bordes del mapa</div>
         </div>
       </div>
+      <div class="sec cite-box" id="cite-box">
+        <div class="eyebrow">Cómo citar Metabolix</div>
+        <p class="cite-ref" id="cite-ref">Torres de Pinedo, J. M., Martinez, S., Ortuno, F. M., &amp; Torres, C. (2026). <i>Metabolix: conduce por el metabolismo humano</i> (Version v1.0) [Computer software]. Zenodo. <a href="https://doi.org/10.5281/zenodo.23990015" target="_blank" rel="noopener">https://doi.org/10.5281/zenodo.23990015</a></p>
+        <p class="cite-org">Proyecto de Innovación Docente PID 26-15 · Departamento de Bioquímica y Biología Molecular III e Inmunología · Facultad de Medicina · Universidad de Granada</p>
+        <button type="button" class="btn cite-copy" id="cite-copy">Copiar cita</button>
+      </div>
     </aside>
 
     <main class="stage" id="stage">

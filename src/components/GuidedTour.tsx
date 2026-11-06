@@ -83,6 +83,11 @@ const STEPS: TourStep[] = [
     text: "Regístrate para guardar tu progreso y aparecer en el ranking.",
   },
   {
+    sel: "#cite-box", view: "mapa",
+    title: "Cómo citar Metabolix",
+    text: "Si usas Metabolix en un trabajo o en clase, aquí tienes la referencia lista para copiar.",
+  },
+  {
     sel: "#btn-guide",
     title: "Vuelve cuando quieras",
     text: "Este botón abre otra vez el recorrido. ¡Buen viaje por el metabolismo!",
@@ -180,9 +185,12 @@ export function GuidedTour({ isOpen, onClose, onNavigateToView }: Props) {
       else localStorage.removeItem(TOUR_HIDDEN_KEY);
     } catch { /* sin almacenamiento */ }
     setLayout(null);
-    // deja la página como estaba al empezar: arriba y con las pestañas al principio
-    try { window.scrollTo({ top: 0 }); const tabs = document.querySelector(".tabs"); if (tabs) tabs.scrollLeft = 0; } catch { /* nada */ }
-    onNavigateToView?.("mapa");
+    // al salir, el mapa directamente: entero, a la vista y con las pestañas al principio
+    try {
+      const tabs = document.querySelector(".tabs"); if (tabs) tabs.scrollLeft = 0;
+      const show = (window as any).metabolixShowMap;
+      if (typeof show === "function") show(); else onNavigateToView?.("mapa");
+    } catch { onNavigateToView?.("mapa"); }
     onClose();
   }, [dontShow, onClose, onNavigateToView]);
 

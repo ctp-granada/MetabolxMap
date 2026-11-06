@@ -3794,6 +3794,19 @@ function go(v){
 document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>go(b.dataset.view));
 window.addEventListener("hashchange",()=>go(location.hash.slice(1)));
 window.metabolixGo = (v) => go(v);
+{ const cb=$("#cite-copy"); if(cb) cb.onclick=()=>{
+    const txt=($("#cite-ref")?.textContent||"").trim();
+    const done=()=>{ cb.textContent="Copiada"; setTimeout(()=>cb.textContent="Copiar cita",1800); };
+    try { navigator.clipboard.writeText(txt).then(done, ()=>toast("No se pudo copiar: selecciona el texto")); } catch(e){ toast("No se pudo copiar: selecciona el texto"); }
+  }; }
+/* al salir del recorrido guiado: el mapa entero y a la vista, sin fichas abiertas */
+window.metabolixShowMap = () => {
+  go("mapa"); closePanel(); animVB(fitBox());
+  const f=document.querySelector(".map-frame");
+  /* en móvil el mapa queda debajo de los controles: se baja hasta él */
+  if(f && innerWidth<=860) requestAnimationFrame(()=>f.scrollIntoView({block:"start", behavior:"auto"}));
+  else window.scrollTo({top:0});
+};
 window.metabolixRefreshQuiz = () => { if(currentView === "reto") renderQuiz(); };
 window.metabolixNewQuiz = () => { newQuiz(); };
 
