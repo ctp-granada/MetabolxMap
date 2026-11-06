@@ -42,7 +42,6 @@ Proyecto de Innovación Docente PID 26-15 del Departamento de Bioquímica y Biol
 - *Balances*: ATP de cada sustrato, paso a paso.
 - *Reto*: preguntas de razonamiento que se responden tocando el mapa. Cada acierto vale 100 puntos y la racha suma 25 más por acierto seguido (hasta +100); cada fallo resta 25. Los puntos se acumulan y los alumnos registrados aparecen en un ranking, general o por titulación, que solo muestra nombre e inicial. Tras completar tres retos de 8 preguntas se pide la encuesta antes de empezar el siguiente.
 - *Flashcards*: oculta los nombres del mapa para repasar, con autoevaluación y estadísticas por ruta.
-- *Galactosemia*: el bloqueo de la GALT y la vía del galactitol en el cristalino.
 
 **Para el profesorado.** La encuesta de satisfacción (Likert 1–5, con titulación y curso) se exporta en CSV o JSON. Hay un registro opcional del alumno y un contador de visitas.
 
@@ -77,7 +76,6 @@ src/
 │                           Predecir primero, Misiones y Reto
 ├── metabolixTemplate.ts    Estructura HTML de la app (pestañas, paneles, mapa)
 ├── metabolixTissues.js     Perfiles de cada tejido
-├── metabolixGalactose.js   Vista de galactosemia
 ├── metabolixLipids.js      Vista de lípidos
 ├── index.css               Diseño: colores, tipografía y estilos del mapa
 ├── App.tsx, main.tsx       Arranque de React y modales

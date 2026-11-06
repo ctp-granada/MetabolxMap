@@ -1,5 +1,4 @@
 import { D } from "./metabolixData.js";
-import { isGalactoseEntity, renderGalactoseClinicalSuite, setupGalactoseClinicalSuite } from "./metabolixGalactose.js";
 import { isLipidEntity, renderLipidClinicalSuite, setupLipidClinicalSuite } from "./metabolixLipids.js";
 import { renderTissueSuite, setupTissueSuite, TISSUES_DATA, UNIVERSAL_PATHWAYS } from "./metabolixTissues.js";
 import { getFlashcardStats, recordFlashcardPractice, resetFlashcardStats, pointsFor, recordQuizPoints, recordQuizBest, getQuizPoints, getRanking, isRegisteredStudent, getStudentProfile, incrementCompletedChallenges } from "./services/storageService";
@@ -1966,7 +1965,6 @@ function openRx(id, fromDisease){
       }
     }
   }
-  if(isGalactoseEntity(id)) h += renderGalactoseClinicalSuite(id);
   if(isLipidEntity(id)) h += renderLipidClinicalSuite(id);
   pbody.innerHTML=h; pbody.scrollTop=0; panel.classList.add("open"); $(".body").classList.add("po");
   pbody.querySelectorAll("[data-node]").forEach(b=>b.onclick=()=>openNode(b.dataset.node));
@@ -1974,13 +1972,6 @@ function openRx(id, fromDisease){
   setupFlashcardInteractions(pbody);
   if(reg&&reg.kinetics) kinetics(reg.kinetics, c);
   if(!fromDisease && currentView!=="reto"){ const E=EDGES.find(e=>e.r.id===id); if(E && innerWidth>860){ /* sin zoom forzado al explorar */ } }
-  if(isGalactoseEntity(id)) {
-    setupGalactoseClinicalSuite(pbody, id, {
-      setBlock: bid => { setBlock(bid); apply(); },
-      focusGalactoseArea: () => focusXY(140, 238, 750),
-      toast
-    });
-  }
   if(isLipidEntity(id)) {
     setupLipidClinicalSuite(pbody, id, {
       setBlock: bid => { setBlock(bid); apply(); },
@@ -2103,20 +2094,12 @@ function openNode(id){
    ${PORTAL[id]?`<button class="btn" data-portal="${PORTAL[id]}">Ver en detalle: ${esc(MODM[PORTAL[id]].title)} →</button>`:""}
    ${ins.length?`<div class="blk"><h4>Se forma por</h4><div class="rxlist">${ins.map(r=>li(r,"←")).join("")}</div></div>`:""}
    ${outs.length?`<div class="blk"><h4>Se transforma en</h4><div class="rxlist">${outs.map(r=>li(r,"→")).join("")}</div></div>`:""}`;
-  if(isGalactoseEntity(id)) nh += renderGalactoseClinicalSuite(id);
   if(isLipidEntity(id)) nh += renderLipidClinicalSuite(id);
   pbody.innerHTML = nh;
   pbody.scrollTop=0; panel.classList.add("open"); $(".body").classList.add("po");
   pbody.querySelectorAll("[data-rx]").forEach(b=>b.onclick=()=>openRx(b.dataset.rx));
   pbody.querySelectorAll("[data-portal]").forEach(b=>b.onclick=()=>openModule(b.dataset.portal));
   setupFlashcardInteractions(pbody);
-  if(isGalactoseEntity(id)) {
-    setupGalactoseClinicalSuite(pbody, id, {
-      setBlock: bid => { setBlock(bid); apply(); },
-      focusGalactoseArea: () => focusXY(140, 238, 750),
-      toast
-    });
-  }
   if(isLipidEntity(id)) {
     setupLipidClinicalSuite(pbody, id, {
       setBlock: bid => { setBlock(bid); apply(); },
@@ -2535,8 +2518,22 @@ function renderQuiz(){
     closePanel(); animVB(fitBox()); drawFx(); renderQuiz();
   };
 }
+/* las proteínas de la cadena respiratoria están en el mapa dos veces: como nodo y como reacción.
+   Para el reto, tocar cualquiera de las dos es la misma respuesta. */
+const SAME_TARGET = [
+  ["node:complex_1","rx:rx_etc_c1"],
+  ["node:complex_2","rx:rx_etc_c2","rx:rx_sdh"],
+  ["node:complex_3","rx:rx_etc_c3"],
+  ["node:complex_4","rx:rx_etc_c4"],
+  ["node:atp_synthase","rx:rx_etc_c5"],
+];
+function sameTarget(kind,id,tk,tid){
+  if(kind===tk && id===tid) return true;
+  const a=`${kind}:${id}`, b=`${tk}:${tid}`;
+  return SAME_TARGET.some(g=>g.includes(a)&&g.includes(b));
+}
 function answer(kind,id){
-  const q=quiz.qs[quiz.i]; const ok = kind===q.kind && id===q.id;
+  const q=quiz.qs[quiz.i]; const ok = sameTarget(kind,id,q.kind,q.id);
   quiz.lastOk=ok; quiz.res.push(ok); if(ok){quiz.score++;quiz.streak++;} else quiz.streak=0; quiz.reveal=true;
   quiz.lastPts=pointsFor(ok,quiz.streak); quiz.pts+=quiz.lastPts;
   try { quiz.lastPick = kind==="rx" ? (RXM[id]?.enzymeName || "") : (MET[id]?.name || ""); } catch(e){ quiz.lastPick=""; }
