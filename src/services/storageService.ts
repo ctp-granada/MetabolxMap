@@ -67,7 +67,8 @@ const STORAGE_KEYS = {
   VISITS_SESSION: "metabolix_session_counted",
   SURVEYS: "metabolix_satisfaction_surveys",
   QUIZ_RESPONSES: "metabolix_quiz_responses",
-  CHALLENGES_COMPLETED: "metabolix_completed_challenges_count",
+  // retos completos (de 8 preguntas); la clave antigua contaba preguntas sueltas
+  CHALLENGES_COMPLETED: "metabolix_completed_quizzes",
   SURVEY_COMPLETED: "metabolix_survey_completed",
   FLASHCARD_STATS: "metabolix_flashcard_stats",
   QUIZ_POINTS: "metabolix_quiz_points",

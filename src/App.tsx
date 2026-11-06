@@ -10,13 +10,12 @@ import {
   recordAndGetVisits,
   getStudentProfile,
   saveQuizResponse,
-  incrementCompletedChallenges,
   isSurveyRequiredForQuiz,
   StudentProfile,
 } from './services/storageService';
 import { StudentAccessModal } from './components/StudentAccessModal';
 import { SatisfactionSurveyModal } from './components/SatisfactionSurveyModal';
-import { PlatformGuideAssistant } from './components/PlatformGuideAssistant';
+import { PlatformGuideAssistant, TOUR_HIDDEN_KEY } from './components/PlatformGuideAssistant';
 
 export default function App() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -68,10 +67,11 @@ export default function App() {
       setIsSurveyOpen(true);
     };
 
-    // Automatic onboarding tutorial on entry if not completed/dismissed yet
+    // El paseo por la app se abre siempre al entrar, salvo que el alumno marque «No volver a mostrar»
     let tourTimer: any = null;
-    const hasSeenTour = localStorage.getItem('metabolix_onboarding_tour_seen');
-    if (!hasSeenTour) {
+    let tourHidden = false;
+    try { tourHidden = localStorage.getItem(TOUR_HIDDEN_KEY) === 'true'; } catch {}
+    if (!tourHidden) {
       tourTimer = setTimeout(() => {
         setIsAutoTriggeredTour(true);
         setIsGuideOpen(true);
@@ -102,9 +102,6 @@ export default function App() {
       const d = e.detail;
       if (!d) return;
       const currentProfile = getStudentProfile();
-
-      // Record completed challenge
-      incrementCompletedChallenges();
 
       saveQuizResponse({
         studentName: currentProfile?.name || 'Estudiante no registrado',

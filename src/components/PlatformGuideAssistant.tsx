@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from "react";
+
 import {
   ArrowRight,
   ArrowLeft,
@@ -20,6 +21,9 @@ import {
   Play,
   RotateCcw,
 } from "lucide-react";
+
+/** Si vale "true", el paseo no se abre solo al entrar. Se puede volver a abrir desde «Guía». */
+export const TOUR_HIDDEN_KEY = "metabolix_tour_hidden";
 
 interface PlatformGuideAssistantProps {
   isOpen: boolean;
@@ -129,10 +133,12 @@ export const PlatformGuideAssistant: React.FC<PlatformGuideAssistantProps> = ({
 }) => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [mode, setMode] = useState<"tour" | "reference">("tour");
-  const [dontShowAgain, setDontShowAgain] = useState(true);
+  const [dontShowAgain, setDontShowAgain] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
+      // la casilla refleja lo que el alumno eligió la última vez
+      try { setDontShowAgain(localStorage.getItem(TOUR_HIDDEN_KEY) === "true"); } catch {}
       // If auto-triggered on entry, start at step 0 (welcome card)
       if (isAutoTriggered) {
         setCurrentStepIndex(0);
@@ -145,15 +151,10 @@ export const PlatformGuideAssistant: React.FC<PlatformGuideAssistantProps> = ({
   const currentStep = GUIDE_STEPS[currentStepIndex];
 
   const handleClose = () => {
-    if (dontShowAgain) {
-      try {
-        localStorage.setItem("metabolix_onboarding_tour_seen", "true");
-      } catch {}
-    } else {
-      try {
-        localStorage.removeItem("metabolix_onboarding_tour_seen");
-      } catch {}
-    }
+    try {
+      if (dontShowAgain) localStorage.setItem(TOUR_HIDDEN_KEY, "true");
+      else localStorage.removeItem(TOUR_HIDDEN_KEY);
+    } catch {}
     onClose();
   };
 
@@ -351,7 +352,7 @@ export const PlatformGuideAssistant: React.FC<PlatformGuideAssistantProps> = ({
               onChange={(e) => setDontShowAgain(e.target.checked)}
               className="rounded border-[var(--line)] text-[var(--accent)] focus:ring-0 cursor-pointer"
             />
-            <span>No mostrar al entrar</span>
+            <span>No volver a mostrar al entrar</span>
           </label>
 
           {mode === "tour" ? (

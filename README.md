@@ -19,6 +19,8 @@ Proyecto de Innovación Docente PID 26-15 del Departamento de Bioquímica y Biol
 
 **Estados fisiológicos.** Encima del mapa: postprandial, ayuno nocturno, ayuno prolongado, sprint, estrés oxidativo y sobrecarga de fructosa. Cada estado cambia las señales hormonales (insulina, glucagón, adrenalina, AMP/ATP, demanda de NADPH) y con ellas el flujo de todas las rutas. El selector de tejido muestra qué rutas tiene el hígado, el músculo, el corazón, el cerebro, el tejido adiposo, el eritrocito o el riñón.
 
+**Paseo por la app.** Se abre al entrar, salvo que el alumno marque «No volver a mostrar al entrar». Siempre se puede volver a abrir desde «Guía».
+
 **Predecir primero.** Con el interruptor «Predecir primero», al cambiar de estado el alumno marca antes cada proceso como activo, poco activo o apagado, y después lo comprueba con la explicación de cada caso. Con «Ver directamente», el mapa cambia al momento. La elección se recuerda.
 
 **Misiones.** El alumno lleva una molécula de un punto del mapa a otro eligiendo la carretera en cada cruce. Las carreteras se abren o se cortan según el estado fisiológico, los pasos irreversibles son de sentido único y los transportadores son fronteras. Un cuentakilómetros suma ATP, NADH y CO₂ por el camino.
@@ -38,7 +40,7 @@ Proyecto de Innovación Docente PID 26-15 del Departamento de Bioquímica y Biol
 - *Tejidos*: rutas universales frente a especialización tisular.
 - *Ciclos*: ciclo de Cori, ciclo de la urea, cuerpos cetónicos, lanzaderas malato-aspartato y glicerol-3-P, β-oxidación frente a síntesis de palmitato.
 - *Balances*: ATP de cada sustrato, paso a paso.
-- *Reto*: preguntas de razonamiento que se responden tocando el mapa. Cada acierto vale 100 puntos y la racha suma 25 más por acierto seguido (hasta +100). Los puntos se acumulan y los alumnos registrados aparecen en un ranking, general o por titulación, que solo muestra nombre e inicial. A partir de la tercera respuesta se pide la encuesta.
+- *Reto*: preguntas de razonamiento que se responden tocando el mapa. Cada acierto vale 100 puntos y la racha suma 25 más por acierto seguido (hasta +100). Los puntos se acumulan y los alumnos registrados aparecen en un ranking, general o por titulación, que solo muestra nombre e inicial. Tras completar tres retos de 8 preguntas se pide la encuesta antes de empezar el siguiente.
 - *Flashcards*: oculta los nombres del mapa para repasar, con autoevaluación y estadísticas por ruta.
 - *Galactosemia*: el bloqueo de la GALT y la vía del galactitol en el cristalino.
 

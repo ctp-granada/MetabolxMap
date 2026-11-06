@@ -2,7 +2,7 @@ import { D } from "./metabolixData.js";
 import { isGalactoseEntity, renderGalactoseClinicalSuite, setupGalactoseClinicalSuite } from "./metabolixGalactose.js";
 import { isLipidEntity, renderLipidClinicalSuite, setupLipidClinicalSuite } from "./metabolixLipids.js";
 import { renderTissueSuite, setupTissueSuite, TISSUES_DATA, UNIVERSAL_PATHWAYS } from "./metabolixTissues.js";
-import { getFlashcardStats, recordFlashcardPractice, resetFlashcardStats, pointsFor, recordQuizPoints, recordQuizBest, getQuizPoints, getRanking, isRegisteredStudent, getStudentProfile } from "./services/storageService";
+import { getFlashcardStats, recordFlashcardPractice, resetFlashcardStats, pointsFor, recordQuizPoints, recordQuizBest, getQuizPoints, getRanking, isRegisteredStudent, getStudentProfile, incrementCompletedChallenges } from "./services/storageService";
 
 export function initMetabolix() {
 
@@ -2451,7 +2451,7 @@ function renderRankCard(Q){
 }
 function newQuiz(){
   if(window.metabolixIsSurveyBlocked && window.metabolixIsSurveyBlocked()){
-    renderQuiz();
+    quiz=null; renderQuiz();
     if(window.metabolixOpenSurvey) window.metabolixOpenSurvey(true);
     return;
   }
@@ -2462,9 +2462,12 @@ function newQuiz(){
   focusPw=null; syncChips(); setBlock(null); closePanel(); animVB(fitBox()); renderQuiz();
 }
 function renderQuiz(){
-  const Q=$("#quiz"); if(!quiz){ Q.hidden=true; return; } Q.hidden=false;
-  if(quiz.showRank){ renderRankCard(Q); return; }
-  if(!(quiz.reveal && !quiz.done) && window.metabolixIsSurveyBlocked && window.metabolixIsSurveyBlocked()){
+  const Q=$("#quiz");
+  const blocked = !!(window.metabolixIsSurveyBlocked && window.metabolixIsSurveyBlocked());
+  if(!quiz && !blocked){ Q.hidden=true; return; } Q.hidden=false;
+  if(quiz && quiz.showRank){ renderRankCard(Q); return; }
+  /* la encuesta se pide antes de empezar un reto nuevo, nunca a mitad ni tapando el resultado final */
+  if(blocked && (!quiz || (!quiz.done && quiz.i===0 && !quiz.reveal && !quiz.res.length))){
     Q.innerHTML=`<div class="quiz-top">
       <span class="eyebrow" style="color:var(--warn);font-weight:700">Encuesta requerida</span>
       <span class="score" style="color:var(--warn);font-weight:700">3 Retos completados</span>
@@ -2499,14 +2502,7 @@ function renderQuiz(){
     <div class="qz-rank" id="qz-rank"></div>
     <div class="row" style="margin-top:4px"><button class="btn pri" id="qz-again">Nuevo reto</button><button class="btn" id="qz-exit">Volver al mapa</button></div>`;
     fillRanking($("#qz-rank"), 5);
-    $("#qz-again").onclick=()=>{
-      if(window.metabolixIsSurveyBlocked && window.metabolixIsSurveyBlocked()){
-        renderQuiz();
-        if(window.metabolixOpenSurvey) window.metabolixOpenSurvey(true);
-        return;
-      }
-      newQuiz();
-    };
+    $("#qz-again").onclick=()=>newQuiz();
     $("#qz-exit").onclick=()=>go("mapa");
     return;
   }
@@ -2535,12 +2531,7 @@ function renderQuiz(){
   const n=$("#qz-next"); if(n) n.onclick=()=>{
     quiz.reveal=false;
     quiz.i++;
-    if(quiz.i>=quiz.qs.length) quiz.done=true;
-    if(window.metabolixIsSurveyBlocked && window.metabolixIsSurveyBlocked()){
-      renderQuiz();
-      if(window.metabolixOpenSurvey) window.metabolixOpenSurvey(true);
-      return;
-    }
+    if(quiz.i>=quiz.qs.length){ quiz.done=true; try { incrementCompletedChallenges(); } catch(e){} }
     closePanel(); animVB(fitBox()); drawFx(); renderQuiz();
   };
 }
