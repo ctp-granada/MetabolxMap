@@ -56,7 +56,7 @@ Ocho preguntas de razonamiento que se responden tocando el mapa. Cada acierto va
 | Tejidos | Rutas universales frente a especialización tisular |
 | Ciclos | Cori, urea, cuerpos cetónicos, lanzaderas malato-aspartato y glicerol-3-P, β-oxidación frente a síntesis de palmitato |
 | Balances | ATP de cada sustrato, paso a paso |
-| Flashcards | Oculta los nombres del mapa para repasar, con estadísticas por ruta |
+| Flashcards | Oculta los nombres del mapa para repasar. El alumno indica si lo sabía; ve su porcentaje de acierto por ruta y cada tarjeta puntúa como el reto, una vez por sesión |
 
 ### Para el profesorado
 
@@ -113,7 +113,7 @@ src/
 
 ### Datos y privacidad
 
-Todo se guarda primero en el navegador (`localStorage`): retos, encuestas, visitas, resultados de las misiones y preferencias. El registro del alumno, las respuestas de los retos y las encuestas se envían además a Firestore (proyecto `metabolix-4ce49`), en las colecciones `student_sessions`, `quiz_responses` y `satisfaction_surveys`. La configuración está en `src/services/storageService.ts`; las variables `VITE_FIREBASE_*` de Vercel, si existen, tienen prioridad. Los puntos de los retos se guardan en la colección `ranking`, identificada por un resumen del correo, de modo que el ranking no expone correos. El contador de visitas es el documento `stats/visits`.
+Todo se guarda primero en el navegador (`localStorage`): retos, encuestas, visitas, resultados de las misiones y preferencias. El registro del alumno, las respuestas de los retos y las encuestas se envían además a Firestore (proyecto `metabolix-4ce49`), en las colecciones `student_sessions`, `quiz_responses`, `flashcard_responses` y `satisfaction_surveys`. La configuración está en `src/services/storageService.ts`; las variables `VITE_FIREBASE_*` de Vercel, si existen, tienen prioridad. Los puntos de los retos se guardan en la colección `ranking`, identificada por un resumen del correo, de modo que el ranking no expone correos. El contador de visitas es el documento `stats/visits`.
 
 Reglas de Firestore recomendadas: los alumnos solo pueden escribir, salvo el ranking, que pueden leer y que solo admite cambios de entre −25 y +200 puntos por respuesta.
 
@@ -123,6 +123,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
     match /quiz_responses/{id}       { allow create: if true; }
     match /satisfaction_surveys/{id} { allow create: if true; }
+    match /flashcard_responses/{id}  { allow create: if true; }
     match /student_sessions/{id}     { allow create, update: if true; }
     match /ranking/{id} {
       function valid(d) {
