@@ -572,7 +572,7 @@ function renderLipidSVG(sc) {
 
     <!-- Flecha Citrato -> Acetil-CoA cit (ACLY) -->
     <path d="M 135 99 L 165 99" fill="none" stroke="#94a3b8" stroke-width="2" marker-end="url(#arr-green)"/>
-    <text x="150" y="88" font-family="Instrument Sans, sans-serif" font-size="8.5" font-weight="600" fill="#059669" text-anchor="middle">ACLY</text>
+    <text x="150" y="88" font-family="Instrument Sans, sans-serif" font-size="8.5" font-weight="600" fill="#059669" text-anchor="middle">Citrato liasa</text>
 
     <!-- Nodo Acetil-CoA Citosólica -->
     <g class="lipid-svg-node" transform="translate(170, 80)">
@@ -585,7 +585,7 @@ function renderLipidSVG(sc) {
     <path d="M 280 99 L 325 99" fill="none" stroke="${accColor}" stroke-width="${isSintesis ? '3' : '1.8'}" marker-end="url(#arr-green)"/>
     <g transform="translate(282, 60)">
       <rect width="42" height="18" rx="4" fill="${isSintesis ? '#dcfce7' : '#f1f5f9'}" stroke="${accColor}" stroke-width="1"/>
-      <text x="21" y="12" font-family="Instrument Sans, sans-serif" font-size="9" font-weight="700" fill="${isSintesis ? '#15803d' : '#64748b'}" text-anchor="middle">ACC1</text>
+      <text x="21" y="12" font-family="Instrument Sans, sans-serif" font-size="9" font-weight="700" fill="${isSintesis ? '#15803d' : '#64748b'}" text-anchor="middle">ACC</text>
     </g>
     <text x="303" y="120" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#64748b" text-anchor="middle">+ HCO₃⁻ + ATP</text>
     <text x="303" y="130" font-family="Instrument Sans, sans-serif" font-size="7.5" fill="${isSintesis ? '#16a34a' : '#94a3b8'}" text-anchor="middle">${isSintesis ? 'Insulina: PP2A' : 'AMPK: Fosforilada'}</text>
@@ -621,7 +621,7 @@ function renderLipidSVG(sc) {
 
     <!-- Flecha Palmitato -> Palmitoil-CoA (ACSL) -->
     <path d="M 397 324 L 397 365" fill="none" stroke="#94a3b8" stroke-width="2" marker-end="url(#arr-green)"/>
-    <text x="350" y="348" font-family="Instrument Sans, sans-serif" font-size="8.5" font-weight="600" fill="#475569" text-anchor="end">ACSL (ATP → AMP + PPi)</text>
+    <text x="350" y="348" font-family="Instrument Sans, sans-serif" font-size="8.5" font-weight="600" fill="#475569" text-anchor="end">Acil-CoA sintetasa (ATP → AMP + PPi)</text>
 
     <!-- Nodo Palmitoil-CoA citosólico -->
     <g class="lipid-svg-node" transform="translate(320, 370)">
@@ -652,7 +652,7 @@ function renderLipidSVG(sc) {
     <!-- Translocador CACT en IMM -->
     <g transform="translate(506, 210)">
       <rect width="92" height="42" rx="6" fill="${isCPT2 ? '#fef3c7' : '#f8fafc'}" stroke="${cactColor}" stroke-width="1.5"/>
-      <text x="46" y="18" font-family="Instrument Sans, sans-serif" font-size="10" font-weight="700" fill="#334155" text-anchor="middle">CACT (IMM)</text>
+      <text x="46" y="18" font-family="Instrument Sans, sans-serif" font-size="10" font-weight="700" fill="#334155" text-anchor="middle">Translocasa</text>
       <text x="46" y="32" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#64748b" text-anchor="middle">Antiporte carnitina</text>
     </g>
 
