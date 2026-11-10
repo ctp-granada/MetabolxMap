@@ -1606,7 +1606,6 @@ function renderRailFlashcardDeck() {
 
   const handleSelfRate = (isCorrect) => {
     const updated = recordFlashcardPractice(item.pwId, isCorrect, {id:`rx:${item.rxId}`, name:item.termEnzyme||item.rxId});
-    const pts = scoreFlashcard(`rx:${item.rxId}`, isCorrect);
     renderLearningStatsRail();
     if (btnRateOk) { btnRateOk.disabled = true; if (isCorrect) btnRateOk.classList.add("selected"); }
     if (btnRateKo) { btnRateKo.disabled = true; if (!isCorrect) btnRateKo.classList.add("selected"); }
@@ -1614,9 +1613,9 @@ function renderRailFlashcardDeck() {
       rateFeedback.style.display = "block";
       rateFeedback.style.background = isCorrect ? "color-mix(in srgb,var(--accent) 15%,transparent)" : "color-mix(in srgb,var(--warn) 15%,transparent)";
       rateFeedback.style.color = isCorrect ? "var(--accent)" : "var(--warn)";
-      rateFeedback.innerHTML = (isCorrect ? `✓ <b>Correcto.</b>` : `<b>Anotado para repaso.</b>`) + fcPtsText(pts) + ` Llevas un ${updated.pathway.accuracyRate} % de acierto en esta ruta.`;
+      rateFeedback.innerHTML = (isCorrect ? `✓ <b>Correcto.</b>` : `<b>Anotado para repaso.</b>`) + ` Llevas un ${updated.pathway.accuracyRate} % de acierto en esta ruta.`;
     }
-    toast(isCorrect ? `Acierto${pts!==null?`: +${pts} puntos`:""}` : `Anotado para repaso${pts!==null?`: −${Math.abs(pts)} puntos`:""}`);
+    toast(isCorrect ? "Acierto anotado en tus estadísticas." : "Anotado para repaso.");
   };
 
   if (btnRateOk) btnRateOk.onclick = () => handleSelfRate(true);
@@ -1760,7 +1759,6 @@ function setupFlashcardInteractions(container) {
       if (!pw) return;
       const cardId = evalBox.getAttribute("data-card") || "";
       const updated = recordFlashcardPractice(pw, isCorrect, {id:cardId, name:evalBox.getAttribute("data-card-name")||""});
-      const pts = scoreFlashcard(cardId, isCorrect);
       renderLearningStatsRail();
 
       if (btnOk) { btnOk.disabled = true; if (isCorrect) btnOk.classList.add("selected"); }
@@ -1771,10 +1769,10 @@ function setupFlashcardInteractions(container) {
         feedback.className = `fc-eval-feedback ${isCorrect ? "ok" : "ko"}`;
         const pwName = PW[pw]?.name || pw;
         feedback.innerHTML = isCorrect 
-          ? `✓ <b>Lo recordabas.</b>${fcPtsText(pts)} En ${esc(pwName)} llevas ${updated.pathway.correct} de ${updated.pathway.practiced} (${updated.pathway.accuracyRate} %).`
-          : `✕ <b>Anotado para repaso.</b>${fcPtsText(pts)} En ${esc(pwName)} llevas ${updated.pathway.correct} de ${updated.pathway.practiced} (${updated.pathway.accuracyRate} %).`;
+          ? `✓ <b>Lo recordabas.</b> En ${esc(pwName)} llevas ${updated.pathway.correct} de ${updated.pathway.practiced} (${updated.pathway.accuracyRate} %).`
+          : `✕ <b>Anotado para repaso.</b> En ${esc(pwName)} llevas ${updated.pathway.correct} de ${updated.pathway.practiced} (${updated.pathway.accuracyRate} %).`;
       }
-      toast(isCorrect ? `Acierto${pts!==null?`: +${pts} puntos`:""}` : `Anotado para repaso${pts!==null?`: −${Math.abs(pts)} puntos`:""}`);
+      toast(isCorrect ? "Acierto anotado en tus estadísticas." : "Anotado para repaso.");
     };
 
     if (btnOk) btnOk.onclick = (e) => { e.stopPropagation(); handleEval(true); };
@@ -1782,20 +1780,6 @@ function setupFlashcardInteractions(container) {
   }
 }
 
-/* Flashcards: puntúan igual que el reto (100 por acierto + racha, −25 por fallo).
-   Cada tarjeta puntúa una sola vez por sesión, para que repetir la misma no sume sin fin. */
-let fcStreak = 0;
-const fcScored = (()=>{ try { return new Set(JSON.parse(sessionStorage.getItem("metabolix_fc_scored")||"[]")); } catch(e){ return new Set(); } })();
-function scoreFlashcard(cardId, ok){
-  if(!cardId || fcScored.has(cardId)) return null;
-  fcScored.add(cardId);
-  try { sessionStorage.setItem("metabolix_fc_scored", JSON.stringify([...fcScored])); } catch(e){}
-  fcStreak = ok ? fcStreak+1 : 0;
-  const pts = pointsFor(ok, fcStreak);
-  try { recordQuizPoints(pts, ok); } catch(e){ console.warn(e); }
-  return pts;
-}
-const fcPtsText = pts => pts===null ? ` <span style="opacity:.75">(esta tarjeta ya puntuó en esta sesión)</span>` : ` <b>${pts>=0?"+":"−"}${Math.abs(pts)} puntos.</b>`;
 const panel=$("#panel"), pbody=$("#panel-body");
 $("#panel-close").onclick=()=>closePanel();
 function closePanel(){ panel.classList.remove("open"); $(".body").classList.remove("po"); currentPanelItem = null; }
@@ -2470,7 +2454,7 @@ function fillRanking(box, max){
 function renderRankCard(Q){
   const tot=getQuizPoints();
   Q.innerHTML=`<div class="quiz-top"><span class="eyebrow">Tu puntuación</span><span class="score">Tienes <b>${fmtPts(tot.points)}</b> puntos · ${tot.correct} aciertos de ${tot.answered}</span></div>
-  <p class="qz-rank-msg" style="margin:0">Cada acierto en el reto o en las flashcards vale 100 puntos, y la racha suma 25 más por cada acierto seguido (hasta +100). Cada fallo resta 25. Cada flashcard puntúa una vez por sesión.</p>
+  <p class="qz-rank-msg" style="margin:0">Cada acierto en el reto vale 100 puntos, y la racha suma 25 más por cada acierto seguido (hasta +100). Cada fallo resta 25.</p>
   <div class="qz-rank" id="qz-rank"></div>
   <div class="row"><button class="btn pri" id="qz-rank-back">${quiz && !quiz.done ? "Volver a la pregunta" : "Volver"}</button></div>`;
   fillRanking($("#qz-rank"), 10);

@@ -56,7 +56,7 @@ Ocho preguntas de razonamiento que se responden tocando el mapa. Cada acierto va
 | Tejidos | Rutas universales frente a especialización tisular |
 | Ciclos | Cori, urea, cuerpos cetónicos, lanzaderas malato-aspartato y glicerol-3-P, β-oxidación frente a síntesis de palmitato |
 | Balances | ATP de cada sustrato, paso a paso |
-| Flashcards | Oculta los nombres del mapa para repasar. El alumno indica si lo sabía; ve su porcentaje de acierto por ruta y cada tarjeta puntúa como el reto, una vez por sesión |
+| Flashcards | Oculta los nombres del mapa para repasar. El alumno indica si lo sabía y ve su porcentaje de acierto por ruta, que también queda registrado. No da puntos para el ranking |
 
 ### Para el profesorado
 
