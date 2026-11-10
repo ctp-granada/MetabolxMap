@@ -71,7 +71,7 @@ const STORAGE_KEYS = {
   // retos completos (de 8 preguntas); la clave antigua contaba preguntas sueltas
   CHALLENGES_COMPLETED: "metabolix_completed_quizzes",
   SURVEY_COMPLETED: "metabolix_survey_completed",
-  FLASHCARD_STATS: "metabolix_flashcard_stats",
+  FLASHCARD_STATS: "metabolix_flashcard_stats_v2",
   QUIZ_POINTS: "metabolix_quiz_points",
 };
 
@@ -90,76 +90,57 @@ export interface FlashcardStatsSummary {
   lastUpdated: string;
 }
 
-const DEFAULT_FLASHCARD_PRACTICE: Record<string, { practiced: number; correct: number }> = {
-  glycolysis: { practiced: 14, correct: 12 },        // 86%
-  krebs_cycle: { practiced: 11, correct: 9 },        // 82%
-  lipid_metabolism: { practiced: 9, correct: 6 },     // 67%
-  electron_transport: { practiced: 8, correct: 7 },   // 88%
-  gluconeogenesis: { practiced: 7, correct: 5 },      // 71%
-  pentose_phosphate: { practiced: 5, correct: 4 },    // 80%
-  glycogen_metabolism: { practiced: 4, correct: 3 },  // 75%
-  monosaccharide_entry: { practiced: 3, correct: 2 }, // 67%
-};
+/* Cada alumno empieza de cero: las estadísticas son solo las suyas.
+ * (La versión anterior traía 61 tarjetas de ejemplo con un 79 % de acierto; la clave nueva las ignora.) */
+const EMPTY_FLASHCARD_PRACTICE: Record<string, { practiced: number; correct: number }> = {};
 
 export function getFlashcardStats(): FlashcardStatsSummary {
+  let byPathway: Record<string, { practiced: number; correct: number }> = {};
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.FLASHCARD_STATS);
-    let byPathway: Record<string, { practiced: number; correct: number }>;
-    if (raw) {
-      byPathway = JSON.parse(raw);
-    } else {
-      byPathway = { ...DEFAULT_FLASHCARD_PRACTICE };
-      localStorage.setItem(STORAGE_KEYS.FLASHCARD_STATS, JSON.stringify(byPathway));
-    }
-
-    let totalPracticed = 0;
-    let totalCorrect = 0;
-    Object.values(byPathway).forEach(p => {
-      totalPracticed += p.practiced || 0;
-      totalCorrect += p.correct || 0;
-    });
-
-    const overallAccuracy = totalPracticed > 0 ? Math.round((totalCorrect / totalPracticed) * 100) : 0;
-
-    return {
-      byPathway,
-      totalPracticed,
-      totalCorrect,
-      overallAccuracy,
-      lastUpdated: new Date().toISOString(),
-    };
-  } catch (e) {
-    return {
-      byPathway: { ...DEFAULT_FLASHCARD_PRACTICE },
-      totalPracticed: 61,
-      totalCorrect: 48,
-      overallAccuracy: 79,
-      lastUpdated: new Date().toISOString(),
-    };
-  }
+    if (raw) byPathway = JSON.parse(raw) || {};
+  } catch { byPathway = {}; }
+  let totalPracticed = 0, totalCorrect = 0;
+  Object.values(byPathway).forEach(p => { totalPracticed += p.practiced || 0; totalCorrect += p.correct || 0; });
+  return {
+    byPathway,
+    totalPracticed,
+    totalCorrect,
+    overallAccuracy: totalPracticed > 0 ? Math.round((totalCorrect / totalPracticed) * 100) : 0,
+    lastUpdated: new Date().toISOString(),
+  };
 }
 
-export function recordFlashcardPractice(pathway: string, isCorrect: boolean): FlashcardStatsSummary {
-  try {
-    const current = getFlashcardStats();
-    const byPathway = { ...current.byPathway };
-    if (!byPathway[pathway]) {
-      byPathway[pathway] = { practiced: 0, correct: 0 };
-    }
-    byPathway[pathway].practiced += 1;
-    if (isCorrect) {
-      byPathway[pathway].correct += 1;
-    }
-    localStorage.setItem(STORAGE_KEYS.FLASHCARD_STATS, JSON.stringify(byPathway));
-    window.dispatchEvent(new CustomEvent("metabolix:flashcard_updated", { detail: { pathway, isCorrect } }));
-    return getFlashcardStats();
-  } catch (e) {
-    return getFlashcardStats();
+/** Anota una tarjeta en las estadísticas del alumno y, si hay conexión, en Firestore (flashcard_responses).
+ *  Devuelve el resumen total y el de la ruta de esa tarjeta. */
+export function recordFlashcardPractice(pathway: string, isCorrect: boolean, card?: { id: string; name: string }):
+  FlashcardStatsSummary & { pathway: { practiced: number; correct: number; accuracyRate: number } } {
+  const byPathway = { ...getFlashcardStats().byPathway };
+  const cur = byPathway[pathway] || { practiced: 0, correct: 0 };
+  byPathway[pathway] = { practiced: cur.practiced + 1, correct: cur.correct + (isCorrect ? 1 : 0) };
+  try { localStorage.setItem(STORAGE_KEYS.FLASHCARD_STATS, JSON.stringify(byPathway)); } catch { /* sin almacenamiento */ }
+  window.dispatchEvent(new CustomEvent("metabolix:flashcard_updated", { detail: { pathway, isCorrect } }));
+
+  const profile = getStudentProfile();
+  if (firestoreDb) {
+    addDoc(collection(firestoreDb, "flashcard_responses"), {
+      studentName: profile?.name || "Anónimo",
+      studentEmail: profile?.email || "Sin registro",
+      degree: profile?.degree || null,
+      course: profile?.course || null,
+      pathway,
+      cardId: card?.id || null,
+      cardName: card?.name || null,
+      isCorrect,
+      timestamp: serverTimestamp(),
+    }).catch((err: any) => console.warn("Firestore flashcard error:", err));
   }
+  const p = byPathway[pathway];
+  return { ...getFlashcardStats(), pathway: { ...p, accuracyRate: Math.round((p.correct / p.practiced) * 100) } };
 }
 
 export function resetFlashcardStats(): FlashcardStatsSummary {
-  localStorage.setItem(STORAGE_KEYS.FLASHCARD_STATS, JSON.stringify(DEFAULT_FLASHCARD_PRACTICE));
+  try { localStorage.setItem(STORAGE_KEYS.FLASHCARD_STATS, JSON.stringify(EMPTY_FLASHCARD_PRACTICE)); } catch { /* sin almacenamiento */ }
   window.dispatchEvent(new CustomEvent("metabolix:flashcard_updated", { detail: { reset: true } }));
   return getFlashcardStats();
 }
