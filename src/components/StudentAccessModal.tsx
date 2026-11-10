@@ -141,7 +141,7 @@ export const StudentAccessModal: React.FC<StudentAccessModalProps> = ({
           {savedSuccess && (
             <div className="p-3.5 rounded-[4px] bg-[var(--ok)]/15 border border-[var(--ok)]/40 text-[var(--ok)] flex items-center gap-2.5 text-sm font-medium">
               <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
-              <span>¡Perfil guardado correctamente! Vinculando datos de la sesión...</span>
+              <span>Perfil guardado. Vinculando datos de la sesión...</span>
             </div>
           )}
 

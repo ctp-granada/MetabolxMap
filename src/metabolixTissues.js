@@ -405,7 +405,7 @@ export const TISSUE_MATRIX_DATA = [
     heart: { status: "exclusive", note: "Máxima densidad. Mitocondrias ocupan el 40% del citoplasma." },
     adipose: { status: "active", note: "Tasa basal moderada para mantener funciones celulares." },
     brain: { status: "active", note: "Continua y masiva; consume el 20% del O₂ corporal en reposo." },
-    rbc: { status: "absent", note: "AL 100%. Carece de mitocondrias; no consume oxígeno." },
+    rbc: { status: "absent", note: "Al 100%. Carece de mitocondrias; no consume oxígeno." },
     kidney: { status: "active", note: "Muy alta para bombear iones en los túbulos renales." }
   },
   {

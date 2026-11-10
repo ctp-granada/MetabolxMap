@@ -90,7 +90,7 @@ const STEPS: TourStep[] = [
   {
     sel: "#btn-guide",
     title: "Vuelve cuando quieras",
-    text: "Este botón abre otra vez el recorrido. ¡Buen viaje por el metabolismo!",
+    text: "Este botón abre otra vez el recorrido.",
   },
 ];
 

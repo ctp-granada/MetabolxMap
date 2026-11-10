@@ -357,7 +357,7 @@ export const SatisfactionSurveyModal: React.FC<SatisfactionSurveyModalProps> = (
                 <CheckCircle2 className="w-8 h-8" />
               </div>
               <h3 className="text-xl font-bold font-[var(--f-display)] text-[var(--fg)]">
-                ¡Gracias por tu valoración, {studentName}!
+                Gracias por tu valoración, {studentName}.
               </h3>
               <p className="text-sm text-[var(--fg-dim)] max-w-md mx-auto leading-relaxed">
                 Tus respuestas se han registrado con éxito y contribuirán a la optimización docente de

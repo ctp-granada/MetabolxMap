@@ -1613,9 +1613,9 @@ function renderRailFlashcardDeck() {
       rateFeedback.style.display = "block";
       rateFeedback.style.background = isCorrect ? "color-mix(in srgb,var(--accent) 15%,transparent)" : "color-mix(in srgb,var(--warn) 15%,transparent)";
       rateFeedback.style.color = isCorrect ? "var(--accent)" : "var(--warn)";
-      rateFeedback.innerHTML = isCorrect ? `✓ <b>¡Correcto!</b> Guardado en estadísticas.` : `<b>Anotado</b> para reforzar repaso.`;
+      rateFeedback.innerHTML = isCorrect ? `✓ <b>Correcto.</b> Guardado en estadísticas.` : `<b>Anotado</b> para reforzar repaso.`;
     }
-    toast(isCorrect ? "¡Acierto registrado en tus estadísticas!" : "Guardado para repaso.");
+    toast(isCorrect ? "Acierto anotado en tus estadísticas." : "Guardado para repaso.");
   };
 
   if (btnRateOk) btnRateOk.onclick = () => handleSelfRate(true);
@@ -1694,7 +1694,7 @@ function toggleFlashcardMode(forceState) {
       // Abre de inmediato una ficha de alto impacto pedagógico en el mapa celular
       openNextFlashcard();
     }
-    toast("Modo Estudio Flashcard activado: Nombres ocultos. ¡Toca para revelar!");
+    toast("Modo Estudio Flashcard activado: Nombres ocultos. Toca para ver la respuesta");
   } else {
     if (currentPanelItem) {
       if (currentPanelItem.kind === "rx") openRx(currentPanelItem.id, currentPanelItem.fromDisease);
@@ -1768,10 +1768,10 @@ function setupFlashcardInteractions(container) {
         feedback.className = `fc-eval-feedback ${isCorrect ? "ok" : "ko"}`;
         const pwName = PW[pw]?.name || pw;
         feedback.innerHTML = isCorrect 
-          ? `✓ <b>¡Excelente retención!</b> Registrado en <b>${esc(pwName)}</b> (${updated.correct}/${updated.practiced} aciertos, ${updated.accuracyRate}%).`
+          ? `✓ <b>Lo recordabas.</b> Registrado en <b>${esc(pwName)}</b> (${updated.correct}/${updated.practiced} aciertos, ${updated.accuracyRate}%).`
           : `✕ <b>Anotado para repaso.</b> Registrado en <b>${esc(pwName)}</b> (${updated.correct}/${updated.practiced} aciertos, ${updated.accuracyRate}%).`;
       }
-      toast(isCorrect ? "¡Acierto registrado en tus estadísticas!" : "Guardado para repaso en tus estadísticas.");
+      toast(isCorrect ? "Acierto anotado en tus estadísticas." : "Guardado para repaso en tus estadísticas.");
     };
 
     if (btnOk) btnOk.onclick = (e) => { e.stopPropagation(); handleEval(true); };
@@ -2427,7 +2427,7 @@ const shortDegree = d => (d||"").replace(/^Grado en /,"");
 let rankScope = "all";
 function rankTable(res, max){
   if(!res) return `<p class="qz-rank-msg">El ranking no está disponible ahora mismo. Tus puntos se siguen guardando.</p>`;
-  if(!res.rows.length) return `<p class="qz-rank-msg">Todavía no hay nadie en este ranking. ¡Sé el primero!</p>`;
+  if(!res.rows.length) return `<p class="qz-rank-msg">Todavía no hay nadie en este ranking.</p>`;
   const rows = res.rows.slice(0,max);
   let html = `<ol class="qz-rank-list">${rows.map((r,i)=>`<li class="${r.me?"me":""}"><span class="pos">${i+1}</span><span class="nm">${esc(r.name)}${r.me?" (tú)":""}<small>${esc([shortDegree(r.degree), r.course].filter(Boolean).join(" · "))}</small></span><span class="pt">${fmtPts(r.points)}</span></li>`).join("")}</ol>`;
   if(res.myRow && !rows.some(r=>r.me)) html += `<p class="qz-rank-me">Tu posición: <b>${res.myRank ? res.myRank+"º" : "fuera del top"}</b> con ${fmtPts(res.myRow.points)} puntos.</p>`;
@@ -2484,7 +2484,7 @@ function renderQuiz(){
     </div>
     <div style="margin:14px 0 16px">
       <h3 style="font-family:var(--f-display);font-size:18px;font-weight:800;color:var(--fg);margin:0 0 6px">
-        ¡Has completado tus primeros 3 retos!
+        Has completado 3 retos.
       </h3>
       <p style="margin:0;font-size:13.5px;color:var(--fg-dim);line-height:1.5;max-width:48ch">
         Para poder continuar realizando más retos y acceder a nuevas preguntas de autoevaluación, es <b>obligatorio cumplimentar la Encuesta de Satisfacción (1 al 5)</b>.
@@ -2506,7 +2506,7 @@ function renderQuiz(){
       <span class="big-score">${quiz.score}<span style="font-size:24px;color:var(--fg-faint)">/${quiz.qs.length}</span></span>
       <div class="qz-pts-sum${quiz.pts<0?" neg":""}"><b>${quiz.pts>=0?"+":"−"}${fmtPts(Math.abs(quiz.pts))}</b> puntos en este reto${quiz.pts>0 && quiz.pts>=tot.best?` · <span class="qz-record">tu mejor reto</span>`:""}</div>
       <p style="margin:0;color:var(--fg-dim);max-width:44ch;flex-basis:100%">
-        ${pct>=80 ? "¡Excelente razonamiento metabólico! Dominas las consecuencias de bloqueos, acumulaciones y marcapasos." : pct>=50 ? "Buen nivel. Repasa en el mapa las encrucijadas y enzimas donde dudaste." : "Explora el mapa celular y las fichas de regulación antes de volver a intentarlo."}
+        ${pct>=80 ? "Has razonado bien qué pasa cuando se bloquea una enzima y dónde se controla cada ruta." : pct>=50 ? "Repasa en el mapa los cruces y las enzimas en los que has dudado." : "Explora el mapa celular y las fichas de regulación antes de volver a intentarlo."}
       </p>
     </div>
     <div class="qz-rank" id="qz-rank"></div>
@@ -2523,7 +2523,7 @@ function renderQuiz(){
     const name = q.kind==="rx"? RXM[q.id].enzymeName : MET[q.id].name;
     const expl = q.explanation ? `<div style="margin-top:5px;font-size:12.5px;color:var(--fg-dim);line-height:1.45">${esc(q.explanation)}</div>` : "";
     const verdict = quiz.lastOk
-      ? `<div class="qz-verdict ok"><b>¡Acierto!</b><span>+${quiz.lastPts} puntos${quiz.streak>1?` · racha de ${quiz.streak}`:""}</span></div>`
+      ? `<div class="qz-verdict ok"><b>Acierto</b><span>+${quiz.lastPts} puntos${quiz.streak>1?` · racha de ${quiz.streak}`:""}</span></div>`
       : `<div class="qz-verdict ko"><b>Fallo</b><span>${quiz.lastPick?`Has marcado ${esc(quiz.lastPick)}. `:""}−${Math.abs(quiz.lastPts)} puntos</span></div>`;
     fb=`${verdict}<div class="fb">${quiz.lastOk?"":"Respuesta correcta: "}<b>${esc(name)}</b>.${expl}</div>
     <div class="row" style="margin-top:8px"><button class="btn pri" id="qz-next">${quiz.i+1<quiz.qs.length?"Siguiente pregunta →":"Ver resultado final"}</button><button class="btn" id="qz-ficha">Ver ficha</button></div>`;
@@ -2566,7 +2566,7 @@ function answer(kind,id){
   try { quiz.lastPick = kind==="rx" ? (RXM[id]?.enzymeName || "") : (MET[id]?.name || ""); } catch(e){ quiz.lastPick=""; }
   try { recordQuizPoints(quiz.lastPts, ok); } catch(e){ console.warn(e); }
   /* primero el veredicto, para que nunca se pierda aunque falle algo después */
-  renderQuiz(); toast(ok?`¡Acierto! +${quiz.lastPts} puntos`:`Fallo: −${Math.abs(quiz.lastPts)} puntos`);
+  renderQuiz(); toast(ok?`Acierto: +${quiz.lastPts} puntos`:`Fallo: −${Math.abs(quiz.lastPts)} puntos`);
   const wide = !window.matchMedia || matchMedia("(min-width: 861px)").matches;
   try {
     if(q.kind==="rx"){ if(wide) openRx(q.id); const E=EDGES.find(e=>e.r.id===q.id); if(E){ const pt=pointAt(E.g,E.g.len/2); focusXY(pt[0],pt[1],900); } }
